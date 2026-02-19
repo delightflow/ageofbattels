@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Age of Battels - 배틀 시뮬레이터 v10</title>
+<title>Age of Battels - 배틀 시뮬레이터 v10.1</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -27,22 +27,52 @@ body {
   top: 10px;
   left: 10px;
   z-index: 100;
-  width: 40px;
-  height: 40px;
-  background: rgba(15, 52, 96, 0.9);
-  border: 1px solid #0f3460;
-  border-radius: 10px;
-  color: #eee;
-  font-size: 20px;
+  width: 44px;
+  height: 44px;
+  background: rgba(30, 80, 160, 0.95);
+  border: 2px solid #4a9eff;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 22px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s;
   backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
-#sidebar-toggle:hover { background: #0f3460; }
-#sidebar-toggle.open { left: 270px; }
+#sidebar-toggle:hover { background: rgba(40, 100, 200, 0.95); }
+#sidebar-toggle.open { display: none; }
+/* 사이드바 닫기 버튼 (사이드바 헤더 안) */
+#sidebar-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  background: rgba(200, 50, 50, 0.8);
+  border: 2px solid #ff6b6b;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  transition: background 0.2s;
+}
+#sidebar-close:hover { background: rgba(220, 60, 60, 1); }
+/* 사이드바 밖 오버레이 (터치하면 닫기) */
+#sidebar-overlay {
+  display: none;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 40;
+  background: rgba(0,0,0,0.3);
+}
+#sidebar-overlay.active { display: block; }
 
 /* 좌측 패널 */
 #sidebar {
@@ -343,9 +373,7 @@ canvas {
   #sidebar.hidden {
     margin-left: -240px;
   }
-  #sidebar-toggle.open {
-    left: 250px;
-  }
+  #sidebar-overlay.active { display: block; }
   #hud {
     font-size: 11px;
     padding: 4px 12px;
@@ -392,23 +420,23 @@ canvas {
 #ad-banner .ad-close:hover { color: #eee; }
 /* 광고 표시 시 UI 요소 위치 조정 (body.has-ad 클래스로 제어) */
 body.has-ad #sidebar-toggle { top: 60px !important; }
-body.has-ad #sidebar-toggle.open { top: 60px !important; }
 body.has-ad #hud { top: 55px !important; }
-body.has-ad #sidebar { top: 50px; height: calc(100vh - 50px); }
+body.has-ad #sidebar { top: 50px; height: calc(100vh - 50px); padding-top: 50px; }
 @media (max-width: 700px) {
   #ad-banner { height: 40px; }
   body.has-ad #sidebar-toggle { top: 50px !important; }
   body.has-ad #hud { top: 45px !important; }
-  body.has-ad #sidebar { top: 40px; height: calc(100vh - 40px); }
+  body.has-ad #sidebar { top: 40px; height: calc(100vh - 40px); padding-top: 0; }
 }
 </style>
 </head>
 <body>
 <div id="app">
   <button id="sidebar-toggle" class="open">☰</button>
+  <div id="sidebar-overlay" class="active"></div>
 
   <div id="sidebar">
-    <h2>⚔️ AGE OF BATTELS v10</h2>
+    <h2 style="position:relative">⚔️ AGE OF BATTELS v10.1 <button id="sidebar-close">✕</button></h2>
 
     <div id="sidebar-scroll">
       <div class="team-section team-red">
@@ -1793,12 +1821,15 @@ function toggleSidebar() {
   sidebarOpen = !sidebarOpen;
   const sidebar = document.getElementById('sidebar');
   const btn = document.getElementById('sidebar-toggle');
+  const overlay = document.getElementById('sidebar-overlay');
   if (sidebarOpen) {
     sidebar.classList.remove('hidden');
     btn.classList.add('open');
+    overlay.classList.add('active');
   } else {
     sidebar.classList.add('hidden');
     btn.classList.remove('open');
+    overlay.classList.remove('active');
   }
   setTimeout(resizeCanvas, 320);
 }
@@ -2042,6 +2073,8 @@ function setupEventListeners() {
   });
 
   document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
+  document.getElementById('sidebar-close').addEventListener('click', toggleSidebar);
+  document.getElementById('sidebar-overlay').addEventListener('click', toggleSidebar);
   document.getElementById('btn-battle').addEventListener('click', startBattle);
   document.getElementById('btn-clear').addEventListener('click', clearAll);
   document.getElementById('btn-random').addEventListener('click', randomPlace);
