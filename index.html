@@ -347,23 +347,23 @@ canvas {
   #result h1 { font-size: 36px; }
 }
 
-/* 광고 배너 */
+/* 광고 배너 - 상단 고정, 콘텐츠 안 가림 */
 #ad-banner {
   position: fixed;
-  bottom: 0;
+  top: 0;
   left: 0;
   right: 0;
-  height: 60px;
-  background: rgba(22, 33, 62, 0.95);
-  border-top: 1px solid #0f3460;
+  height: 50px;
+  background: rgba(22, 33, 62, 0.97);
+  border-bottom: 1px solid #0f3460;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 200;
+  z-index: 300;
   backdrop-filter: blur(4px);
   transition: transform 0.3s ease;
 }
-#ad-banner.hidden { transform: translateY(100%); }
+#ad-banner.hidden { transform: translateY(-100%); }
 #ad-banner .ad-content {
   color: #8899aa;
   font-size: 12px;
@@ -372,16 +372,26 @@ canvas {
 #ad-banner .ad-close {
   position: absolute;
   right: 10px;
-  top: 5px;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: #667;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 18px;
+  padding: 4px 8px;
 }
 #ad-banner .ad-close:hover { color: #eee; }
+/* 광고 표시 시 UI 요소 위치 조정 (body.has-ad 클래스로 제어) */
+body.has-ad #sidebar-toggle { top: 60px !important; }
+body.has-ad #sidebar-toggle.open { top: 60px !important; }
+body.has-ad #hud { top: 55px !important; }
+body.has-ad #sidebar { top: 50px; height: calc(100vh - 50px); }
 @media (max-width: 700px) {
-  #ad-banner { height: 50px; }
+  #ad-banner { height: 40px; }
+  body.has-ad #sidebar-toggle { top: 50px !important; }
+  body.has-ad #hud { top: 45px !important; }
+  body.has-ad #sidebar { top: 40px; height: calc(100vh - 40px); }
 }
 </style>
 </head>
@@ -2921,13 +2931,21 @@ window.addEventListener('load', init);
 
 <!-- 광고 배너 (Google AdSense 자리) -->
 <div id="ad-banner">
-  <button class="ad-close" onclick="document.getElementById('ad-banner').classList.add('hidden')">&times;</button>
+  <button class="ad-close" onclick="closeAdBanner()">&times;</button>
   <div class="ad-content">
     <!-- Google AdSense 코드를 여기에 삽입 -->
     <!-- <ins class="adsbygoogle" data-ad-client="ca-pub-XXXXXXXXXX" data-ad-slot="XXXXXXXXXX"></ins> -->
     <span style="color:#556;">Ad Space - 광고 영역</span>
   </div>
 </div>
+<script>
+function closeAdBanner() {
+  document.getElementById('ad-banner').classList.add('hidden');
+  document.body.classList.remove('has-ad');
+}
+// 광고 배너 보이면 body에 클래스 추가 (CSS로 UI 요소 위치 조정)
+document.body.classList.add('has-ad');
+</script>
 
 </body>
 </html>
