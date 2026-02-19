@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Battle Simulator - 배틀 시뮬레이터 v8</title>
+<title>Age of Battels - 배틀 시뮬레이터 v9</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -346,6 +346,43 @@ canvas {
   #hud .bar { width: 70px; }
   #result h1 { font-size: 36px; }
 }
+
+/* 광고 배너 */
+#ad-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: rgba(22, 33, 62, 0.95);
+  border-top: 1px solid #0f3460;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  backdrop-filter: blur(4px);
+  transition: transform 0.3s ease;
+}
+#ad-banner.hidden { transform: translateY(100%); }
+#ad-banner .ad-content {
+  color: #8899aa;
+  font-size: 12px;
+  text-align: center;
+}
+#ad-banner .ad-close {
+  position: absolute;
+  right: 10px;
+  top: 5px;
+  background: none;
+  border: none;
+  color: #667;
+  cursor: pointer;
+  font-size: 16px;
+}
+#ad-banner .ad-close:hover { color: #eee; }
+@media (max-width: 700px) {
+  #ad-banner { height: 50px; }
+}
 </style>
 </head>
 <body>
@@ -353,7 +390,7 @@ canvas {
   <button id="sidebar-toggle" class="open">☰</button>
 
   <div id="sidebar">
-    <h2>⚔️ BATTLE SIM v8</h2>
+    <h2>⚔️ AGE OF BATTELS v9</h2>
 
     <div class="team-section team-red">
       <h3>🔴 RED TEAM</h3>
@@ -1814,11 +1851,17 @@ function setupEventListeners() {
   canvas.addEventListener('contextmenu', e => e.preventDefault());
 
   // === 통합 마우스 이벤트: 좌/중/우 드래그=맵이동, 클릭=유닛배치 ===
+  // 개선된 클릭/드래그 구분: 거리 + 시간 기반 (10px + 250ms)
   let mouseDownPos = null;
   let mouseMoved = false;
+  let mouseDownTime = 0;
+  const MOUSE_DRAG_THRESHOLD = 10; // px - 이 이상 움직이면 확실히 드래그
+  const CLICK_TIME_LIMIT = 250; // ms - 이 시간 내 짧은 움직임은 클릭으로 인정
+  const CLICK_DIST_LIMIT = 15; // px - 짧은 시간 내 이 이내 움직임은 클릭
   canvas.addEventListener('mousedown', (e) => {
     mouseDownPos = { x: e.clientX, y: e.clientY };
     mouseMoved = false;
+    mouseDownTime = Date.now();
     isDragging = false;
     dragStart.x = e.clientX;
     dragStart.y = e.clientY;
@@ -1830,7 +1873,8 @@ function setupEventListeners() {
     if (!mouseDownPos) return;
     const dx = e.clientX - mouseDownPos.x;
     const dy = e.clientY - mouseDownPos.y;
-    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > MOUSE_DRAG_THRESHOLD) {
       mouseMoved = true;
       isDragging = true;
     }
@@ -1841,22 +1885,33 @@ function setupEventListeners() {
     }
   });
   window.addEventListener('mouseup', (e) => {
-    if (mouseDownPos && !mouseMoved) {
-      // 클릭 (드래그 안 함) → 유닛 배치
-      const rect = canvas.getBoundingClientRect();
-      const sx = e.clientX - rect.left;
-      const sy = e.clientY - rect.top;
-      const world = screenToWorld(sx, sy);
-      placeUnit(world.x, world.y);
+    if (mouseDownPos) {
+      const dx = e.clientX - mouseDownPos.x;
+      const dy = e.clientY - mouseDownPos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const elapsed = Date.now() - mouseDownTime;
+      // 클릭 판정: 거의 안 움직임 OR (짧게 눌렀고 약간만 움직임)
+      const isClick = !mouseMoved || (elapsed < CLICK_TIME_LIMIT && dist < CLICK_DIST_LIMIT);
+      if (isClick) {
+        const rect = canvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+        const world = screenToWorld(sx, sy);
+        placeUnit(world.x, world.y);
+      }
     }
     mouseDownPos = null;
     isDragging = false;
   });
 
   // === 통합 터치 이벤트: 1-finger 드래그=맵이동, 탭=유닛배치, 2-finger=핀치줌+팬 ===
+  // 개선된 탭/드래그 구분: 거리 + 시간 기반 (15px + 300ms)
   let touchStartPos = null;
   let touchMoved = false;
   let touchStartTime = 0;
+  const TOUCH_DRAG_THRESHOLD = 15; // px - 이 이상 움직이면 확실히 드래그
+  const TAP_TIME_LIMIT = 300; // ms - 이 시간 내 짧은 움직임은 탭으로 인정
+  const TAP_DIST_LIMIT = 20; // px - 짧은 시간 내 이 이내 움직임은 탭
   canvas.addEventListener('touchstart', (e) => {
     if (e.touches.length === 1) {
       const touch = e.touches[0];
@@ -1886,7 +1941,8 @@ function setupEventListeners() {
       const touch = e.touches[0];
       const dx = touch.clientX - touchStartPos.x;
       const dy = touch.clientY - touchStartPos.y;
-      if (Math.abs(dx) > 8 || Math.abs(dy) > 8) touchMoved = true;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > TOUCH_DRAG_THRESHOLD) touchMoved = true;
       if (touchMoved) {
         camera.x = camStart.x - (touch.clientX - dragStart.x) / camera.zoom;
         camera.y = camStart.y - (touch.clientY - dragStart.y) / camera.zoom;
@@ -1909,13 +1965,20 @@ function setupEventListeners() {
     }
   }, { passive: false });
   canvas.addEventListener('touchend', (e) => {
-    if (e.touches.length === 0 && touchStartPos && !touchMoved) {
-      // 탭 (드래그 안 함) → 유닛 배치
-      const rect = canvas.getBoundingClientRect();
-      const sx = touchStartPos.x - rect.left;
-      const sy = touchStartPos.y - rect.top;
-      const world = screenToWorld(sx, sy);
-      placeUnit(world.x, world.y);
+    if (e.touches.length === 0 && touchStartPos) {
+      const dx = touchStartPos.x - (e.changedTouches[0]?.clientX || touchStartPos.x);
+      const dy = touchStartPos.y - (e.changedTouches[0]?.clientY || touchStartPos.y);
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const elapsed = Date.now() - touchStartTime;
+      // 탭 판정: 거의 안 움직임 OR (짧게 터치했고 약간만 움직임)
+      const isTap = !touchMoved || (elapsed < TAP_TIME_LIMIT && dist < TAP_DIST_LIMIT);
+      if (isTap) {
+        const rect = canvas.getBoundingClientRect();
+        const sx = touchStartPos.x - rect.left;
+        const sy = touchStartPos.y - rect.top;
+        const world = screenToWorld(sx, sy);
+        placeUnit(world.x, world.y);
+      }
     }
     if (e.touches.length < 2) {
       pinchStartDist = 0;
@@ -2855,5 +2918,16 @@ function gameLoop(timestamp = 0) {
 
 window.addEventListener('load', init);
 </script>
+
+<!-- 광고 배너 (Google AdSense 자리) -->
+<div id="ad-banner">
+  <button class="ad-close" onclick="document.getElementById('ad-banner').classList.add('hidden')">&times;</button>
+  <div class="ad-content">
+    <!-- Google AdSense 코드를 여기에 삽입 -->
+    <!-- <ins class="adsbygoogle" data-ad-client="ca-pub-XXXXXXXXXX" data-ad-slot="XXXXXXXXXX"></ins> -->
+    <span style="color:#556;">Ad Space - 광고 영역</span>
+  </div>
+</div>
+
 </body>
 </html>
