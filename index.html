@@ -508,12 +508,12 @@ body.has-ad #sidebar { top: 50px; height: calc(100vh - 50px); padding-top: 50px;
 
     <div id="sidebar-scroll">
       <div class="team-section">
-        <h3>Placement Team</h3>
+        <h3 id="label-placement-team">Placement Team</h3>
         <div id="team-picker" style="display:flex;gap:6px;margin-bottom:8px;">
           <button id="pick-red" class="team-pick active" type="button">RED</button>
           <button id="pick-blue" class="team-pick" type="button">BLUE</button>
         </div>
-        <h3>Units</h3>
+        <h3 id="label-units">Units</h3>
         <div id="unit-list"></div>
       </div>
 
@@ -552,6 +552,13 @@ body.has-ad #sidebar { top: 50px; height: calc(100vh - 50px); padding-top: 50px;
         <input type="range" id="bgm-volume" min="0" max="0.5" step="0.05" value="0.15">
         <button id="btn-bgm" style="background:none;border:none;color:#eee;cursor:pointer;font-size:14px">🎵</button>
       </div>
+      <div class="speed-control">
+        <label id="label-language" for="lang-select">Language:</label>
+        <select id="lang-select" style="flex:1;min-width:0;background:#1d232f;border:1px solid rgba(255,255,255,0.15);color:#eaeef7;border-radius:6px;padding:4px 6px">
+          <option value="ko">&#54620;&#44397;&#50612;</option>
+          <option value="en">English</option>
+        </select>
+      </div>
       <button id="btn-random">🎲 랜덤 배치</button>
       <button id="matchup-btn">📋 상성표 보기</button>
       <button id="btn-battle" disabled>⚔️ 전투 시작!</button>
@@ -589,7 +596,7 @@ body.has-ad #sidebar { top: 50px; height: calc(100vh - 50px); padding-top: 50px;
 
 <!-- 상성표 패널 -->
 <div id="matchup-panel">
-  <h3>⚔️ AOE4 상성 체계 (18종 역사 유닛) v8</h3>
+  <h3 id="matchup-title">⚔️ AOE4 상성 체계 (18종 역사 유닛) v8</h3>
   <table id="matchup-table"></table>
   <button id="matchup-close">닫기</button>
 </div>
@@ -1364,6 +1371,56 @@ const MATCHUP = {
   towelephant:  { swordsman:1.3, spearman:1.8, shieldman:1.0, archer:1.3, crossbow:0.8, cavalry:0.6, knight:0.5, mangonel:1.0, monk:1.3, catapult:0.5, handcannoneer:1.0, horsearcher:0.6, pikeman:1.5, camelrider:0.6, ram:1.5, skirmisher:1.3, warelephant:0.8, towelephant:1.0 },
 };
 
+// Extra matchup rules for new units + cross-counters against legacy units.
+const EXTRA_MATCHUP = {
+  swordsman:    { manatarms: 0.9, longbow: 1.3, janissary: 1.2, scorpion: 1.4 },
+  spearman:     { manatarms: 0.9, longbow: 0.8, janissary: 0.9, scorpion: 1.0 },
+  shieldman:    { manatarms: 1.0, longbow: 1.4, janissary: 1.3, scorpion: 1.1 },
+  archer:       { manatarms: 0.7, longbow: 0.9, janissary: 0.9, scorpion: 0.5 },
+  crossbow:     { manatarms: 1.2, longbow: 1.0, janissary: 1.1, scorpion: 0.6 },
+  cavalry:      { manatarms: 0.9, longbow: 2.3, janissary: 2.2, scorpion: 2.3 },
+  knight:       { manatarms: 1.0, longbow: 2.1, janissary: 2.0, scorpion: 2.2 },
+  mangonel:     { manatarms: 1.8, longbow: 2.0, janissary: 1.8, scorpion: 0.9 },
+  monk:         { manatarms: 0.0, longbow: 0.0, janissary: 0.0, scorpion: 0.0 },
+  catapult:     { manatarms: 1.9, longbow: 2.0, janissary: 2.0, scorpion: 1.4 },
+  handcannoneer:{ manatarms: 1.6, longbow: 1.1, janissary: 1.0, scorpion: 0.8 },
+  horsearcher:  { manatarms: 0.7, longbow: 1.2, janissary: 0.9, scorpion: 0.6 },
+  pikeman:      { manatarms: 0.9, longbow: 0.7, janissary: 0.8, scorpion: 1.0 },
+  camelrider:   { manatarms: 1.0, longbow: 1.9, janissary: 1.8, scorpion: 1.7 },
+  ram:          { manatarms: 1.4, longbow: 2.0, janissary: 1.8, scorpion: 1.3 },
+  skirmisher:   { manatarms: 0.6, longbow: 2.0, janissary: 1.7, scorpion: 0.8 },
+  warelephant:  { manatarms: 1.4, longbow: 1.7, janissary: 1.6, scorpion: 1.6 },
+  towelephant:  { manatarms: 1.2, longbow: 1.4, janissary: 1.3, scorpion: 1.2 },
+  manatarms: {
+    swordsman: 1.2, spearman: 1.4, shieldman: 1.1, archer: 1.6, crossbow: 1.5, cavalry: 0.8, knight: 0.7,
+    mangonel: 1.4, monk: 1.3, catapult: 1.6, handcannoneer: 1.1, horsearcher: 1.0, pikeman: 1.3, camelrider: 0.9,
+    ram: 0.5, skirmisher: 1.7, warelephant: 0.6, towelephant: 0.8, manatarms: 1.0, longbow: 1.4, janissary: 1.2, scorpion: 1.1
+  },
+  longbow: {
+    swordsman: 1.1, spearman: 2.0, shieldman: 0.5, archer: 1.2, crossbow: 1.0, cavalry: 0.5, knight: 0.4,
+    mangonel: 0.7, monk: 1.3, catapult: 0.6, handcannoneer: 1.0, horsearcher: 0.8, pikeman: 1.8, camelrider: 0.5,
+    ram: 0.2, skirmisher: 0.8, warelephant: 0.5, towelephant: 0.7, manatarms: 1.0, longbow: 1.0, janissary: 1.1, scorpion: 0.7
+  },
+  janissary: {
+    swordsman: 1.6, spearman: 1.3, shieldman: 1.1, archer: 1.1, crossbow: 1.0, cavalry: 1.2, knight: 2.2,
+    mangonel: 1.1, monk: 1.4, catapult: 0.7, handcannoneer: 1.1, horsearcher: 1.4, pikeman: 1.2, camelrider: 1.1,
+    ram: 0.2, skirmisher: 0.7, warelephant: 2.0, towelephant: 1.2, manatarms: 1.6, longbow: 1.2, janissary: 1.0, scorpion: 1.0
+  },
+  scorpion: {
+    swordsman: 2.0, spearman: 2.0, shieldman: 1.8, archer: 1.6, crossbow: 1.6, cavalry: 0.7, knight: 0.6,
+    mangonel: 0.9, monk: 1.2, catapult: 0.8, handcannoneer: 1.7, horsearcher: 0.7, pikeman: 2.0, camelrider: 0.6,
+    ram: 0.3, skirmisher: 1.8, warelephant: 0.8, towelephant: 0.9, manatarms: 1.9, longbow: 1.6, janissary: 1.7, scorpion: 1.0
+  }
+};
+
+function getMatchupMultiplier(attackerId, defenderId) {
+  const extra = EXTRA_MATCHUP[attackerId]?.[defenderId];
+  if (typeof extra === 'number') return extra;
+  const base = MATCHUP[attackerId]?.[defenderId];
+  if (typeof base === 'number') return base;
+  return 1.0;
+}
+
 // ===== 유닛 타입 정의 (AOE 역사 유닛 v5 - 18종) =====
 const UNIT_TYPES = [
   {
@@ -1493,36 +1550,147 @@ const UNIT_TYPES = [
     type: 'ranged', armor: 'cavalry', splash: 35
   },
   {
-    id: 'manatarms', name: 'Man-at-Arms', icon: 'M',
+    id: 'manatarms', name: '\ub9e8\uc564\uc554\uc988', icon: '⚔',
     hp: 175, atk: 21, def: 14, speed: 1.5, range: 30, atkSpeed: 0.95,
     accuracy: 1.0,
-    size: 14, desc: 'Armored frontline infantry. Stable all-round melee unit.',
+    size: 14, desc: '\uac11\uc639 \ubcf4\ubcd1. \uc804\uc120\uc744 \ubc84\ud2f0\uba70 \uadfc\uc811\uc804\uc744 \uc9c0\uc18d\ud558\ub294 \uaddc\uade0\ud615 \uc720\ub2db.',
     type: 'melee', armor: 'infantry'
   },
   {
-    id: 'longbow', name: 'Longbow', icon: 'L',
+    id: 'longbow', name: '\ub871\ubcf4\uc6b0', icon: '🏹',
     hp: 72, atk: 16, def: 4, speed: 1.6, range: 240, atkSpeed: 1.25,
     accuracy: 0.84,
-    size: 10, desc: 'Very long range archer. Strong poke, weak against cavalry dives.',
+    size: 10, desc: '\ucd08\uc7a5\uac70\ub9ac \uad81\uc218. \uacac\uc81c\ub825\uc740 \ub192\uc9c0\ub9cc \uae30\ubcd1 \ub3cc\uc9c4\uc5d0 \uc57d\ud568.',
     type: 'ranged', armor: 'ranged'
   },
   {
-    id: 'janissary', name: 'Janissary', icon: 'J',
+    id: 'janissary', name: '\uc608\ub2c8\uccb4\ub9ac', icon: '🔫',
     hp: 82, atk: 36, def: 5, speed: 1.0, range: 145, atkSpeed: 2.3,
     accuracy: 0.78,
-    size: 11, desc: 'Heavy gunpowder infantry with high burst damage.',
+    size: 11, desc: '\uace0\ud654\ub825 \ud654\uc57d\ubcd1. \uc21c\uac04 \ud3ed\ub51c\uc740 \uac15\ud558\uc9c0\ub9cc \uc5f0\uc0ac\ub294 \ub2e4\uc18c \ub290\ub9bc.',
     type: 'ranged', armor: 'ranged'
   },
   {
-    id: 'scorpion', name: 'Scorpion', icon: 'S',
+    id: 'scorpion', name: '\uc2a4\ucf54\ud53c\uc628', icon: '🦂',
     hp: 95, atk: 26, def: 2, speed: 0.8, range: 190, atkSpeed: 2.4,
     accuracy: 0.72,
-    size: 15, desc: 'Bolt siege engine with line pressure and anti-infantry value.',
+    size: 15, desc: '\ubcfc\ud2b8 \uacf5\uc131\ubcd1\uae30. \ubcf4\ubcd1 \ub300\ud615\uc744 \uc555\ubc15\ud558\ub294 \uc9c1\uc120 \ud654\ub825.',
     type: 'siege', armor: 'siege'
   },
 ];
 
 // ===== 게임 상태 =====
+let currentLocale = 'ko';
+
+const UNIT_NAME_EN = {
+  swordsman: 'Swordsman',
+  spearman: 'Spearman',
+  shieldman: 'Shieldman',
+  archer: 'Archer',
+  crossbow: 'Crossbowman',
+  cavalry: 'Cavalry',
+  knight: 'Knight',
+  mangonel: 'Mangonel',
+  monk: 'Monk',
+  catapult: 'Catapult',
+  handcannoneer: 'Hand Cannoneer',
+  horsearcher: 'Horse Archer',
+  pikeman: 'Pikeman',
+  camelrider: 'Camel Rider',
+  ram: 'Battering Ram',
+  skirmisher: 'Skirmisher',
+  warelephant: 'War Elephant',
+  towelephant: 'Tower Elephant',
+  manatarms: 'Man-at-Arms',
+  longbow: 'Longbow',
+  janissary: 'Janissary',
+  scorpion: 'Scorpion'
+};
+
+const UNIT_DESC_EN = {
+  manatarms: 'Armored frontline infantry. Stable all-round melee unit.',
+  longbow: 'Very long range archer. Great poke, vulnerable to cavalry dives.',
+  janissary: 'Heavy gunpowder infantry with high burst damage.',
+  scorpion: 'Bolt siege engine with strong anti-infantry line pressure.'
+};
+
+const UI_TEXT = {
+  ko: {
+    placementTeam: '\ubc30\uce58 \ud300',
+    units: '\uc720\ub2db',
+    selectedUnit: '\uc120\ud0dd \uc720\ub2db',
+    none: '\uc5c6\uc74c',
+    team: '\ud300',
+    selectHint: '\uc720\ub2db\uc744 \uc120\ud0dd\ud558\uba74 \uc0c1\uc138 \ud2b9\uc131\uc744 \ud655\uc778\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.',
+    random: '\ud83c\udfb2 \ub79c\ub364 \ubc30\uce58',
+    matchup: '\ud83d\udccb \uc0c1\uc131\ud45c \ubcf4\uae30',
+    battle: '\u2694\ufe0f \uc804\ud22c \uc2dc\uc791!',
+    clear: '\ud83d\uddd1\ufe0f \ucd08\uae30\ud654',
+    matchupTitle: '\u2694\ufe0f AOE4 \uc0c1\uc131 \uccb4\uacc4 (22\uc885 \uc5ed\uc0ac \uc720\ub2db) v9',
+    language: '\uc5b8\uc5b4:'
+  },
+  en: {
+    placementTeam: 'Placement Team',
+    units: 'Units',
+    selectedUnit: 'Selected Unit',
+    none: 'None',
+    team: 'Team',
+    selectHint: 'Select a unit to see detailed traits.',
+    random: '🎲 Random Placement',
+    matchup: '📋 Show Matchups',
+    battle: '⚔️ Start Battle!',
+    clear: '🗑️ Clear',
+    matchupTitle: '⚔️ AOE4 Matchup System (22 historical units) v9',
+    language: 'Language:'
+  }
+};
+
+function getLocaleText(key) {
+  const dict = UI_TEXT[currentLocale] || UI_TEXT.en;
+  return dict[key] || key;
+}
+
+function getUnitName(unitType) {
+  if (!unitType) return '';
+  if (currentLocale === 'en') return UNIT_NAME_EN[unitType.id] || unitType.name;
+  return unitType.name;
+}
+
+function getUnitDesc(unitType) {
+  if (!unitType) return '';
+  if (currentLocale === 'en') return UNIT_DESC_EN[unitType.id] || unitType.desc || '';
+  return unitType.desc || '';
+}
+
+function applyLocale(locale) {
+  currentLocale = locale === 'en' ? 'en' : 'ko';
+  const placementEl = document.getElementById('label-placement-team');
+  const unitsEl = document.getElementById('label-units');
+  const detailTitleEl = document.getElementById('unit-detail-title');
+  const matchupTitleEl = document.getElementById('matchup-title');
+  const langLabelEl = document.getElementById('label-language');
+  const randomBtn = document.getElementById('btn-random');
+  const matchupBtn = document.getElementById('matchup-btn');
+  const battleBtn = document.getElementById('btn-battle');
+  const clearBtn = document.getElementById('btn-clear');
+  const langSelect = document.getElementById('lang-select');
+
+  if (placementEl) placementEl.textContent = getLocaleText('placementTeam');
+  if (unitsEl) unitsEl.textContent = getLocaleText('units');
+  if (detailTitleEl) detailTitleEl.textContent = getLocaleText('selectedUnit');
+  if (matchupTitleEl) matchupTitleEl.textContent = getLocaleText('matchupTitle');
+  if (langLabelEl) langLabelEl.textContent = getLocaleText('language');
+  if (randomBtn) randomBtn.textContent = getLocaleText('random');
+  if (matchupBtn) matchupBtn.textContent = getLocaleText('matchup');
+  if (battleBtn) battleBtn.textContent = getLocaleText('battle');
+  if (clearBtn) clearBtn.textContent = getLocaleText('clear');
+  if (langSelect && langSelect.value !== currentLocale) langSelect.value = currentLocale;
+
+  buildUnitButtons();
+  buildMatchupTable();
+  renderUnitDetailPanel(selectedUnit, selectedTeam);
+}
+
 let canvas, ctx;
 let minimapCanvas, minimapCtx;
 let units = [];
@@ -1953,6 +2121,57 @@ function drawUnitSprite(ctx, unit, x, y, size, teamColor, flash) {
       ctx.fillRect(-s*0.08, -s*0.45, s*0.16, s*0.2);
       break;
 
+    case 'manatarms': // Heavy armored infantry
+      ctx.fillStyle = flash ? '#dfe6f3' : '#7a8498';
+      ctx.fillRect(-s*0.34, -s*0.46, s*0.68, s*0.72);
+      ctx.fillStyle = c;
+      ctx.fillRect(-s*0.3, -s*0.42, s*0.6, s*0.18);
+      ctx.beginPath(); ctx.arc(0, -s*0.58, s*0.22, 0, Math.PI*2);
+      ctx.fillStyle = flash ? '#fff' : '#b8c0cf'; ctx.fill();
+      ctx.fillStyle = flash ? '#fff' : '#ffe0bd';
+      ctx.fillRect(-s*0.08, -s*0.55, s*0.16, s*0.1);
+      ctx.strokeStyle = flash ? '#fff' : '#c9c9c9'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(s*0.36, -s*0.24); ctx.lineTo(s*0.62, -s*0.72); ctx.stroke();
+      break;
+
+    case 'longbow': // Long-range archer
+      ctx.fillStyle = c;
+      ctx.fillRect(-s*0.24, -s*0.38, s*0.48, s*0.62);
+      ctx.beginPath(); ctx.arc(0, -s*0.53, s*0.19, 0, Math.PI*2);
+      ctx.fillStyle = flash ? '#fff' : '#ffe0bd'; ctx.fill();
+      ctx.strokeStyle = flash ? '#fff' : '#8b5a2b'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(s*0.38, -s*0.12, s*0.5, -Math.PI*0.6, Math.PI*0.6); ctx.stroke();
+      ctx.strokeStyle = flash ? '#fff' : '#d9d9d9'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(s*0.38, -s*0.62); ctx.lineTo(s*0.38, s*0.38); ctx.stroke();
+      break;
+
+    case 'janissary': // Gunpowder infantry
+      ctx.fillStyle = c;
+      ctx.fillRect(-s*0.26, -s*0.4, s*0.52, s*0.66);
+      ctx.fillStyle = flash ? '#fff' : '#f3d8b5';
+      ctx.beginPath(); ctx.arc(0, -s*0.55, s*0.2, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = flash ? '#fff' : '#2f3a4a';
+      ctx.fillRect(s*0.14, -s*0.33, s*0.58, s*0.13);
+      ctx.fillStyle = flash ? '#ddd' : '#96a3b7';
+      ctx.fillRect(s*0.66, -s*0.31, s*0.14, s*0.09);
+      ctx.fillStyle = flash ? '#fff' : '#c6a24a';
+      ctx.fillRect(s*0.08, -s*0.34, s*0.08, s*0.15);
+      break;
+
+    case 'scorpion': // Bolt siege engine
+      ctx.fillStyle = flash ? '#f0f0f0' : '#6c4b2e';
+      ctx.fillRect(-s*0.5, -s*0.12, s*1.0, s*0.34);
+      ctx.fillStyle = flash ? '#ccc' : '#4d4d4d';
+      ctx.beginPath(); ctx.arc(-s*0.35, s*0.3, s*0.14, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(s*0.35, s*0.3, s*0.14, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = flash ? '#fff' : '#8b6b46'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(-s*0.38, -s*0.2); ctx.lineTo(s*0.45, -s*0.2); ctx.stroke();
+      ctx.strokeStyle = flash ? '#fff' : '#d0d0d0'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(s*0.45, -s*0.2); ctx.lineTo(s*0.75, -s*0.3); ctx.stroke();
+      ctx.fillStyle = flash ? '#fff' : '#d0d0d0';
+      ctx.beginPath(); ctx.moveTo(s*0.76, -s*0.31); ctx.lineTo(s*0.68, -s*0.24); ctx.lineTo(s*0.7, -s*0.36); ctx.closePath(); ctx.fill();
+      break;
+
     default: // fallback circle + icon
       ctx.beginPath();
       ctx.arc(0, 0, s, 0, Math.PI*2);
@@ -1983,10 +2202,8 @@ function init() {
   clampCamera();
 
   generateTerrain(); // 초기 지형 생성
-  buildUnitButtons();
   setPlacementTeam('red');
-  renderUnitDetailPanel(null, null);
-  buildMatchupTable();
+  applyLocale(currentLocale);
   setupEventListeners();
   gameLoop();
 
@@ -2051,24 +2268,25 @@ function renderUnitDetailPanel(unitType, team) {
 
   if (!unitType) {
     iconEl.textContent = '-';
-    nameEl.textContent = 'None';
-    teamEl.textContent = 'Team: -';
+    nameEl.textContent = getLocaleText('none');
+    teamEl.textContent = `${getLocaleText('team')}: -`;
     statsEl.textContent = 'HP: - | ATK: - | DEF: - | SPD: - | RNG: -';
-    descEl.textContent = 'Select a unit to see detailed traits.';
+    descEl.textContent = getLocaleText('selectHint');
     return;
   }
 
   const accText = unitType.accuracy < 1.0 ? ` | ACC: ${Math.round(unitType.accuracy * 100)}%` : '';
   iconEl.textContent = unitType.icon || '*';
-  nameEl.textContent = `${unitType.name} (${getUnitRoleLabel(unitType)})`;
-  teamEl.textContent = `Team: ${team === 'red' ? 'RED' : 'BLUE'}`;
+  nameEl.textContent = `${getUnitName(unitType)} (${getUnitRoleLabel(unitType)})`;
+  teamEl.textContent = `${getLocaleText('team')}: ${team === 'red' ? 'RED' : 'BLUE'}`;
   statsEl.textContent = `HP: ${unitType.hp} | ATK: ${unitType.atk} | DEF: ${unitType.def} | SPD: ${unitType.speed} | RNG: ${unitType.range}${accText}`;
-  descEl.textContent = unitType.desc || 'No description.';
+  descEl.textContent = getUnitDesc(unitType) || 'No description.';
 }
 
 // ===== UI Build =====
 function buildUnitButtons() {
   const unitDiv = document.getElementById('unit-list');
+  unitDiv.innerHTML = '';
 
   UNIT_TYPES.forEach(ut => {
     const btn = document.createElement('button');
@@ -2079,7 +2297,7 @@ function buildUnitButtons() {
     btn.innerHTML = `
       <span class="icon">${ut.icon}</span>
       <div class="info">
-        <div class="name">${ut.name}</div>
+        <div class="name">${getUnitName(ut)}</div>
         <div class="meta">${roleText} | HP ${ut.hp} | ATK ${ut.atk}</div>
       </div>
     `;
@@ -2090,14 +2308,14 @@ function buildUnitButtons() {
 
 function buildMatchupTable() {
   const table = document.getElementById('matchup-table');
-  let html = '<tr><th>공격\\방어</th>';
+  let html = '<tr><th>ATK\\DEF</th>';
   UNIT_TYPES.forEach(u => { html += `<th>${u.icon}</th>`; });
   html += '</tr>';
 
   UNIT_TYPES.forEach(attacker => {
-    html += `<tr><th>${attacker.icon} ${attacker.name}</th>`;
+    html += `<tr><th>${attacker.icon} ${getUnitName(attacker)}</th>`;
     UNIT_TYPES.forEach(defender => {
-      const mul = MATCHUP[attacker.id]?.[defender.id] ?? 1.0;
+      const mul = getMatchupMultiplier(attacker.id, defender.id);
       let cls = 'bonus-normal';
       if (mul >= 1.8) cls = 'bonus-strong';
       else if (mul <= 0.6) cls = 'bonus-weak';
@@ -2293,6 +2511,10 @@ function setupEventListeners() {
   document.getElementById('btn-random').addEventListener('click', randomPlace);
   document.getElementById('pick-red').addEventListener('click', () => setPlacementTeam('red'));
   document.getElementById('pick-blue').addEventListener('click', () => setPlacementTeam('blue'));
+  const langSelect = document.getElementById('lang-select');
+  if (langSelect) {
+    langSelect.addEventListener('change', () => applyLocale(langSelect.value));
+  }
 
   document.getElementById('matchup-btn').addEventListener('click', () => {
     document.getElementById('matchup-panel').style.display = 'block';
@@ -2540,7 +2762,7 @@ function triggerRandomEvent() {
       const count = 2 + Math.floor(Math.random() * 2);
       const baseX = team === 'red' ? 100 + Math.random() * 300 : WORLD_WIDTH - 400 + Math.random() * 300;
       for (let i = 0; i < count; i++) {
-        const unitDef = UNIT_TYPES.find(u => u.name === '검병') || UNIT_TYPES[0];
+        const unitDef = UNIT_TYPES.find(u => u.id === 'swordsman') || UNIT_TYPES[0];
         const ux = baseX + (Math.random()-0.5)*100;
         const uy = 200 + Math.random() * (WORLD_HEIGHT - 400);
         spawnUnit(unitDef, team, ux, uy);
@@ -2802,11 +3024,8 @@ function updateHealer(unit, allAlive, dt) {
 
 function findTarget(unit, enemies) {
   // 상성 우선 타겟: 보너스가 1.8 이상인 적 우선
-  const matchups = MATCHUP[unit.id];
-  if (matchups) {
-    const bonusTargets = enemies.filter(e => (matchups[e.id] || 1.0) >= 1.8);
-    if (bonusTargets.length > 0) return closest(unit, bonusTargets);
-  }
+  const bonusTargets = enemies.filter(e => getMatchupMultiplier(unit.id, e.id) >= 1.8);
+  if (bonusTargets.length > 0) return closest(unit, bonusTargets);
   return closest(unit, enemies);
 }
 
@@ -2838,7 +3057,7 @@ function separateFromAllies(unit, allAlive, dt) {
 // ===== 공격 (상성 + 투사체 적중률) =====
 function attack(attacker, target, allAlive) {
   // AOE 상성 배율
-  const matchupMul = MATCHUP[attacker.id]?.[target.id] ?? 1.0;
+  const matchupMul = getMatchupMultiplier(attacker.id, target.id);
 
   const atkBuff = getBuffMultiplier(attacker, 'atkBoost');
   const comebackBuff = getBuffMultiplier(attacker, 'comeback');
@@ -3052,7 +3271,7 @@ function updateProjectiles(dt) {
         }
 
         // 적중 시 데미지 숫자
-        const matchupMul = MATCHUP[p.attacker.id]?.[p.target?.id] ?? 1.0;
+        const matchupMul = getMatchupMultiplier(p.attacker.id, p.target?.id);
         particles.push({
           x: p.tx, y: p.ty - (p.target ? p.target.size : 0),
           text: p.damage.toString(),
@@ -3518,3 +3737,4 @@ document.body.classList.add('has-ad');
 
 </body>
 </html>
+
