@@ -235,17 +235,53 @@ body {
 }
 #btn-battle:hover { transform: scale(1.02); }
 #btn-battle:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-#btn-clear {
+#btn-reset-placement {
   background: rgba(255,255,255,0.1);
   color: #ccc;
 }
-#btn-clear:hover { background: rgba(255,255,255,0.2); }
+#btn-reset-placement:hover { background: rgba(255,255,255,0.2); }
 #btn-random {
   background: rgba(78, 205, 196, 0.2);
   color: #4ecdc4;
 }
 #btn-random:hover { background: rgba(78, 205, 196, 0.3); }
-
+#btn-settings {
+  background: rgba(145, 170, 255, 0.2);
+  color: #c8d7ff;
+  font-size: 11px;
+}
+#btn-settings:hover { background: rgba(145, 170, 255, 0.32); }
+#settings-panel {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(145, 170, 255, 0.35);
+  background: rgba(10, 16, 30, 0.82);
+}
+#settings-panel.open { display: flex; }
+#settings-changelog {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255,255,255,0.12);
+}
+#settings-changelog-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #b9c9ff;
+  margin-bottom: 4px;
+}
+#settings-changelog-list {
+  margin: 0;
+  padding-left: 16px;
+  color: #cbd3e7;
+  font-size: 10px;
+  line-height: 1.35;
+  max-height: 88px;
+  overflow: auto;
+}
+#settings-changelog-list li { margin-bottom: 2px; }
 #team-count {
   text-align: center;
   font-size: 11px;
@@ -538,31 +574,38 @@ body.has-ad #sidebar { top: 50px; height: calc(100vh - 50px); padding-top: 50px;
 
     <div id="controls">
       <div class="speed-control">
-        <label>속도:</label>
+        <label id="label-speed">Speed:</label>
         <input type="range" id="speed" min="0.5" max="4" step="0.5" value="1">
         <span id="speed-label">1x</span>
       </div>
-      <div class="speed-control">
-        <label>소리:</label>
-        <input type="range" id="volume" min="0" max="1" step="0.1" value="0.3">
-        <button id="btn-sound" style="background:none;border:none;color:#eee;cursor:pointer;font-size:14px">🔊</button>
+      <button id="btn-settings" type="button">Settings</button>
+      <div id="settings-panel">
+        <div class="speed-control">
+          <label id="label-sound">Sound:</label>
+          <input type="range" id="volume" min="0" max="1" step="0.1" value="0.3">
+          <button id="btn-sound" style="background:none;border:none;color:#eee;cursor:pointer;font-size:14px">🔊</button>
+        </div>
+        <div class="speed-control">
+          <label id="label-bgm">BGM:</label>
+          <input type="range" id="bgm-volume" min="0" max="0.5" step="0.05" value="0.15">
+          <button id="btn-bgm" style="background:none;border:none;color:#eee;cursor:pointer;font-size:14px">🎵</button>
+        </div>
+        <div class="speed-control">
+          <label id="label-language" for="lang-select">Language:</label>
+          <select id="lang-select" style="flex:1;min-width:0;background:#1d232f;border:1px solid rgba(255,255,255,0.15);color:#eaeef7;border-radius:6px;padding:4px 6px">
+            <option value="ko">&#54620;&#44397;&#50612;</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+        <div id="settings-changelog">
+          <div id="settings-changelog-title">Recent Changes</div>
+          <ul id="settings-changelog-list"></ul>
+        </div>
       </div>
-      <div class="speed-control">
-        <label>BGM:</label>
-        <input type="range" id="bgm-volume" min="0" max="0.5" step="0.05" value="0.15">
-        <button id="btn-bgm" style="background:none;border:none;color:#eee;cursor:pointer;font-size:14px">🎵</button>
-      </div>
-      <div class="speed-control">
-        <label id="label-language" for="lang-select">Language:</label>
-        <select id="lang-select" style="flex:1;min-width:0;background:#1d232f;border:1px solid rgba(255,255,255,0.15);color:#eaeef7;border-radius:6px;padding:4px 6px">
-          <option value="ko">&#54620;&#44397;&#50612;</option>
-          <option value="en">English</option>
-        </select>
-      </div>
-      <button id="btn-random">🎲 랜덤 배치</button>
-      <button id="matchup-btn">📋 상성표 보기</button>
-      <button id="btn-battle" disabled>⚔️ 전투 시작!</button>
-      <button id="btn-clear">🗑️ 초기화</button>
+      <button id="btn-random">Random Placement</button>
+      <button id="matchup-btn">Show Matchups</button>
+      <button id="btn-battle" disabled>Start Battle</button>
+      <button id="btn-reset-placement">Reset Placement</button>
     </div>
   </div>
 
@@ -1616,18 +1659,23 @@ const UNIT_DESC_EN = {
 
 const UI_TEXT = {
   ko: {
-    placementTeam: '\ubc30\uce58 \ud300',
-    units: '\uc720\ub2db',
-    selectedUnit: '\uc120\ud0dd \uc720\ub2db',
-    none: '\uc5c6\uc74c',
-    team: '\ud300',
-    selectHint: '\uc720\ub2db\uc744 \uc120\ud0dd\ud558\uba74 \uc0c1\uc138 \ud2b9\uc131\uc744 \ud655\uc778\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.',
-    random: '\ud83c\udfb2 \ub79c\ub364 \ubc30\uce58',
-    matchup: '\ud83d\udccb \uc0c1\uc131\ud45c \ubcf4\uae30',
-    battle: '\u2694\ufe0f \uc804\ud22c \uc2dc\uc791!',
-    clear: '\ud83d\uddd1\ufe0f \ucd08\uae30\ud654',
-    matchupTitle: '\u2694\ufe0f AOE4 \uc0c1\uc131 \uccb4\uacc4 (22\uc885 \uc5ed\uc0ac \uc720\ub2db) v9',
-    language: '\uc5b8\uc5b4:'
+    placementTeam: '\uBC30\uCE58 \uD300',
+    units: '\uC720\uB2DB',
+    selectedUnit: '\uC120\uD0DD \uC720\uB2DB',
+    none: '\uC5C6\uC74C',
+    team: '\uD300',
+    selectHint: '\uC720\uB2DB\uC744 \uC120\uD0DD\uD558\uBA74 \uC0C1\uC138 \uD2B9\uC131\uC744 \uD655\uC778\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.',
+    speed: '\uC18D\uB3C4:',
+    settings: '\uC124\uC815',
+    sound: '\uC18C\uB9AC:',
+    bgm: 'BGM:',
+    language: '\uC5B8\uC5B4:',
+    recentChanges: '\uCD5C\uADFC \uBCC0\uACBD\uB85C\uADF8',
+    random: '\uD83C\uDFB2 \uB79C\uB364 \uBC30\uCE58',
+    matchup: '\uD83D\uDCCB \uC0C1\uC131\uD45C \uBCF4\uAE30',
+    battle: '\u2694\uFE0F \uC804\uD22C \uC2DC\uC791!',
+    resetPlacement: '\uD83D\uDD01 \uBC30\uCE58 \uCD08\uAE30\uD654',
+    matchupTitle: '\u2694\uFE0F AOE4 \uC0C1\uC131 \uCCB4\uACC4 (22\uC885 \uC5ED\uC0AC \uC720\uB2DB) v9'
   },
   en: {
     placementTeam: 'Placement Team',
@@ -1636,14 +1684,25 @@ const UI_TEXT = {
     none: 'None',
     team: 'Team',
     selectHint: 'Select a unit to see detailed traits.',
+    speed: 'Speed:',
+    settings: 'Settings',
+    sound: 'Sound:',
+    bgm: 'BGM:',
+    language: 'Language:',
+    recentChanges: 'Recent Changes',
     random: '🎲 Random Placement',
     matchup: '📋 Show Matchups',
     battle: '⚔️ Start Battle!',
-    clear: '🗑️ Clear',
-    matchupTitle: '⚔️ AOE4 Matchup System (22 historical units) v9',
-    language: 'Language:'
+    resetPlacement: '🔁 Reset Placement',
+    matchupTitle: '⚔️ AOE4 Matchup System (22 historical units) v9'
   }
 };
+
+const RECENT_CHANGELOG = [
+  "v14 (2026-02-20): Placement uses a single shared unit list after team selection.",
+  "v14 (2026-02-20): Manual placement can now occur anywhere on the map.",
+  "v13 (2026-02-20): Added 4 AOE-inspired unit types (manatarms, longbow, janissary, scorpion)."
+];
 
 function getLocaleText(key) {
   const dict = UI_TEXT[currentLocale] || UI_TEXT.en;
@@ -1668,23 +1727,42 @@ function applyLocale(locale) {
   const unitsEl = document.getElementById('label-units');
   const detailTitleEl = document.getElementById('unit-detail-title');
   const matchupTitleEl = document.getElementById('matchup-title');
+  const speedLabelEl = document.getElementById('label-speed');
+  const settingsBtn = document.getElementById('btn-settings');
+  const soundLabelEl = document.getElementById('label-sound');
+  const bgmLabelEl = document.getElementById('label-bgm');
   const langLabelEl = document.getElementById('label-language');
   const randomBtn = document.getElementById('btn-random');
   const matchupBtn = document.getElementById('matchup-btn');
   const battleBtn = document.getElementById('btn-battle');
-  const clearBtn = document.getElementById('btn-clear');
+  const resetPlacementBtn = document.getElementById('btn-reset-placement');
   const langSelect = document.getElementById('lang-select');
+  const changelogTitleEl = document.getElementById('settings-changelog-title');
+  const changelogListEl = document.getElementById('settings-changelog-list');
 
   if (placementEl) placementEl.textContent = getLocaleText('placementTeam');
   if (unitsEl) unitsEl.textContent = getLocaleText('units');
   if (detailTitleEl) detailTitleEl.textContent = getLocaleText('selectedUnit');
   if (matchupTitleEl) matchupTitleEl.textContent = getLocaleText('matchupTitle');
+  if (speedLabelEl) speedLabelEl.textContent = getLocaleText('speed');
+  if (settingsBtn) settingsBtn.textContent = getLocaleText('settings');
+  if (soundLabelEl) soundLabelEl.textContent = getLocaleText('sound');
+  if (bgmLabelEl) bgmLabelEl.textContent = getLocaleText('bgm');
   if (langLabelEl) langLabelEl.textContent = getLocaleText('language');
   if (randomBtn) randomBtn.textContent = getLocaleText('random');
   if (matchupBtn) matchupBtn.textContent = getLocaleText('matchup');
   if (battleBtn) battleBtn.textContent = getLocaleText('battle');
-  if (clearBtn) clearBtn.textContent = getLocaleText('clear');
+  if (resetPlacementBtn) resetPlacementBtn.textContent = getLocaleText('resetPlacement');
   if (langSelect && langSelect.value !== currentLocale) langSelect.value = currentLocale;
+  if (changelogTitleEl) changelogTitleEl.textContent = getLocaleText('recentChanges');
+  if (changelogListEl) {
+    changelogListEl.innerHTML = '';
+    for (const line of RECENT_CHANGELOG) {
+      const li = document.createElement('li');
+      li.textContent = line;
+      changelogListEl.appendChild(li);
+    }
+  }
 
   buildUnitButtons();
   buildMatchupTable();
@@ -2507,7 +2585,12 @@ function setupEventListeners() {
   document.getElementById('sidebar-close').addEventListener('click', toggleSidebar);
   document.getElementById('sidebar-overlay').addEventListener('click', toggleSidebar);
   document.getElementById('btn-battle').addEventListener('click', startBattle);
-  document.getElementById('btn-clear').addEventListener('click', clearAll);
+  document.getElementById('btn-reset-placement').addEventListener('click', clearAll);
+  document.getElementById('btn-settings').addEventListener('click', () => {
+    const panel = document.getElementById('settings-panel');
+    if (!panel) return;
+    panel.classList.toggle('open');
+  });
   document.getElementById('btn-random').addEventListener('click', randomPlace);
   document.getElementById('pick-red').addEventListener('click', () => setPlacementTeam('red'));
   document.getElementById('pick-blue').addEventListener('click', () => setPlacementTeam('blue'));
@@ -2534,11 +2617,11 @@ function setupEventListeners() {
   volSlider.addEventListener('input', () => {
     masterVolume = parseFloat(volSlider.value);
     soundEnabled = masterVolume > 0;
-    document.getElementById('btn-sound').textContent = soundEnabled ? '🔊' : '🔇';
+    document.getElementById('btn-sound').textContent = soundEnabled ? '\uD83D\uDD0A' : '\uD83D\uDD07';
   });
   document.getElementById('btn-sound').addEventListener('click', () => {
     soundEnabled = !soundEnabled;
-    document.getElementById('btn-sound').textContent = soundEnabled ? '🔊' : '🔇';
+    document.getElementById('btn-sound').textContent = soundEnabled ? '\uD83D\uDD0A' : '\uD83D\uDD07';
     if (!soundEnabled) { volSlider.value = 0; masterVolume = 0; stopBGM(); }
     else { volSlider.value = 0.3; masterVolume = 0.3; }
   });
@@ -2548,7 +2631,7 @@ function setupEventListeners() {
   bgmSlider.addEventListener('input', () => {
     bgmVolume = parseFloat(bgmSlider.value);
     bgmEnabled = bgmVolume > 0;
-    document.getElementById('btn-bgm').textContent = bgmEnabled ? '🎵' : '🔇';
+    document.getElementById('btn-bgm').textContent = bgmEnabled ? '\uD83C\uDFB5' : '\uD83D\uDD07';
     if (!bgmEnabled) stopBGM();
     // 실제 오디오 BGM 볼륨 동기화
     if (typeof bgmAudio !== 'undefined' && bgmAudio) {
@@ -2557,7 +2640,7 @@ function setupEventListeners() {
   });
   document.getElementById('btn-bgm').addEventListener('click', () => {
     bgmEnabled = !bgmEnabled;
-    document.getElementById('btn-bgm').textContent = bgmEnabled ? '🎵' : '🔇';
+    document.getElementById('btn-bgm').textContent = bgmEnabled ? '\uD83C\uDFB5' : '\uD83D\uDD07';
     if (!bgmEnabled) { bgmSlider.value = 0; bgmVolume = 0; stopBGM(); }
     else {
       bgmSlider.value = 0.15; bgmVolume = 0.15;
@@ -2629,7 +2712,7 @@ function clearAll() {
   document.getElementById('hud').style.display = 'none';
   document.getElementById('result').style.display = 'none';
   document.getElementById('instructions').style.display = 'block';
-  document.getElementById('btn-battle').textContent = '⚔️ 전투 시작!';
+  document.getElementById('btn-battle').textContent = getLocaleText('battle');
   document.getElementById('btn-battle').onclick = null;
   document.getElementById('btn-battle').addEventListener('click', startBattle);
   updateCounts();
