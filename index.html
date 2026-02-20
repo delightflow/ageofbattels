@@ -117,6 +117,22 @@ body {
 }
 .team-red h3 { color: #ff6b6b; }
 .team-blue h3 { color: #4ecdc4; }
+.team-pick {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+  color: #ddd;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.team-pick.active {
+  border-color: #f9a825;
+  background: rgba(249, 168, 37, 0.18);
+  color: #fff;
+}
 
 .unit-btn {
   display: flex;
@@ -491,15 +507,16 @@ body.has-ad #sidebar { top: 50px; height: calc(100vh - 50px); padding-top: 50px;
     <h2 style="position:relative">⚔️ AGE OF BATTELS v11 <button id="sidebar-close">✕</button></h2>
 
     <div id="sidebar-scroll">
-      <div class="team-section team-red">
-        <h3>🔴 RED TEAM</h3>
-        <div id="red-units"></div>
+      <div class="team-section">
+        <h3>Placement Team</h3>
+        <div id="team-picker" style="display:flex;gap:6px;margin-bottom:8px;">
+          <button id="pick-red" class="team-pick active" type="button">RED</button>
+          <button id="pick-blue" class="team-pick" type="button">BLUE</button>
+        </div>
+        <h3>Units</h3>
+        <div id="unit-list"></div>
       </div>
 
-      <div class="team-section team-blue">
-        <h3>🔵 BLUE TEAM</h3>
-        <div id="blue-units"></div>
-      </div>
 
       <div id="team-count">
         <span class="red-count" id="red-count">0</span> vs <span class="blue-count" id="blue-count">0</span>
@@ -565,7 +582,7 @@ body.has-ad #sidebar { top: 50px; height: calc(100vh - 50px); padding-top: 50px;
       <h1 id="result-text"></h1>
       <div class="sub" id="result-sub"></div>
     </div>
-    <div id="instructions">유닛 선택 → 맵 클릭 배치 (좌=RED, 우=BLUE) | 우클릭 드래그로 맵 이동 | 휠로 줌 | ☰ 사이드바 접기/펼기</div>
+    <div id="instructions">팀 선택 + 유닛 선택 → 맵 클릭 배치 | 우클릭 드래그로 맵 이동 | 휠로 줌 | ☰ 사이드바 접기/펼기</div>
     <canvas id="minimap" width="150" height="100"></canvas>
   </div>
 </div>
@@ -1514,7 +1531,7 @@ let projectiles = [];
 let particles = [];
 let missMarkers = [];
 let selectedUnit = null;
-let selectedTeam = null;
+let selectedTeam = 'red';
 let gameState = 'placing';
 let gameSpeed = 1;
 let battleTime = 0;
@@ -1967,6 +1984,7 @@ function init() {
 
   generateTerrain(); // 초기 지형 생성
   buildUnitButtons();
+  setPlacementTeam('red');
   renderUnitDetailPanel(null, null);
   buildMatchupTable();
   setupEventListeners();
@@ -2014,6 +2032,15 @@ function getUnitRoleLabel(unit) {
   return 'MEL';
 }
 
+function setPlacementTeam(team) {
+  selectedTeam = team === 'blue' ? 'blue' : 'red';
+  const redBtn = document.getElementById('pick-red');
+  const blueBtn = document.getElementById('pick-blue');
+  if (redBtn) redBtn.classList.toggle('active', selectedTeam === 'red');
+  if (blueBtn) blueBtn.classList.toggle('active', selectedTeam === 'blue');
+  if (selectedUnit) renderUnitDetailPanel(selectedUnit, selectedTeam);
+}
+
 function renderUnitDetailPanel(unitType, team) {
   const iconEl = document.getElementById('unit-detail-icon');
   const nameEl = document.getElementById('unit-detail-name');
@@ -2041,27 +2068,23 @@ function renderUnitDetailPanel(unitType, team) {
 
 // ===== UI Build =====
 function buildUnitButtons() {
-  const redDiv = document.getElementById('red-units');
-  const blueDiv = document.getElementById('blue-units');
+  const unitDiv = document.getElementById('unit-list');
 
   UNIT_TYPES.forEach(ut => {
-    ['red', 'blue'].forEach(team => {
-      const btn = document.createElement('button');
-      btn.className = 'unit-btn';
-      btn.dataset.unitId = ut.id;
-      btn.dataset.team = team;
-      const roleText = getUnitRoleLabel(ut);
+    const btn = document.createElement('button');
+    btn.className = 'unit-btn';
+    btn.dataset.unitId = ut.id;
+    const roleText = getUnitRoleLabel(ut);
 
-      btn.innerHTML = `
-        <span class="icon">${ut.icon}</span>
-        <div class="info">
-          <div class="name">${ut.name}</div>
-          <div class="meta">${roleText} | HP ${ut.hp} | ATK ${ut.atk}</div>
-        </div>
-      `;
-      btn.addEventListener('click', () => selectUnitType(ut, team, btn));
-      (team === 'red' ? redDiv : blueDiv).appendChild(btn);
-    });
+    btn.innerHTML = `
+      <span class="icon">${ut.icon}</span>
+      <div class="info">
+        <div class="name">${ut.name}</div>
+        <div class="meta">${roleText} | HP ${ut.hp} | ATK ${ut.atk}</div>
+      </div>
+    `;
+    btn.addEventListener('click', () => selectUnitType(ut, btn));
+    unitDiv.appendChild(btn);
   });
 }
 
@@ -2085,12 +2108,11 @@ function buildMatchupTable() {
   table.innerHTML = html;
 }
 
-function selectUnitType(unitType, team, btn) {
+function selectUnitType(unitType, btn) {
   document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
   selectedUnit = unitType;
-  selectedTeam = team;
-  renderUnitDetailPanel(unitType, team);
+  renderUnitDetailPanel(unitType, selectedTeam);
 }
 
 function setupEventListeners() {
@@ -2269,6 +2291,8 @@ function setupEventListeners() {
   document.getElementById('btn-battle').addEventListener('click', startBattle);
   document.getElementById('btn-clear').addEventListener('click', clearAll);
   document.getElementById('btn-random').addEventListener('click', randomPlace);
+  document.getElementById('pick-red').addEventListener('click', () => setPlacementTeam('red'));
+  document.getElementById('pick-blue').addEventListener('click', () => setPlacementTeam('blue'));
 
   document.getElementById('matchup-btn').addEventListener('click', () => {
     document.getElementById('matchup-panel').style.display = 'block';
@@ -2326,9 +2350,6 @@ function placeUnit(x, y) {
   if (gameState !== 'placing' || !selectedUnit) return;
   // Clamp to world bounds
   if (x < 0 || x > WORLD_WIDTH || y < 0 || y > WORLD_HEIGHT) return;
-  const midX = WORLD_WIDTH / 2;
-  if (selectedTeam === 'red' && x > midX) return;
-  if (selectedTeam === 'blue' && x < midX) return;
   spawnUnit(selectedUnit, selectedTeam, x, y);
   // 유닛 타입별 배치 사운드
   const placeSound = getPlaceSound(selectedUnit.id);

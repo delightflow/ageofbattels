@@ -1,3 +1,7 @@
+## v14 (2026-02-20)
+- Placement UX simplified: team is selected once via sidebar team picker, and units are selected from a single shared list.
+- Manual placement no longer enforces left/right map zones; deployment can occur anywhere on the map.
+
 ## v13 (2026-02-20)
 - Random deployment count doubled and moved into tunable settings (`RANDOM_PLACE_SETTINGS`: 46-54 per team).
 - Added 4 new AOE-inspired unit types: `manatarms`, `longbow`, `janissary`, `scorpion`.
