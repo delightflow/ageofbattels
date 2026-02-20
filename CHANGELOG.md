@@ -1,3 +1,8 @@
+## v13 (2026-02-20)
+- Random deployment count doubled and moved into tunable settings (`RANDOM_PLACE_SETTINGS`: 46-54 per team).
+- Added 4 new AOE-inspired unit types: `manatarms`, `longbow`, `janissary`, `scorpion`.
+- Sidebar unit list is now compact, and detailed stats/description moved to a bottom detail panel on selection.
+
 ﻿## v12 (2026-02-20)
 - Added Fury system: each kill grants temporary stack-based combat buffs (up to 3 stacks).
 - Added team Momentum: kill streaks increase temporary team damage pressure and are shown in HUD.

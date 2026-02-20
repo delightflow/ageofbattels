@@ -147,6 +147,52 @@ body {
 .unit-btn .name { font-weight: 700; font-size: 12px; }
 .unit-btn .stats { font-size: 9px; color: #999; margin-top: 1px; }
 .unit-btn .bonus { font-size: 9px; color: #f9a825; }
+.unit-btn .meta { font-size: 9px; color: #8fa7c8; margin-top: 1px; }
+
+#unit-detail-panel {
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(10, 14, 26, 0.7);
+}
+#unit-detail-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f9a825;
+  margin-bottom: 6px;
+}
+#unit-detail-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #f3f6ff;
+}
+#unit-detail-icon {
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+}
+#unit-detail-name {
+  font-size: 12px;
+  font-weight: 700;
+}
+#unit-detail-team {
+  font-size: 10px;
+  color: #8fa7c8;
+}
+#unit-detail-stats {
+  font-size: 10px;
+  color: #ccd6ea;
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+#unit-detail-desc {
+  font-size: 10px;
+  color: #9fb3d5;
+  line-height: 1.35;
+}
 
 /* 컨트롤 */
 #controls {
@@ -457,6 +503,19 @@ body.has-ad #sidebar { top: 50px; height: calc(100vh - 50px); padding-top: 50px;
 
       <div id="team-count">
         <span class="red-count" id="red-count">0</span> vs <span class="blue-count" id="blue-count">0</span>
+      </div>
+
+      <div id="unit-detail-panel">
+        <div id="unit-detail-title">Selected Unit</div>
+        <div id="unit-detail-main">
+          <span id="unit-detail-icon">-</span>
+          <div>
+            <div id="unit-detail-name">None</div>
+            <div id="unit-detail-team">Team: -</div>
+          </div>
+        </div>
+        <div id="unit-detail-stats">HP: - | ATK: - | DEF: - | SPD: - | RNG: -</div>
+        <div id="unit-detail-desc">Select a unit to see detailed traits.</div>
       </div>
     </div>
 
@@ -1069,11 +1128,11 @@ function playSoundThrottled(type, volume = 1.0, minInterval = 0.05) {
 
 // 유닛 타입별 사운드 매핑
 function getAttackSound(unitType) {
-  const meleeTypes = ['swordsman','shieldman','knight','camelrider','warelephant'];
+  const meleeTypes = ['swordsman','shieldman','knight','camelrider','warelephant','manatarms'];
   const spearTypes = ['spearman','pikeman'];
-  const archeryTypes = ['archer','crossbow','horsearcher','skirmisher','towelephant'];
-  const siegeTypes = ['mangonel','catapult'];
-  const cannonTypes = ['handcannoneer'];
+  const archeryTypes = ['archer','crossbow','horsearcher','skirmisher','towelephant','longbow'];
+  const siegeTypes = ['mangonel','catapult','scorpion'];
+  const cannonTypes = ['handcannoneer','janissary'];
   const ramTypes = ['ram'];
   if (meleeTypes.includes(unitType)) return 'sword';
   if (spearTypes.includes(unitType)) return 'spear';
@@ -1086,8 +1145,8 @@ function getAttackSound(unitType) {
 
 // 유닛별 배치 사운드
 function getPlaceSound(unitType) {
-  const infantryTypes = ['swordsman','spearman','shieldman','pikeman'];
-  const archerTypes = ['archer','crossbow','handcannoneer','horsearcher','skirmisher'];
+  const infantryTypes = ['swordsman','spearman','shieldman','pikeman','manatarms'];
+  const archerTypes = ['archer','crossbow','handcannoneer','horsearcher','skirmisher','longbow','janissary'];
   const cavalryTypes = ['cavalry','knight','camelrider'];
   const siegeTypes = ['mangonel','catapult','ram'];
   const elephantTypes = ['warelephant','towelephant'];
@@ -1416,6 +1475,34 @@ const UNIT_TYPES = [
     size: 26, desc: '코끼리 위 궁수탑, 범위공격, 창병에 약함',
     type: 'ranged', armor: 'cavalry', splash: 35
   },
+  {
+    id: 'manatarms', name: 'Man-at-Arms', icon: 'M',
+    hp: 175, atk: 21, def: 14, speed: 1.5, range: 30, atkSpeed: 0.95,
+    accuracy: 1.0,
+    size: 14, desc: 'Armored frontline infantry. Stable all-round melee unit.',
+    type: 'melee', armor: 'infantry'
+  },
+  {
+    id: 'longbow', name: 'Longbow', icon: 'L',
+    hp: 72, atk: 16, def: 4, speed: 1.6, range: 240, atkSpeed: 1.25,
+    accuracy: 0.84,
+    size: 10, desc: 'Very long range archer. Strong poke, weak against cavalry dives.',
+    type: 'ranged', armor: 'ranged'
+  },
+  {
+    id: 'janissary', name: 'Janissary', icon: 'J',
+    hp: 82, atk: 36, def: 5, speed: 1.0, range: 145, atkSpeed: 2.3,
+    accuracy: 0.78,
+    size: 11, desc: 'Heavy gunpowder infantry with high burst damage.',
+    type: 'ranged', armor: 'ranged'
+  },
+  {
+    id: 'scorpion', name: 'Scorpion', icon: 'S',
+    hp: 95, atk: 26, def: 2, speed: 0.8, range: 190, atkSpeed: 2.4,
+    accuracy: 0.72,
+    size: 15, desc: 'Bolt siege engine with line pressure and anti-infantry value.',
+    type: 'siege', armor: 'siege'
+  },
 ];
 
 // ===== 게임 상태 =====
@@ -1439,6 +1526,14 @@ let activeBuffs = []; // {team, type, multiplier, remaining}
 let teamMomentum = { red: 0, blue: 0 };
 let momentumDecayTimer = 0;
 let nextComebackCheck = 0;
+const RANDOM_PLACE_SETTINGS = {
+  minPerTeam: 46,
+  maxPerTeam: 54,
+  infantryRatio: 0.36,
+  rangedRatio: 0.28,
+  cavalryRatio: 0.2,
+  specialRatio: 0.16
+};
 
 // ===== 지형 시스템 (v11) =====
 let terrainFeatures = []; // {type, x, y, w, h, color, ...}
@@ -1872,6 +1967,7 @@ function init() {
 
   generateTerrain(); // 초기 지형 생성
   buildUnitButtons();
+  renderUnitDetailPanel(null, null);
   buildMatchupTable();
   setupEventListeners();
   gameLoop();
@@ -1911,7 +2007,39 @@ function toggleSidebar() {
   setTimeout(resizeCanvas, 320);
 }
 
-// ===== UI 빌드 =====
+function getUnitRoleLabel(unit) {
+  if (unit.type === 'support') return 'SUP';
+  if (unit.type === 'siege') return 'SIG';
+  if (unit.type === 'ranged') return 'RNG';
+  return 'MEL';
+}
+
+function renderUnitDetailPanel(unitType, team) {
+  const iconEl = document.getElementById('unit-detail-icon');
+  const nameEl = document.getElementById('unit-detail-name');
+  const teamEl = document.getElementById('unit-detail-team');
+  const statsEl = document.getElementById('unit-detail-stats');
+  const descEl = document.getElementById('unit-detail-desc');
+  if (!iconEl || !nameEl || !teamEl || !statsEl || !descEl) return;
+
+  if (!unitType) {
+    iconEl.textContent = '-';
+    nameEl.textContent = 'None';
+    teamEl.textContent = 'Team: -';
+    statsEl.textContent = 'HP: - | ATK: - | DEF: - | SPD: - | RNG: -';
+    descEl.textContent = 'Select a unit to see detailed traits.';
+    return;
+  }
+
+  const accText = unitType.accuracy < 1.0 ? ` | ACC: ${Math.round(unitType.accuracy * 100)}%` : '';
+  iconEl.textContent = unitType.icon || '*';
+  nameEl.textContent = `${unitType.name} (${getUnitRoleLabel(unitType)})`;
+  teamEl.textContent = `Team: ${team === 'red' ? 'RED' : 'BLUE'}`;
+  statsEl.textContent = `HP: ${unitType.hp} | ATK: ${unitType.atk} | DEF: ${unitType.def} | SPD: ${unitType.speed} | RNG: ${unitType.range}${accText}`;
+  descEl.textContent = unitType.desc || 'No description.';
+}
+
+// ===== UI Build =====
 function buildUnitButtons() {
   const redDiv = document.getElementById('red-units');
   const blueDiv = document.getElementById('blue-units');
@@ -1922,28 +2050,13 @@ function buildUnitButtons() {
       btn.className = 'unit-btn';
       btn.dataset.unitId = ut.id;
       btn.dataset.team = team;
-
-      let bonusText = '';
-      const matchups = MATCHUP[ut.id];
-      if (matchups) {
-        const strong = [];
-        for (const [target, mul] of Object.entries(matchups)) {
-          if (mul >= 1.8) {
-            const t = UNIT_TYPES.find(u => u.id === target);
-            if (t) strong.push(`${t.icon}x${mul}`);
-          }
-        }
-        if (strong.length > 0) bonusText = `<div class="bonus">강: ${strong.join(' ')}</div>`;
-      }
-
-      const accText = ut.accuracy < 1.0 ? ` ACC:${Math.round(ut.accuracy*100)}%` : '';
+      const roleText = getUnitRoleLabel(ut);
 
       btn.innerHTML = `
         <span class="icon">${ut.icon}</span>
         <div class="info">
           <div class="name">${ut.name}</div>
-          <div class="stats">HP:${ut.hp} ATK:${ut.atk} DEF:${ut.def} SPD:${ut.speed} RNG:${ut.range}${accText}</div>
-          ${bonusText}
+          <div class="meta">${roleText} | HP ${ut.hp} | ATK ${ut.atk}</div>
         </div>
       `;
       btn.addEventListener('click', () => selectUnitType(ut, team, btn));
@@ -1977,6 +2090,7 @@ function selectUnitType(unitType, team, btn) {
   btn.classList.add('selected');
   selectedUnit = unitType;
   selectedTeam = team;
+  renderUnitDetailPanel(unitType, team);
 }
 
 function setupEventListeners() {
@@ -2286,20 +2400,28 @@ function randomPlace() {
   const margin = 100;
 
   ['red', 'blue'].forEach(team => {
-    const count = 23 + Math.floor(Math.random() * 5); // 23-27 per team (46-54 total ≈ 50)
-    // 유닛 종류별 비율 맞추기 (보병 많이, 공성 적게)
+    const minCount = RANDOM_PLACE_SETTINGS.minPerTeam;
+    const maxCount = RANDOM_PLACE_SETTINGS.maxPerTeam;
+    const count = minCount + Math.floor(Math.random() * (maxCount - minCount + 1));
+
     const pool = [];
+    const infantryPool = UNIT_TYPES.filter(u => ['swordsman','spearman','shieldman','pikeman','manatarms'].includes(u.id));
+    const rangedPool = UNIT_TYPES.filter(u => ['archer','crossbow','skirmisher','handcannoneer','longbow','janissary'].includes(u.id));
+    const cavalryPool = UNIT_TYPES.filter(u => ['cavalry','knight','horsearcher','camelrider'].includes(u.id));
+    const specialPool = UNIT_TYPES.filter(u => ['warelephant','towelephant','mangonel','catapult','ram','monk','scorpion'].includes(u.id));
+
     for (let i = 0; i < count; i++) {
-      if (i < count * 0.4) { // 40% 보병 (검병, 창병, 방패병, 장창병)
-        pool.push(UNIT_TYPES.filter(u => ['swordsman','spearman','shieldman','pikeman'].includes(u.id))[Math.floor(Math.random() * 4)]);
-      } else if (i < count * 0.65) { // 25% 원거리 (궁병, 석궁병, 산병, 총통병)
-        pool.push(UNIT_TYPES.filter(u => ['archer','crossbow','skirmisher','handcannoneer'].includes(u.id))[Math.floor(Math.random() * 4)]);
-      } else if (i < count * 0.85) { // 20% 기병 (기병, 기사, 궁기병, 낙타)
-        pool.push(UNIT_TYPES.filter(u => ['cavalry','knight','horsearcher','camelrider'].includes(u.id))[Math.floor(Math.random() * 4)]);
-      } else { // 15% 특수 (코끼리, 공성, 승려)
-        pool.push(UNIT_TYPES.filter(u => ['warelephant','towelephant','mangonel','catapult','ram','monk'].includes(u.id))[Math.floor(Math.random() * 6)]);
+      if (i < count * RANDOM_PLACE_SETTINGS.infantryRatio) {
+        pool.push(infantryPool[Math.floor(Math.random() * infantryPool.length)]);
+      } else if (i < count * (RANDOM_PLACE_SETTINGS.infantryRatio + RANDOM_PLACE_SETTINGS.rangedRatio)) {
+        pool.push(rangedPool[Math.floor(Math.random() * rangedPool.length)]);
+      } else if (i < count * (RANDOM_PLACE_SETTINGS.infantryRatio + RANDOM_PLACE_SETTINGS.rangedRatio + RANDOM_PLACE_SETTINGS.cavalryRatio)) {
+        pool.push(cavalryPool[Math.floor(Math.random() * cavalryPool.length)]);
+      } else {
+        pool.push(specialPool[Math.floor(Math.random() * specialPool.length)]);
       }
     }
+
     // 진형 배치 (줄 맞춤)
     const rows = 4;
     const colCount = Math.ceil(count / rows);
