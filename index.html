@@ -1436,6 +1436,9 @@ let sidebarOpen = true;
 let nextEventTime = 0;
 let eventBanners = []; // {text, color, life, maxLife}
 let activeBuffs = []; // {team, type, multiplier, remaining}
+let teamMomentum = { red: 0, blue: 0 };
+let momentumDecayTimer = 0;
+let nextComebackCheck = 0;
 
 // ===== 지형 시스템 (v11) =====
 let terrainFeatures = []; // {type, x, y, w, h, color, ...}
@@ -2234,6 +2237,8 @@ function spawnUnit(unitType, team, x, y) {
     moving: false,
     attackAnim: 0,
     attackAnimDir: { x: 0, y: 0 },
+    furyStacks: 0,
+    furyTime: 0,
   });
 }
 
@@ -2253,6 +2258,9 @@ function clearAll() {
   missMarkers = [];
   eventBanners = [];
   activeBuffs = [];
+  teamMomentum = { red: 0, blue: 0 };
+  momentumDecayTimer = 0;
+  nextComebackCheck = 0;
   gameState = 'placing';
   battleTime = 0;
   generateTerrain(); // 지형 재생성
@@ -2326,6 +2334,9 @@ function startBattle() {
   nextEventTime = 10 + Math.random() * 5; // 첫 이벤트 10~15초 후
   eventBanners = [];
   activeBuffs = [];
+  teamMomentum = { red: 0, blue: 0 };
+  momentumDecayTimer = 0;
+  nextComebackCheck = 6 + Math.random() * 2;
   document.getElementById('hud').style.display = 'flex';
   document.getElementById('instructions').style.display = 'none';
   document.getElementById('result').style.display = 'none';
@@ -2425,6 +2436,21 @@ function getBuffMultiplier(unit, buffType) {
   return mult;
 }
 
+function getMovementMultiplier(unit) {
+  let mult = 1;
+  activeBuffs.forEach(b => {
+    if (b.team !== unit.team && b.team !== 'all') return;
+    if (b.type === 'slow' || b.type === 'speedBoost') {
+      mult *= b.multiplier;
+    }
+  });
+  return mult;
+}
+
+function hasActiveTeamBuff(team, buffType) {
+  return activeBuffs.some(b => b.team === team && b.type === buffType && b.remaining > 0);
+}
+
 function updateEvents(dt) {
   // 버프 타이머 업데이트
   activeBuffs = activeBuffs.filter(b => { b.remaining -= dt; return b.remaining > 0; });
@@ -2454,6 +2480,12 @@ function updateBattle(dt) {
   if (gameState !== 'battle') return;
 
   battleTime += dt;
+  momentumDecayTimer += dt;
+  if (momentumDecayTimer >= 1) {
+    momentumDecayTimer = 0;
+    teamMomentum.red = Math.max(0, (teamMomentum.red || 0) - 0.25);
+    teamMomentum.blue = Math.max(0, (teamMomentum.blue || 0) - 0.25);
+  }
   // 랜덤 이벤트 체크 (15~25초마다)
   if (battleTime >= nextEventTime && units.filter(u => u.alive).length > 6) {
     triggerRandomEvent();
@@ -2477,6 +2509,23 @@ function updateBattle(dt) {
   const totalBlueHp = blues.reduce((s, u) => s + u.currentHp, 0);
   const maxBlueHp = blues.reduce((s, u) => s + u.maxHp, 0);
 
+  if (battleTime >= nextComebackCheck) {
+    const redRatio = reds.length / Math.max(1, reds.length + blues.length);
+    const blueRatio = blues.length / Math.max(1, reds.length + blues.length);
+    let trailingTeam = null;
+    if (redRatio <= 0.38 || reds.length + 5 <= blues.length) trailingTeam = 'red';
+    else if (blueRatio <= 0.38 || blues.length + 5 <= reds.length) trailingTeam = 'blue';
+    if (trailingTeam && !hasActiveTeamBuff(trailingTeam, 'comeback')) {
+      const color = trailingTeam === 'red' ? '#ff6b6b' : '#4ecdc4';
+      const name = trailingTeam === 'red' ? 'RED' : 'BLUE';
+      activeBuffs.push({ team: trailingTeam, type: 'comeback', multiplier: 1.18, remaining: 7 });
+      activeBuffs.push({ team: trailingTeam, type: 'speedBoost', multiplier: 1.12, remaining: 7 });
+      showEventBanner(`⚡ ${name} LAST STAND!`, color);
+      playSound('warcry', 0.45);
+    }
+    nextComebackCheck = battleTime + 10 + Math.random() * 6;
+  }
+
   document.getElementById('red-hp').style.width = (totalRedHp / maxRedHp * 100) + '%';
   document.getElementById('blue-hp').style.width = (totalBlueHp / maxBlueHp * 100) + '%';
   document.getElementById('red-alive').textContent = reds.length;
@@ -2484,8 +2533,10 @@ function updateBattle(dt) {
   // 킬 카운트 & 전투 시간 HUD
   const redK = units.filter(u => u.team === 'red').reduce((s, u) => s + u.killCount, 0);
   const blueK = units.filter(u => u.team === 'blue').reduce((s, u) => s + u.killCount, 0);
-  document.getElementById('red-kills').textContent = redK + 'K';
-  document.getElementById('blue-kills').textContent = blueK + 'K';
+  const redMom = Math.floor(teamMomentum.red || 0);
+  const blueMom = Math.floor(teamMomentum.blue || 0);
+  document.getElementById('red-kills').textContent = `${redK}K 🔥${redMom}`;
+  document.getElementById('blue-kills').textContent = `${blueK}K 🔥${blueMom}`;
   document.getElementById('battle-timer').textContent = battleTime.toFixed(1) + 's';
 
   // 각 유닛 AI
@@ -2493,6 +2544,10 @@ function updateBattle(dt) {
     unit.atkCooldown = Math.max(0, unit.atkCooldown - dt);
     if (unit.flashTimer > 0) unit.flashTimer -= dt;
     if (unit.attackAnim > 0) unit.attackAnim -= dt;
+    if (unit.furyTime > 0) {
+      unit.furyTime -= dt;
+      if (unit.furyTime <= 0) unit.furyStacks = 0;
+    }
 
     if (unit.type === 'support') {
       updateHealer(unit, alive, dt);
@@ -2549,7 +2604,8 @@ function updateCombatUnit(unit, allAlive, dt) {
     separateFromAllies(unit, allAlive, dt);
   } else {
     unit.moving = true;
-    const spd = unit.speed * getBuffMultiplier(unit, 'slow') * 60 * dt;
+    const furySpd = 1 + Math.min(3, unit.furyStacks || 0) * 0.06;
+    const spd = unit.speed * getMovementMultiplier(unit) * furySpd * 60 * dt;
     unit.x += (dx / dist) * spd;
     unit.y += (dy / dist) * spd;
     separateFromAllies(unit, allAlive, dt);
@@ -2593,7 +2649,8 @@ function updateHealer(unit, allAlive, dt) {
     }
   } else {
     unit.moving = true;
-    const spd = unit.speed * getBuffMultiplier(unit, 'slow') * 60 * dt;
+    const furySpd = 1 + Math.min(3, unit.furyStacks || 0) * 0.06;
+    const spd = unit.speed * getMovementMultiplier(unit) * furySpd * 60 * dt;
     unit.x += (dx / dist) * spd;
     unit.y += (dy / dist) * spd;
   }
@@ -2641,8 +2698,10 @@ function attack(attacker, target, allAlive) {
   const matchupMul = MATCHUP[attacker.id]?.[target.id] ?? 1.0;
 
   const atkBuff = getBuffMultiplier(attacker, 'atkBoost');
-  const spdBuff = getBuffMultiplier(attacker, 'slow');
-  let dmg = Math.max(1, attacker.atk * matchupMul * atkBuff - target.def * 0.4);
+  const comebackBuff = getBuffMultiplier(attacker, 'comeback');
+  const furyMul = 1 + Math.min(3, attacker.furyStacks || 0) * 0.12;
+  const momentumMul = 1 + Math.min(0.2, (teamMomentum[attacker.team] || 0) * 0.015);
+  let dmg = Math.max(1, attacker.atk * matchupMul * atkBuff * comebackBuff * furyMul * momentumMul - target.def * 0.4);
 
   // 방패병 원거리 저항
   if (target.rangedResist && (attacker.type === 'ranged' || attacker.type === 'siege')) {
@@ -2766,7 +2825,19 @@ function dealDamage(target, dmg, attacker, allAlive) {
 
   if (target.currentHp <= 0) {
     target.alive = false;
-    if (attacker) attacker.killCount++;
+    if (attacker) {
+      attacker.killCount++;
+      attacker.furyStacks = Math.min(3, (attacker.furyStacks || 0) + 1);
+      attacker.furyTime = 8;
+      teamMomentum[attacker.team] = Math.min(12, (teamMomentum[attacker.team] || 0) + 1);
+      particles.push({
+        x: attacker.x,
+        y: attacker.y - attacker.size - 10,
+        text: `FURY x${attacker.furyStacks}`,
+        color: TEAM_COLORS[attacker.team].light,
+        life: 0.9, maxLife: 0.9, vy: -24,
+      });
+    }
     playSoundThrottled('death', 0.5, 0.1);
 
     // Death animation (v8)
@@ -3078,6 +3149,15 @@ function drawUnits() {
     const hpColor = hpRatio > 0.5 ? teamColor.main : (hpRatio > 0.25 ? '#f9a825' : '#ef4444');
     ctx.fillStyle = hpColor;
     ctx.fillRect(barX, barY, barW * hpRatio, barH);
+
+    if ((unit.furyStacks || 0) > 0 && unit.furyTime > 0) {
+      const auraPulse = 1 + Math.sin(battleTime * 8 + unit.x * 0.01) * 0.08;
+      ctx.beginPath();
+      ctx.arc(drawX, drawY, unit.size * (1.2 + unit.furyStacks * 0.08) * auraPulse, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255, 170, 0, ${0.25 + unit.furyStacks * 0.12})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
 
     // Draw sprite instead of circle+emoji
     drawUnitSprite(ctx, unit, drawX, drawY, unit.size, teamColor.main, flash);
