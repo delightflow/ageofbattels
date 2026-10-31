@@ -162,6 +162,7 @@ function render() {
   drawVignette();
   drawMinimap();
   drawEventBanners();
+  if (typeof drawStrengthGraph === 'function') drawStrengthGraph();
   if (shake > 0) shake = Math.max(0, shake - 0.8);
 }
 
@@ -239,6 +240,10 @@ function drawUnits() {
     const ratio = Math.max(0, unit.currentHp / unit.maxHp);
     ctx.fillStyle = ratio > 0.55 ? teamColor : ratio > 0.28 ? '#e0b15a' : '#d4533c';
     ctx.fillRect(barX, barY, barW * ratio, 4);
+    if (unit.rank) {
+      ctx.fillStyle = '#e6c36a';
+      for (let i = 0; i < unit.rank; i++) ctx.fillRect(barX + i * 6, barY - 5, 4, 3);
+    }
   });
 }
 
@@ -427,7 +432,7 @@ function drawEventBanners() {
     ctx.lineWidth = 4;
     ctx.strokeStyle = 'rgba(16,10,6,0.82)';
     ctx.fillStyle = banner.color;
-    const y = 78 + index * 32;
+    const y = 132 + index * 32;
     ctx.strokeText(banner.text, canvas.width / 2, y);
     ctx.fillText(banner.text, canvas.width / 2, y);
     ctx.restore();
