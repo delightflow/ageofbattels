@@ -1,10 +1,16 @@
+## v15 (2026-10-31)
+- English-first title and how-to. Korean remains a toggle.
+- Historical roster with era, people, weapon, armor, and a short blurb. Counters follow those roles.
+- Visible d8 and d20 rolls, procedural Web Audio, and a clearer battlefield.
+- Empty ad placeholder hidden. Unlicensed battle mp3 removed.
+
 ## v14 (2026-02-20)
 - Placement UX simplified: team is selected once via sidebar team picker, and units are selected from a single shared list.
 - Manual placement no longer enforces left/right map zones; deployment can occur anywhere on the map.
 
 ## v13 (2026-02-20)
 - Random deployment count doubled and moved into tunable settings (`RANDOM_PLACE_SETTINGS`: 46-54 per team).
-- Added 4 new AOE-inspired unit types: `manatarms`, `longbow`, `janissary`, `scorpion`.
+- Added 4 new historical unit types: `manatarms`, `longbow`, `janissary`, `scorpion`.
 - Sidebar unit list is now compact, and detailed stats/description moved to a bottom detail panel on selection.
 
 ﻿## v12 (2026-02-20)
@@ -59,7 +65,7 @@
 - ?ㅼ젣 ?ㅻ뵒??BGM (?ъ슜???쒓났 ?뚯썝 base64 ?꾨쿋??
 - BGM v2: 諛곗튂 ???꾨줈?쒖????곕퉬?명듃, ?꾪닾 ???ㅼ젣 ?뚯썝
 - 諛⑺뙣蹂?諛몃윴??議곗젙 (def 16, hp 180, rangedResist 0.6)
-- AOE ?ъ슫???쒖뒪??(?좊떅蹂??꾪닾/?쇨꺽/?щ쭩 ?④낵??
+- ?ъ슫???쒖뒪??(?좊떅蹂??꾪닾/?쇨꺽/?щ쭩 ?④낵??
 
 ## v7 (2026-02-17)
 - 肄붾겮由??꾩＜ 踰꾧렇 ?섏젙
