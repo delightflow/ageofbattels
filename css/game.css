@@ -73,6 +73,7 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 
 #sidebar-scroll { flex: 1; overflow: auto; padding: 12px; min-height: 0; }
 .team-row { display: flex; gap: 8px; margin: 8px 0 12px; }
+.team-row[hidden], #label-placement-team[hidden] { display: none; }
 .team-pick, .filter-chip, .iron, .wax, .texty {
   border-radius: 999px;
   border: 1px solid var(--line);
@@ -310,17 +311,21 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 }
 #result.open { display: grid; }
 #result article {
-  width: min(460px, calc(100% - 32px));
+  width: min(520px, calc(100% - 32px));
+  max-height: calc(100vh - 48px);
+  overflow: auto;
   background: var(--parchment);
   color: var(--parchment-ink);
   border: 3px solid var(--brass-deep);
   padding: 22px;
   box-shadow: var(--shadow);
 }
-#result h2 { font-family: var(--display); font-size: 36px; margin: 0 0 8px; }
+#result h2 { font-family: var(--display); font-size: 32px; margin: 0 0 8px; }
+.summary { margin-top: 10px; font-size: 14px; line-height: 1.45; }
+.summary b { font-family: var(--display); }
 #result .actions { display: flex; gap: 8px; margin-top: 12px; }
 
-#matchup-panel, #help-modal {
+#matchup-panel, #help-modal, #mode-panel {
   display: none;
   position: fixed;
   inset: 0;
@@ -328,7 +333,7 @@ button:focus-visible, select:focus-visible, input:focus-visible {
   background: rgba(8, 6, 4, 0.72);
   padding: 28px 16px;
 }
-#matchup-panel.open, #help-modal.open { display: grid; place-items: center; }
+#matchup-panel.open, #help-modal.open, #mode-panel.open { display: grid; place-items: center; }
 .sheet {
   width: min(1100px, 100%);
   max-height: calc(100vh - 48px);
@@ -346,6 +351,60 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 .bonus-weak { background: #e7c7c2; }
 .help-copy { line-height: 1.5; }
 .help-copy li { margin: 6px 0; }
+.sheet-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; position: sticky; bottom: 0; background: var(--parchment); padding-top: 8px; }
+.sheet-actions .wax, .sheet-actions .iron, .sheet-actions .texty { padding: 8px 12px; }
+.scenario-list { display: grid; gap: 8px; }
+.scenario-card {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  padding: 10px 12px;
+  border: 1px solid rgba(80, 60, 30, 0.35);
+  background: rgba(255, 255, 255, 0.35);
+  color: inherit;
+}
+.scenario-card .year, .year { letter-spacing: 0.14em; font-size: 12px; color: var(--brass-deep); }
+.scenario-card strong { font-family: var(--display); font-size: 20px; }
+.history-line { color: #5c4632; }
+.roster { margin: 8px 0; padding-left: 18px; max-height: 320px; overflow: auto; columns: 2; }
+.roster li { margin: 4px 0; break-inside: avoid; }
+.shop { display: flex; flex-wrap: wrap; gap: 6px; }
+.sheet .texty { color: var(--parchment-ink); border-color: rgba(80, 60, 30, 0.35); }
+#mode-sheet { width: min(720px, 100%); }
+#diff-row[hidden], #btn-answer[hidden], #budget-bar[hidden] { display: none; }
+.shop-btn, #diff-row button.active, .sheet-actions .active {
+  border-color: var(--brass-deep);
+  background: rgba(212, 180, 131, 0.35);
+}
+#budget-bar { display: grid; gap: 6px; }
+#budget-bar[hidden] { display: none; }
+.diff-row { display: flex; gap: 6px; }
+.gold-line b { font-family: var(--mono); }
+#strength-graph[hidden] { display: none; }
+#strength-graph {
+  position: absolute;
+  left: 12px;
+  bottom: 36px;
+  width: 220px;
+  height: 64px;
+  z-index: 14;
+  border-radius: 8px;
+}
+#moment {
+  display: none;
+  position: absolute;
+  top: 168px;
+  pointer-events: none;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  font-family: var(--display);
+  letter-spacing: 0.14em;
+  font-size: 13px;
+  color: var(--parchment);
+  text-shadow: 0 1px 2px #000;
+}
+#moment.show { display: block; }
 
 #title-screen {
   position: fixed;
@@ -381,6 +440,7 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 .motto { font-family: var(--display); letter-spacing: 0.18em; color: var(--brass); margin: 12px 0; }
 .title-hero .lede { font-size: 16px; line-height: 1.45; max-width: 38ch; }
 .title-actions { display: grid; gap: 8px; margin-top: 18px; }
+.title-actions .wax, .title-actions .iron, .title-actions .texty { padding: 8px 12px; }
 .title-brief { background: var(--parchment); color: var(--parchment-ink); padding: 28px 26px; }
 .title-brief h3 { font-family: var(--display); margin: 0 0 8px; }
 .title-brief ol { margin: 0 0 12px; padding-left: 18px; }

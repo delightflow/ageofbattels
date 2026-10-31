@@ -69,10 +69,21 @@
           <ul id="settings-changelog-list"></ul>
         </div>
       </div>
+      <div id="budget-bar" hidden>
+        <div class="gold-line"><span id="gold-caption" data-i18n="gold">Gold</span> <b id="gold-left">360</b></div>
+        <div id="diff-row" class="diff-row">
+          <button type="button" data-diff="steady" class="texty active" data-i18n="steady">Steady</button>
+          <button type="button" data-diff="bold" class="texty" data-i18n="bold">Bold</button>
+          <button type="button" data-diff="cunning" class="texty" data-i18n="cunning">Cunning</button>
+        </div>
+        <button id="btn-answer" class="iron" type="button" data-i18n="theyAnswer">They answer</button>
+        <button id="btn-refund" class="texty" type="button" data-i18n="removeLast">Remove last</button>
+      </div>
       <button id="btn-random" class="iron" type="button" data-i18n="random">Random hosts</button>
       <button id="matchup-btn" class="iron" type="button" data-i18n="matchup">Show matchups</button>
       <button id="btn-battle" class="wax" type="button" disabled data-i18n="battle">Start battle</button>
       <button id="btn-reset-placement" class="texty" type="button" data-i18n="reset">Clear the field</button>
+      <button id="btn-menu" class="texty" type="button" data-i18n="backTitle">Title</button>
     </div>
   </aside>
 
@@ -81,6 +92,7 @@
     <div id="sidebar-overlay"></div>
     <canvas id="canvas"></canvas>
     <div id="topbar">
+      <span class="hud-pill" id="purse-pill"><span data-i18n="purse">Purse</span> <b id="purse-readout">120</b></span>
       <button id="btn-center" class="hud-pill" type="button" data-i18n="center">Center</button>
       <button id="btn-help" class="hud-pill" type="button" data-i18n="help">How to play</button>
       <label class="hud-pill" for="volume"><span data-i18n="sound">Sound</span>
@@ -112,6 +124,8 @@
       <div id="die-meta"></div>
     </div>
     <div id="chronicle"></div>
+    <div id="moment"></div>
+    <canvas id="strength-graph" width="220" height="64" hidden></canvas>
     <div id="instructions" data-i18n="instructions">Pick a host and a unit, then click the field. Drag to pan. Scroll to zoom.</div>
     <canvas id="minimap" width="168" height="112"></canvas>
     <div id="result">
@@ -135,9 +149,12 @@
       <p class="motto">ALEA IACTA EST</p>
       <p class="lede" data-i18n="lede">Place historical soldiers on two hosts, then watch the dice decide a classical battle. No install. One sitting.</p>
       <div class="title-actions">
-        <button id="btn-watch" class="wax" type="button" data-i18n="watch">Watch a quick battle</button>
-        <button id="btn-grand" class="iron" type="button" data-i18n="grand">Watch a grand host</button>
+        <button id="btn-watch" class="wax" type="button" data-i18n="quick">Quick battle</button>
+        <button id="btn-budget" class="iron" type="button" data-i18n="budget">Budget battle</button>
+        <button id="btn-scenarios" class="iron" type="button" data-i18n="scenarios">Historical scenarios</button>
+        <button id="btn-campaign" class="iron" type="button" data-i18n="campaign">Campaign</button>
         <button id="btn-sandbox" class="iron" type="button" data-i18n="sandbox">Place units yourself</button>
+        <button id="btn-grand" class="texty" type="button" data-i18n="grand">Watch a grand host</button>
       </div>
       <div class="die-spin" aria-hidden="true">d20</div>
     </section>
@@ -175,6 +192,10 @@
   </div>
 </div>
 
+<div id="mode-panel">
+  <div class="sheet" id="mode-sheet"></div>
+</div>
+
 <div id="matchup-panel">
   <div class="sheet">
     <h2 id="matchup-title" data-i18n="matchupTitle">Matchups</h2>
@@ -188,6 +209,7 @@
 <script src="js/audio.js"></script>
 <script src="js/sprites.js"></script>
 <script src="js/render.js"></script>
+<script src="js/modes.js"></script>
 <script src="js/game.js"></script>
 </body>
 </html>

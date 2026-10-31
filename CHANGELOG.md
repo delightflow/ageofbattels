@@ -1,3 +1,7 @@
+## v17 (2026-10-31)
+- Main menu: quick battle, budget draft, historical scenarios, campaign, sandbox.
+- A shared coin purse, veteran ranks, a strength graph, and slow moments for a last stand, a duel, or the end of the line.
+
 ## v16 (2026-10-31)
 - The camera stays where you leave it. Center, or the C key, eases back to the fighting.
 - Notable rolls tumble on a die. Ordinary hit popups are gone. Elite falls are a quiet margin note.

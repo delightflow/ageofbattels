@@ -36,10 +36,54 @@ const STRINGS = {
     center: 'Center',
     instructions: 'Pick a host and a unit, then click the field. Drag to pan. Scroll to zoom. You may place anywhere.',
     eyebrow: 'A single-player battle sandbox',
-    lede: 'Place historical soldiers on two hosts, then watch the dice decide a classical battle. No install. One sitting.',
+    lede: 'Draft a host, refight a famous field, or march a company. The dice still decide the blows.',
+    quick: 'Quick battle',
     watch: 'Watch a quick battle',
     grand: 'Watch a grand host',
+    budget: 'Budget battle',
+    scenarios: 'Historical scenarios',
+    scenarioLead: 'Refight a famous field. You command the red host. One to three stars if you match or beat the day.',
+    scenarioAdjust: 'The hosts are already set. Drag your soldiers on the left half, or spend spare gold on one more file.',
+    campaign: 'Campaign',
+    campaignLead: 'A company under one standard. Survivors keep their scars and a veteran rank. A short march is three fields.',
+    campaignShort: 'Short march (3)',
+    campaignLong: 'Long march (6)',
+    campaignTime: 'Each field is a few minutes. The short march fits one sitting.',
+    continueCamp: 'Continue',
     sandbox: 'Place units yourself',
+    purse: 'Purse',
+    gold: 'Gold',
+    spare: 'Spare gold',
+    wagerTitle: 'Name the winner',
+    wagerLead: 'Odds follow the hosts’ worth. Stake nothing and the dice still roll. An upset pays more.',
+    stake: 'Stake',
+    noStake: 'No coin on the table.',
+    ifWin: 'If they win, the purse becomes',
+    beginFight: 'Let them fight',
+    toWager: 'To the wager',
+    yourSide: 'You',
+    foe: 'Foe',
+    mvp: 'MVP',
+    efficiency: 'Cost',
+    perGold: 'kills per 100 gold',
+    diceMoments: 'Dice',
+    stars: 'Stars',
+    veteran: 'veteran',
+    company: 'Company',
+    field: 'Field',
+    march: 'March',
+    release: 'release',
+    nextField: 'Next field',
+    companyRests: 'The company rests',
+    campaignEnd: 'Fields won',
+    moment: 'The moment holds',
+    finalMoment: 'The last of the line',
+    duel: 'Duel',
+    steady: 'Steady',
+    bold: 'Bold',
+    cunning: 'Cunning',
+    theyAnswer: 'They answer',
+    removeLast: 'Remove last',
     howTitle: 'How to play',
     how1: 'Choose Red or Blue, choose a unit, and click the map. You may deploy anywhere.',
     how2: 'Read the blurb. Spears and pikes brace against horses, big shields blunt arrows, and cavalry punish archers who let them close.',
@@ -112,10 +156,54 @@ const STRINGS = {
     center: '중앙',
     instructions: '진영과 유닛을 고른 뒤 전장을 클릭하세요. 드래그로 이동, 휠로 확대. 어디든 배치할 수 있습니다.',
     eyebrow: '싱글 플레이 전투 모래상자',
-    lede: '역사 속 병사를 두 진영에 두고, 주사위가 고전 전투를 정하게 두세요. 설치 없이, 한 번에.',
+    lede: '진영을 짜거나, 유명한 들판을 다시 싸우거나, 부대를 행군시키세요. 결정은 여전히 주사위가 합니다.',
+    quick: '짧은 전투',
     watch: '짧은 전투 보기',
     grand: '대군 전투 보기',
+    budget: '예산 전투',
+    scenarios: '역사 전투',
+    scenarioLead: '유명한 들판을 다시 싸웁니다. 당신은 홍군입니다. 그날과 같거나 더 잘하면 별이 하나에서 셋입니다.',
+    scenarioAdjust: '진영은 이미 서 있습니다. 왼쪽 절반에서 병사를 끌거나, 여유 금으로 한 줄을 더할 수 있습니다.',
+    campaign: '원정',
+    campaignLead: '군기 하나를 둔 부대입니다. 생존자는 상처와 고참 등급을 가져갑니다. 짧은 행군은 세 들판입니다.',
+    campaignShort: '짧은 행군 (3)',
+    campaignLong: '긴 행군 (6)',
+    campaignTime: '들판 하나는 몇 분입니다. 짧은 행군은 한 자리에 끝납니다.',
+    continueCamp: '이어하기',
     sandbox: '직접 배치하기',
+    purse: '전대',
+    gold: '금',
+    spare: '여유 금',
+    wagerTitle: '승자를 가리다',
+    wagerLead: '배당은 진영의 값에서 나옵니다. 걸지 않아도 주사위는 굴러갑니다. 이변이 더 크게 갚습니다.',
+    stake: '걸기',
+    noStake: '올려 둔 돈이 없습니다.',
+    ifWin: '이기면 전대는',
+    beginFight: '싸우게 두기',
+    toWager: '배당으로',
+    yourSide: '아군',
+    foe: '적',
+    mvp: '전공',
+    efficiency: '비용',
+    perGold: '금 100당 처치',
+    diceMoments: '주사위',
+    stars: '별',
+    veteran: '고참',
+    company: '부대',
+    field: '들판',
+    march: '행군',
+    release: '내보냄',
+    nextField: '다음 들판',
+    companyRests: '부대가 쉰다',
+    campaignEnd: '이긴 들판',
+    moment: '숨이 멎는다',
+    finalMoment: '전열의 끝',
+    duel: '일기토',
+    steady: '안정',
+    bold: '대담',
+    cunning: '계략',
+    theyAnswer: '적이 응수한다',
+    removeLast: '마지막 빼기',
     howTitle: '플레이 방법',
     how1: '빨강 또는 파랑을 고르고 유닛을 고른 다음 지도를 클릭합니다. 어디든 배치할 수 있습니다.',
     how2: '설명을 읽으세요. 창과 장창은 말을 막고, 큰 방패는 화살을 흘리며, 기병은 거리를 내준 궁수를 짓밟습니다.',
@@ -174,6 +262,7 @@ const ELITE_IDS = new Set(['knight', 'cataphract', 'warelephant', 'towelephant',
 const NOTABLE_ROLLS = new Set(['CRIT', 'GLANCE', 'CHARGE', 'FUMBLE']);
 
 const CHANGELOG = [
+  'v17: Budget draft, historical fields, a coin purse, and a short company march.',
   'v16: The view stays where you leave it. Center returns to the fight. Notable dice tumble; ordinary hits stay quiet.',
   'v15: Historical roster, English-first brief, visible dice, procedural sound, and a clearer field.',
   'v14: One shared unit list after the host is chosen. Placement is allowed anywhere.',
@@ -197,6 +286,8 @@ let cameraMode = 'free';
 let cameraHold = false;
 let glide = false;
 let gameState = 'placing';
+let playMode = 'menu';
+let dragUnit = null;
 let titleOpen = true;
 let gameSpeed = 1;
 let battleTime = 0;
@@ -243,7 +334,8 @@ function init() {
   setupInput();
   updateCounts();
   requestAnimationFrame(gameLoop);
-  if (new URLSearchParams(location.search).get('watch') === '1') setTimeout(watchQuick, 250);
+  loadPurse();
+  if (new URLSearchParams(location.search).get('watch') === '1') setTimeout(() => watchQuick(true), 250);
 }
 
 function resizeCanvas() {
@@ -297,6 +389,8 @@ function applyLocale(next) {
   renderUnitDetail();
   refreshDieCaption();
   refreshBattleButton();
+  if (typeof syncModeChrome === 'function') syncModeChrome();
+  if (typeof refreshOpenSheet === 'function' && document.getElementById('mode-panel').classList.contains('open')) refreshOpenSheet();
   if (lastResult && gameState === 'ended') showResult(lastResult.winner, lastResult.redLeft, lastResult.blueLeft);
 }
 
@@ -337,11 +431,14 @@ function buildUnitButtons() {
     button.className = `unit-btn${selectedUnit && selectedUnit.id === unit.id ? ' selected' : ''}`;
     button.appendChild(iconFor(unit, TEAM_COLORS[selectedTeam].main));
     const info = document.createElement('div');
-    info.innerHTML = `<div class="name">${field(unit.name)}</div><div class="meta">${field(unit.era)} · HP ${unit.hp} · ATK ${unit.atk}</div>`;
+    const costBit = (playMode === 'budget' || playMode === 'scenario' || playMode === 'campaign') ? ` · ${unit.cost}g` : '';
+    info.innerHTML = `<div class="name">${field(unit.name)}</div><div class="meta">${field(unit.era)} · HP ${unit.hp} · ATK ${unit.atk}${costBit}</div>`;
     button.appendChild(info);
     button.addEventListener('click', () => {
       selectedUnit = unit;
       playSound('ui', 0.5);
+      if (playMode === 'budget') addBudgetUnit(unit);
+      else if (playMode === 'scenario' && gameState === 'placing') tryScenarioBuy(unit);
       buildUnitButtons();
       renderUnitDetail();
     });
@@ -440,9 +537,30 @@ function setupInput() {
     cameraHold = true;
     dragStart = { x: event.clientX, y: event.clientY };
     camStart = { x: camera.x, y: camera.y };
+    dragUnit = null;
+    if ((playMode === 'scenario' || playMode === 'budget') && gameState === 'placing') {
+      const rect = canvas.getBoundingClientRect();
+      const world = screenToWorld(event.clientX - rect.left, event.clientY - rect.top);
+      let best = null;
+      let bestD = 32;
+      units.forEach((unit) => {
+        if (!unit.alive || unit.team !== 'red') return;
+        const dist = Math.hypot(unit.x - world.x, unit.y - world.y);
+        if (dist < bestD) { bestD = dist; best = unit; }
+      });
+      if (best) { dragUnit = best; cameraHold = false; }
+    }
   });
   window.addEventListener('mousemove', (event) => {
     if (!mouseDown) return;
+    if (dragUnit) {
+      const rect = canvas.getBoundingClientRect();
+      const world = screenToWorld(event.clientX - rect.left, event.clientY - rect.top);
+      dragUnit.x = Math.max(40, Math.min(WORLD_WIDTH / 2 - 50, world.x));
+      dragUnit.y = Math.max(40, Math.min(WORLD_HEIGHT - 40, world.y));
+      mouseMoved = true;
+      return;
+    }
     const dist = Math.hypot(event.clientX - mouseDown.x, event.clientY - mouseDown.y);
     if (dist > 10) mouseMoved = true;
     if (mouseMoved) {
@@ -454,9 +572,11 @@ function setupInput() {
   });
   window.addEventListener('mouseup', (event) => {
     if (!mouseDown) return;
+    const draggedSoldier = dragUnit;
+    dragUnit = null;
     const dist = Math.hypot(event.clientX - mouseDown.x, event.clientY - mouseDown.y);
     const quick = performance.now() - mouseDown.t < 250 && dist < 15;
-    if ((!mouseMoved || quick) && event.button === 0) {
+    if (!draggedSoldier && (!mouseMoved || quick) && event.button === 0) {
       const rect = canvas.getBoundingClientRect();
       const world = screenToWorld(event.clientX - rect.left, event.clientY - rect.top);
       placeUnit(world.x, world.y);
@@ -534,7 +654,9 @@ function setupInput() {
     if (event.key === 'Escape') { closeOverlays(); return; }
     if (event.key === ' ' && gameState === 'placing' && !titleOpen) {
       event.preventDefault();
-      startBattle();
+      const fight = document.getElementById('sheet-fight');
+      if (document.getElementById('mode-panel').classList.contains('open') && fight) fight.click();
+      else openWager();
       return;
     }
     const speeds = { '1': 1, '2': 1.5, '3': 2, '4': 4 };
@@ -572,15 +694,25 @@ function setupInput() {
   document.getElementById('matchup-close').addEventListener('click', closeOverlays);
   document.getElementById('btn-help').addEventListener('click', () => document.getElementById('help-modal').classList.add('open'));
   document.getElementById('help-close').addEventListener('click', closeOverlays);
-  document.getElementById('btn-watch').addEventListener('click', watchQuick);
+  document.getElementById('btn-watch').addEventListener('click', () => watchQuick(false));
   document.getElementById('btn-grand').addEventListener('click', watchGrand);
   document.getElementById('btn-sandbox').addEventListener('click', enterSandbox);
-  document.getElementById('btn-again').addEventListener('click', () => clearAll());
-  document.getElementById('btn-title').addEventListener('click', () => {
-    clearAll();
-    titleOpen = true;
-    document.getElementById('title-screen').classList.remove('hidden');
+  document.getElementById('btn-again').addEventListener('click', () => {
+    if (playMode === 'campaign' && gameState === 'ended' && lastResult) campaignAdvance(lastResult.winner);
+    else clearAll();
   });
+  const backToTitle = () => {
+    playMode = 'menu';
+    currentScenario = null;
+    titleOpen = true;
+    closeSheet();
+    clearAll();
+    document.getElementById('title-screen').classList.remove('hidden');
+    syncModeChrome();
+  };
+  document.getElementById('btn-title').addEventListener('click', backToTitle);
+  document.getElementById('btn-menu').addEventListener('click', backToTitle);
+  bindModeButtons();
   document.getElementById('speed').addEventListener('input', (event) => setSpeed(parseFloat(event.target.value)));
   document.getElementById('volume').addEventListener('input', (event) => syncMute(setMasterVolume(parseFloat(event.target.value)) || masterVolume > 0));
   document.getElementById('btn-sound').addEventListener('click', () => syncMute(toggleMute()));
@@ -616,6 +748,7 @@ let pinchZoom = 1;
 function closeOverlays() {
   document.getElementById('matchup-panel').classList.remove('open');
   document.getElementById('help-modal').classList.remove('open');
+  closeSheet();
 }
 function setSpeed(value) {
   gameSpeed = value;
@@ -634,30 +767,59 @@ function hideTitle() {
   resumeAudio();
 }
 function enterSandbox() {
+  playMode = 'sandbox';
+  currentScenario = null;
   hideTitle();
+  closeSheet();
+  syncModeChrome();
   playSound('ui', 0.7);
   startMusic('placing');
 }
-function watchQuick() {
+function watchQuick(auto) {
+  playMode = 'quick';
+  currentScenario = null;
   hideTitle();
+  closeSheet();
   clearAll();
   deployList(QUICK_RED, 'red');
   deployList(QUICK_BLUE, 'blue');
   updateCounts();
   setSpeed(1.25);
-  startBattle();
+  if (auto) {
+    pendingWager = null;
+    startBattle();
+  } else openWager();
 }
 function watchGrand() {
+  playMode = 'grand';
+  currentScenario = null;
   hideTitle();
+  closeSheet();
   randomPlace(30, 36);
   setSpeed(1.25);
-  startBattle();
+  openWager();
 }
 
 function placeUnit(x, y) {
   if (titleOpen || gameState !== 'placing' || !selectedUnit) return;
+  if (playMode === 'campaign') return;
+  if (playMode === 'budget' || playMode === 'scenario') {
+    if (selectedTeam !== 'red') return;
+    if (x > WORLD_WIDTH / 2 - 40) return;
+  }
+  if (playMode === 'budget') {
+    if (budgetLeft < selectedUnit.cost) return;
+    if (units.filter((unit) => unit.team === 'red').length >= 16) return;
+    budgetLeft -= selectedUnit.cost;
+  }
+  if (playMode === 'scenario') {
+    if (units.filter((unit) => unit.team === 'red').length >= scenarioCap) return;
+    if (spareGold < selectedUnit.cost) return;
+    spareGold -= selectedUnit.cost;
+  }
   if (x < 20 || y < 20 || x > WORLD_WIDTH - 20 || y > WORLD_HEIGHT - 20) return;
   spawnUnit(selectedUnit, selectedTeam, x, y);
+  syncModeChrome();
   playSound('place', 0.8);
   updateCounts();
   if (musicMode === 'idle') startMusic('placing');
@@ -695,6 +857,12 @@ function updateCounts() {
   document.getElementById('blue-count').textContent = blues;
   refreshBattleButton();
 }
+function againLabel() {
+  if (playMode === 'campaign' && campaign) {
+    return campaign.index >= campaign.length ? t('companyRests') : t('nextField');
+  }
+  return t('deployAgain');
+}
 function refreshBattleButton() {
   const button = document.getElementById('btn-battle');
   const reds = units.filter((unit) => unit.team === 'red').length;
@@ -704,15 +872,19 @@ function refreshBattleButton() {
     button.textContent = t('inProgress');
   } else if (gameState === 'ended') {
     button.disabled = false;
-    button.textContent = t('deployAgain');
+    button.textContent = againLabel();
   } else {
     button.disabled = !(reds > 0 && blues > 0);
     button.textContent = t('battle');
   }
 }
 function onBattleClick() {
-  if (gameState === 'ended') clearAll();
-  else startBattle();
+  if (gameState === 'ended') {
+    if (playMode === 'campaign' && lastResult) campaignAdvance(lastResult.winner);
+    else clearAll();
+    return;
+  }
+  openWager();
 }
 
 function clearAll() {
@@ -740,6 +912,7 @@ function clearAll() {
   refreshBattleButton();
   updateCounts();
   if (!titleOpen) startMusic('placing');
+  if (typeof afterFieldCleared === 'function') afterFieldCleared();
 }
 
 function randomPlace(min = RANDOM_PLACE_SETTINGS.minPerTeam, max = RANDOM_PLACE_SETTINGS.maxPerTeam) {
@@ -792,7 +965,14 @@ function deployList(ids, team) {
 }
 
 function battleFocus() {
+  const placingHosts = gameState === 'placing' && (playMode === 'budget' || playMode === 'scenario' || playMode === 'campaign');
   const group = units.filter((unit) => unit.alive);
+  if (placingHosts) {
+    group.push(
+      { x: WORLD_WIDTH / 2 - 420, y: WORLD_HEIGHT / 2 },
+      { x: WORLD_WIDTH / 2 + 420, y: WORLD_HEIGHT / 2 }
+    );
+  }
   if (!group.length || !canvas || !canvas.width) {
     return { cx: WORLD_WIDTH / 2, cy: WORLD_HEIGHT / 2, zoom: 1.15 };
   }
@@ -809,7 +989,7 @@ function battleFocus() {
   const median = ranked[Math.floor(ranked.length / 2)].d;
   const limit = Math.max(280, median * 1.8);
   const core = ranked.filter((row) => row.d <= limit).map((row) => row.unit);
-  const use = core.length >= Math.min(4, group.length) ? core : group;
+  const use = placingHosts || core.length < Math.min(4, group.length) ? group : core;
   center = meanOf(use);
   let minX = Infinity;
   let maxX = -Infinity;
@@ -849,8 +1029,14 @@ function startBattle() {
   document.getElementById('result').classList.remove('open');
   refreshBattleButton();
   resetDice();
+  resetModeBattle();
+  beginGraph();
   cameraMode = 'follow';
   glide = false;
+  showEventBanner(battleHeading(), '#f3e6cf');
+  dramaticMoment(1.15);
+  const graph = document.getElementById('strength-graph');
+  if (graph) graph.hidden = false;
   playSound('battle_start', 0.8);
   startMusic('battle');
 }
@@ -975,6 +1161,7 @@ function updateBattle(dt) {
       activeBuffs.push({ team: trailing, type: 'comeback', multiplier: 1.18, remaining: 7 });
       activeBuffs.push({ team: trailing, type: 'speedBoost', multiplier: 1.12, remaining: 7 });
       showEventBanner(`${trailing.toUpperCase()} ${t('lastStand')}`, TEAM_COLORS[trailing].main);
+      dramaticMoment(1.4);
       playSound('warcry', 0.5);
     }
     nextComebackCheck = battleTime + 12;
@@ -1004,8 +1191,15 @@ function updateBattle(dt) {
   document.getElementById('red-kills').textContent = `${redKills}K`;
   document.getElementById('blue-kills').textContent = `${blueKills}K`;
   document.getElementById('battle-timer').textContent = `${battleTime.toFixed(0)}s`;
+  if (battleTime - graphTick >= 0.5) {
+    graphTick = battleTime;
+    pushGraphSample();
+  }
+  noteFinalMoment(reds, blues);
+  maybeDuel(alive);
 
   alive.forEach((unit) => {
+    if (unit.dueling) { unit.moving = false; return; }
     unit.atkCooldown = Math.max(0, unit.atkCooldown - dt);
     if (unit.flashTimer > 0) unit.flashTimer -= dt;
     if (unit.attackAnim > 0) unit.attackAnim -= dt;
@@ -1202,6 +1396,7 @@ function refreshDieCaption() {
 }
 
 function noteRoll(info) {
+  rememberRoll(info);
   if (!NOTABLE_ROLLS.has(info.tag)) return;
   dieQueue.push(info);
   while (dieQueue.length > 3) {
@@ -1211,6 +1406,7 @@ function noteRoll(info) {
 }
 
 function updateDice(realDt) {
+  if (duel) return;
   const stage = document.getElementById('dice-stage');
   const face = document.getElementById('die-face');
   const sides = document.getElementById('die-sides');
@@ -1257,8 +1453,8 @@ function meleeRoll(attacker) {
   const roll = rollDie(8);
   let mul = 0.86 + ((roll - 1) / 7) * 0.36;
   let tag = 'HIT';
-  if (roll === 8) { mul = 1.62; tag = 'CRIT'; }
-  if (roll === 1) { mul = 0.42; tag = 'GLANCE'; }
+  if (roll === 1) { mul = (attacker.rank || 0) >= 2 ? 0.62 : 0.42; tag = 'GLANCE'; }
+  if (roll === 8 || ((attacker.rank || 0) >= 3 && roll >= 7)) { mul = 1.62; tag = 'CRIT'; }
   if (attacker.tags.includes('charge') && attacker.chargeDist > 120) {
     mul *= attacker.chargeMul || 1.4;
     if (tag === 'HIT') tag = 'CHARGE';
@@ -1356,7 +1552,7 @@ function fireRanged(attacker, target, allAlive, override) {
 }
 
 function dealDamage(target, damage, attacker) {
-  if (!target || !target.alive) return;
+  if (!target || !target.alive || target.duelImmune) return;
   target.currentHp -= damage;
   target.flashTimer = 0.12;
   burst(target.x, target.y, '#f3e6cf', 4);
@@ -1374,7 +1570,10 @@ function killUnit(target, attacker) {
     attacker.furyTime = 8;
     teamMomentum[attacker.team] = Math.min(12, (teamMomentum[attacker.team] || 0) + 1);
   }
-  if (ELITE_IDS.has(target.id)) chronicle(`${field(target.short) || field(target.name)} ${t('falls')}`);
+  if (ELITE_IDS.has(target.id)) {
+    chronicle(`${field(target.short) || field(target.name)} ${t('falls')}`);
+    dramaticMoment(1.15);
+  }
   if (target.behavior === 'aura') showEventBanner(`${target.team.toUpperCase()} ${t('standardDown')}`, TEAM_COLORS[target.team].main);
   playSound('death', 0.45);
   deadUnits.push({
@@ -1457,6 +1656,7 @@ function distToSegment(px, py, x1, y1, x2, y2) {
 
 function showResult(winner, redLeft, blueLeft) {
   lastResult = { winner, redLeft, blueLeft };
+  drama = 0;
   stopMusic();
   playSound('victory', 0.8);
   const text = document.getElementById('result-text');
@@ -1464,7 +1664,7 @@ function showResult(winner, redLeft, blueLeft) {
   if (winner === 'DRAW') {
     text.textContent = t('draw');
     text.style.color = '#8a6233';
-    sub.textContent = t('drawSub');
+    sub.innerHTML = `<div>${t('drawSub')}</div>${summaryHtml(winner, redLeft)}`;
   } else {
     text.textContent = `${winner} ${t('wins')}`;
     text.style.color = winner === 'RED' ? '#9d2e2a' : '#146676';
@@ -1475,8 +1675,11 @@ function showResult(winner, redLeft, blueLeft) {
       const medal = ['I', 'II', 'III', '·', '·'][index];
       return `<div>${medal}. ${field(unit.name)} · ${unit.killCount} ${t('kills')}${unit.alive ? ` · ${t('alive')}` : ''}</div>`;
     }).join('');
-    sub.innerHTML = `<div>${t('survivors')}: ${winner === 'RED' ? redLeft : blueLeft} · ${battleTime.toFixed(0)}s</div><div>RED ${redKills} / BLUE ${blueKills}</div><div style="margin-top:8px"><b>${t('leaderboard')}</b>${lines}</div>`;
+    sub.innerHTML = `<div>${t('survivors')}: ${winner === 'RED' ? redLeft : blueLeft} · ${battleTime.toFixed(0)}s</div><div>RED ${redKills} / BLUE ${blueKills}</div><div style="margin-top:8px"><b>${t('leaderboard')}</b>${lines}</div>${summaryHtml(winner, redLeft)}`;
   }
+  if (playMode === 'campaign') commitCampaign(winner);
+  const again = document.getElementById('btn-again');
+  if (again) again.textContent = againLabel();
   document.getElementById('result').classList.add('open');
   gameState = 'ended';
   cameraMode = 'free';
@@ -1509,11 +1712,15 @@ function gameLoop(timestamp) {
   const real = Math.min(0.05, (timestamp - lastTime) / 1000 || 0);
   lastTime = timestamp;
   animTime += real;
-  const dt = real * gameSpeed;
+  const timeScale = (drama > 0 || duel) ? 0.38 : 1;
+  if (drama > 0) drama = Math.max(0, drama - real);
+  const dt = real * gameSpeed * timeScale;
   try {
     updateCamera(real);
+    updateDuel(real);
     updateDice(real);
     updateBattle(dt);
+    momentLabel();
     render();
   } catch (err) {
     if (!loopError) console.error(err);
@@ -1544,6 +1751,8 @@ window.__age = () => {
     total: units.length,
     projectiles: projectiles.length,
     loopError,
+    playMode,
+    purse,
     cameraMode,
     camera: { x: camera.x, y: camera.y, zoom: camera.zoom },
     view: { x: viewX, y: viewY },
