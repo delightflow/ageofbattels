@@ -33,6 +33,7 @@ const STRINGS = {
     reset: 'Clear the field',
     help: 'How to play',
     sound: 'Sound',
+    center: 'Center',
     instructions: 'Pick a host and a unit, then click the field. Drag to pan. Scroll to zoom. You may place anywhere.',
     eyebrow: 'A single-player battle sandbox',
     lede: 'Place historical soldiers on two hosts, then watch the dice decide a classical battle. No install. One sitting.',
@@ -42,9 +43,9 @@ const STRINGS = {
     howTitle: 'How to play',
     how1: 'Choose Red or Blue, choose a unit, and click the map. You may deploy anywhere.',
     how2: 'Read the blurb. Spears and pikes brace against horses, big shields blunt arrows, and cavalry punish archers who let them close.',
-    how3: 'Start the battle. Melee rolls a d8: 1 glances, 8 crits. Shots roll a d20: 1 misses, 20 crits. Rolls show on the field and in the dice log.',
+    how3: 'Start the battle. Melee rolls a d8 and shots roll a d20. Critical blows, charges, glances, and fumbles tumble on the die. Ordinary hits stay quiet.',
     how4: 'A side wins when the other is gone. A quick host finishes in about a minute at normal speed. A larger host lasts a few minutes. After six minutes of battle time, exhaustion forces a finish, so a sitting stays well under half an hour.',
-    diceBody: 'Drag to pan, scroll to zoom, and use the speaker to mute. M toggles mute. Space starts the fight once both hosts are on the field.',
+    diceBody: 'Drag to look around. The view stays where you leave it. Center, or the C key, returns to the fighting. M toggles mute. Space starts the fight once both hosts are on the field.',
     creditLine: 'All sound is synthesized in the browser. Unit names are historical troop types, not characters from another game.',
     close: 'Close',
     matchupTitle: 'Matchups',
@@ -88,7 +89,8 @@ const STRINGS = {
     fumble: 'FUMBLE',
     hit: 'HIT',
     charge: 'CHARGE',
-    fury: 'FURY'
+    fury: 'FURY',
+    falls: 'falls'
   },
   ko: {
     subtitle: '고전 전투 모래상자',
@@ -107,6 +109,7 @@ const STRINGS = {
     reset: '전장 비우기',
     help: '플레이 방법',
     sound: '소리',
+    center: '중앙',
     instructions: '진영과 유닛을 고른 뒤 전장을 클릭하세요. 드래그로 이동, 휠로 확대. 어디든 배치할 수 있습니다.',
     eyebrow: '싱글 플레이 전투 모래상자',
     lede: '역사 속 병사를 두 진영에 두고, 주사위가 고전 전투를 정하게 두세요. 설치 없이, 한 번에.',
@@ -116,9 +119,9 @@ const STRINGS = {
     howTitle: '플레이 방법',
     how1: '빨강 또는 파랑을 고르고 유닛을 고른 다음 지도를 클릭합니다. 어디든 배치할 수 있습니다.',
     how2: '설명을 읽으세요. 창과 장창은 말을 막고, 큰 방패는 화살을 흘리며, 기병은 거리를 내준 궁수를 짓밟습니다.',
-    how3: '전투를 시작합니다. 근접은 d8입니다. 1은 스침, 8은 치명타. 사격은 d20입니다. 1은 빗나감, 20은 치명타. 주사위는 전장과 기록에 보입니다.',
+    how3: '전투를 시작합니다. 근접은 d8, 사격은 d20입니다. 치명타, 돌격, 스침, 실수만 주사위가 굴러 보여 줍니다. 평범한 적중은 조용합니다.',
     how4: '한쪽이 사라지면 승부입니다. 빠른 전투는 보통 속도에서 1분 안팎이고, 큰 진영은 몇 분입니다. 전투 시간 6분이 지나면 피로로 승부가 붙어서, 한 판은 30분을 넘기지 않습니다.',
-    diceBody: '드래그로 이동, 휠로 확대, 스피커로 음소거. M으로 음소거. 양쪽이 서 있으면 Space로 시작합니다.',
+    diceBody: '드래그로 둘러봅니다. 둔 자리에 시야가 머뭅니다. 중앙 버튼이나 C 키로 전투로 돌아옵니다. M으로 음소거. 양쪽이 서 있으면 Space로 시작합니다.',
     creditLine: '소리는 브라우저에서 합성합니다. 유닛 이름은 역사 속 병종이며, 다른 게임의 캐릭터가 아닙니다.',
     close: '닫기',
     matchupTitle: '상성',
@@ -162,11 +165,16 @@ const STRINGS = {
     fumble: '실수',
     hit: '적중',
     charge: '돌격',
-    fury: '분노'
+    fury: '분노',
+    falls: '쓰러짐'
   }
 };
 
+const ELITE_IDS = new Set(['knight', 'cataphract', 'warelephant', 'towelephant', 'catapult', 'mangonel', 'signifer', 'scorpion']);
+const NOTABLE_ROLLS = new Set(['CRIT', 'GLANCE', 'CHARGE', 'FUMBLE']);
+
 const CHANGELOG = [
+  'v16: The view stays where you leave it. Center returns to the fight. Notable dice tumble; ordinary hits stay quiet.',
   'v15: Historical roster, English-first brief, visible dice, procedural sound, and a clearer field.',
   'v14: One shared unit list after the host is chosen. Placement is allowed anywhere.',
   'v13: Random hosts and a wider roster. Details moved under the selection.'
@@ -185,6 +193,9 @@ let eventBanners = [];
 let activeBuffs = [];
 let teamMomentum = { red: 0, blue: 0 };
 let camera = { x: 0, y: 0, zoom: 1.15 };
+let cameraMode = 'free';
+let cameraHold = false;
+let glide = false;
 let gameState = 'placing';
 let titleOpen = true;
 let gameSpeed = 1;
@@ -202,10 +213,9 @@ let lastKillAt = 0;
 let pressAttack = false;
 let pressAnnounced = false;
 let exhaustAnnounced = false;
-let userCamUntil = 0;
 let lastAmbience = 0;
-let diceFeed = [];
-let diceTokens = 8;
+let dieQueue = [];
+let dieAnim = null;
 let lastResult = null;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -243,10 +253,20 @@ function resizeCanvas() {
   clampCamera();
 }
 function centerCamera() {
+  cameraMode = 'free';
+  glide = false;
   camera.zoom = 1.15;
   camera.x = WORLD_WIDTH / 2 - canvas.width / (2 * camera.zoom);
   camera.y = WORLD_HEIGHT / 2 - canvas.height / (2 * camera.zoom);
   clampCamera();
+}
+function userMovedCamera() {
+  cameraMode = 'free';
+  glide = false;
+}
+function centerView() {
+  glide = true;
+  if (gameState === 'battle') cameraMode = 'follow';
 }
 function clampCamera() {
   const maxX = Math.max(0, WORLD_WIDTH - canvas.width / camera.zoom);
@@ -275,7 +295,7 @@ function applyLocale(next) {
   buildUnitButtons();
   buildMatchupTable();
   renderUnitDetail();
-  renderDiceLog();
+  refreshDieCaption();
   refreshBattleButton();
   if (lastResult && gameState === 'ended') showResult(lastResult.winner, lastResult.redLeft, lastResult.blueLeft);
 }
@@ -417,6 +437,7 @@ function setupInput() {
   stageCanvas.addEventListener('mousedown', (event) => {
     mouseDown = { x: event.clientX, y: event.clientY, t: performance.now() };
     mouseMoved = false;
+    cameraHold = true;
     dragStart = { x: event.clientX, y: event.clientY };
     camStart = { x: camera.x, y: camera.y };
   });
@@ -425,10 +446,10 @@ function setupInput() {
     const dist = Math.hypot(event.clientX - mouseDown.x, event.clientY - mouseDown.y);
     if (dist > 10) mouseMoved = true;
     if (mouseMoved) {
+      userMovedCamera();
       camera.x = camStart.x - (event.clientX - dragStart.x) / camera.zoom;
       camera.y = camStart.y - (event.clientY - dragStart.y) / camera.zoom;
       clampCamera();
-      userCamUntil = performance.now() + 2600;
     }
   });
   window.addEventListener('mouseup', (event) => {
@@ -441,10 +462,12 @@ function setupInput() {
       placeUnit(world.x, world.y);
     }
     mouseDown = null;
+    cameraHold = false;
   });
 
   stageCanvas.addEventListener('wheel', (event) => {
     event.preventDefault();
+    userMovedCamera();
     const rect = canvas.getBoundingClientRect();
     const mx = event.clientX - rect.left;
     const my = event.clientY - rect.top;
@@ -463,10 +486,12 @@ function setupInput() {
       const touch = event.touches[0];
       touchStart = { x: touch.clientX, y: touch.clientY, t: performance.now() };
       touchMoved = false;
+      cameraHold = true;
       dragStart = { x: touch.clientX, y: touch.clientY };
       camStart = { x: camera.x, y: camera.y };
     } else if (event.touches.length === 2) {
       touchMoved = true;
+      userMovedCamera();
       pinch = Math.hypot(event.touches[0].clientX - event.touches[1].clientX, event.touches[0].clientY - event.touches[1].clientY);
       pinchZoom = camera.zoom;
     }
@@ -477,6 +502,7 @@ function setupInput() {
       const touch = event.touches[0];
       if (Math.hypot(touch.clientX - touchStart.x, touch.clientY - touchStart.y) > 14) touchMoved = true;
       if (touchMoved) {
+        userMovedCamera();
         camera.x = camStart.x - (touch.clientX - dragStart.x) / camera.zoom;
         camera.y = camStart.y - (touch.clientY - dragStart.y) / camera.zoom;
         clampCamera();
@@ -497,7 +523,10 @@ function setupInput() {
         placeUnit(world.x, world.y);
       }
     }
-    if (event.touches.length === 0) touchStart = null;
+    if (event.touches.length === 0) {
+      touchStart = null;
+      cameraHold = false;
+    }
   });
 
   window.addEventListener('keydown', (event) => {
@@ -510,12 +539,18 @@ function setupInput() {
     }
     const speeds = { '1': 1, '2': 1.5, '3': 2, '4': 4 };
     if (speeds[event.key]) { setSpeed(speeds[event.key]); return; }
+    if (event.key === 'c' || event.key === 'C' || event.key === 'Home') {
+      if (event.target && event.target.closest && event.target.closest('input, select, textarea')) return;
+      centerView();
+      return;
+    }
     const pan = 28 / camera.zoom;
     if (event.key === 'ArrowLeft') camera.x -= pan;
     else if (event.key === 'ArrowRight') camera.x += pan;
     else if (event.key === 'ArrowUp') camera.y -= pan;
     else if (event.key === 'ArrowDown') camera.y += pan;
     else return;
+    userMovedCamera();
     clampCamera();
     event.preventDefault();
   });
@@ -549,6 +584,16 @@ function setupInput() {
   document.getElementById('speed').addEventListener('input', (event) => setSpeed(parseFloat(event.target.value)));
   document.getElementById('volume').addEventListener('input', (event) => syncMute(setMasterVolume(parseFloat(event.target.value)) || masterVolume > 0));
   document.getElementById('btn-sound').addEventListener('click', () => syncMute(toggleMute()));
+  document.getElementById('btn-center').addEventListener('click', centerView);
+  minimapCanvas.addEventListener('click', (event) => {
+    const rect = minimapCanvas.getBoundingClientRect();
+    const wx = ((event.clientX - rect.left) / rect.width) * WORLD_WIDTH;
+    const wy = ((event.clientY - rect.top) / rect.height) * WORLD_HEIGHT;
+    userMovedCamera();
+    camera.x = wx - canvas.width / (2 * camera.zoom);
+    camera.y = wy - canvas.height / (2 * camera.zoom);
+    clampCamera();
+  });
   document.getElementById('bgm-volume').addEventListener('input', (event) => {
     setMusicVolume(parseFloat(event.target.value));
     if (musicEnabled && musicMode === 'idle') startMusic(gameState === 'battle' ? 'battle' : 'placing');
@@ -680,8 +725,7 @@ function clearAll() {
   eventBanners = [];
   activeBuffs = [];
   teamMomentum = { red: 0, blue: 0 };
-  diceFeed = [];
-  document.getElementById('dice-log').innerHTML = '';
+  resetDice();
   gameState = 'placing';
   battleTime = 0;
   pressAttack = false;
@@ -747,34 +791,41 @@ function deployList(ids, team) {
   });
 }
 
-function frameArmies(force) {
+function battleFocus() {
   const group = units.filter((unit) => unit.alive);
-  if (!group.length || !canvas.width) return;
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-  group.forEach((unit) => {
-    minX = Math.min(minX, unit.x - 50);
-    maxX = Math.max(maxX, unit.x + 50);
-    minY = Math.min(minY, unit.y - 50);
-    maxY = Math.max(maxY, unit.y + 50);
-  });
-  const zoom = Math.max(0.95, Math.min(1.6, Math.min(canvas.width / (maxX - minX + 120), canvas.height / (maxY - minY + 140))));
-  const cx = (minX + maxX) / 2;
-  const cy = (minY + maxY) / 2;
-  const tx = cx - canvas.width / (2 * (force ? zoom : camera.zoom));
-  const ty = cy - canvas.height / (2 * (force ? zoom : camera.zoom));
-  if (force) {
-    camera.zoom = zoom;
-    camera.x = tx;
-    camera.y = ty;
-  } else if (performance.now() > userCamUntil) {
-    camera.zoom += (zoom - camera.zoom) * 0.03;
-    camera.x += (cx - canvas.width / (2 * camera.zoom) - camera.x) * 0.035;
-    camera.y += (cy - canvas.height / (2 * camera.zoom) - camera.y) * 0.035;
+  if (!group.length || !canvas || !canvas.width) {
+    return { cx: WORLD_WIDTH / 2, cy: WORLD_HEIGHT / 2, zoom: 1.15 };
   }
-  clampCamera();
+  const meanOf = (list) => {
+    let x = 0;
+    let y = 0;
+    list.forEach((unit) => { x += unit.x; y += unit.y; });
+    return { x: x / list.length, y: y / list.length };
+  };
+  let center = meanOf(group);
+  const ranked = group
+    .map((unit) => ({ unit, d: Math.hypot(unit.x - center.x, unit.y - center.y) }))
+    .sort((a, b) => a.d - b.d);
+  const median = ranked[Math.floor(ranked.length / 2)].d;
+  const limit = Math.max(280, median * 1.8);
+  const core = ranked.filter((row) => row.d <= limit).map((row) => row.unit);
+  const use = core.length >= Math.min(4, group.length) ? core : group;
+  center = meanOf(use);
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  use.forEach((unit) => {
+    minX = Math.min(minX, unit.x);
+    maxX = Math.max(maxX, unit.x);
+    minY = Math.min(minY, unit.y);
+    maxY = Math.max(maxY, unit.y);
+  });
+  const zoom = Math.max(0.9, Math.min(1.45, Math.min(
+    canvas.width / (Math.max(180, maxX - minX) + 240),
+    canvas.height / (Math.max(140, maxY - minY) + 220)
+  )));
+  return { cx: center.x, cy: center.y, zoom };
 }
 
 function startBattle() {
@@ -797,7 +848,9 @@ function startBattle() {
   document.getElementById('instructions').style.display = 'none';
   document.getElementById('result').classList.remove('open');
   refreshBattleButton();
-  frameArmies(true);
+  resetDice();
+  cameraMode = 'follow';
+  glide = false;
   playSound('battle_start', 0.8);
   startMusic('battle');
 }
@@ -892,7 +945,6 @@ function triggerRandomEvent() {
 function updateBattle(dt) {
   if (gameState !== 'battle') return;
   battleTime += dt;
-  diceTokens = Math.min(8, diceTokens + dt * 6);
   momentumDecayTimer += dt;
   if (momentumDecayTimer >= 1) {
     momentumDecayTimer = 0;
@@ -1058,7 +1110,6 @@ function updateHealer(unit, allAlive, dt) {
       target.currentHp = Math.min(target.maxHp, target.currentHp + heal);
       unit.atkCooldown = unit.atkSpeed;
       playSound('heal', 0.4);
-      floatText(target.x, target.y - target.size, `+${heal}`, '#8ddeaf', false);
       projectiles.push({ kind: 'beam', x: unit.x, y: unit.y, tx: target.x, ty: target.y, life: 0.25, maxLife: 0.25 });
     }
   } else {
@@ -1120,23 +1171,86 @@ function separate(unit, allAlive, dt) {
 function rollDie(sides) {
   return 1 + Math.floor(Math.random() * sides);
 }
-function renderDiceLog() {
-  const host = document.getElementById('dice-log');
-  if (!host) return;
-  host.innerHTML = diceFeed.map((entry) => {
-    const who = field((UNIT_BY_ID[entry.id] || {}).short) || entry.id;
-    return `<div class="die ${entry.tag.toLowerCase()}"><b>d${entry.sides}</b> ${entry.roll} ${t(entry.tag.toLowerCase())} · ${who}</div>`;
-  }).join('');
+
+function chronicle(line) {
+  const host = document.getElementById('chronicle');
+  if (!host || !line) return;
+  const row = document.createElement('div');
+  row.textContent = line;
+  host.appendChild(row);
+  while (host.children.length > 3) host.removeChild(host.firstChild);
+}
+
+function resetDice() {
+  dieQueue = [];
+  dieAnim = null;
+  const stage = document.getElementById('dice-stage');
+  if (stage) stage.className = '';
+  const book = document.getElementById('chronicle');
+  if (book) book.innerHTML = '';
+}
+
+function dieCaption(entry) {
+  const who = field((UNIT_BY_ID[entry.id] || {}).short) || '';
+  return `${t(entry.tag.toLowerCase())} · ${who}`;
+}
+
+function refreshDieCaption() {
+  if (!dieAnim || dieAnim.phase !== 'hold') return;
+  const meta = document.getElementById('die-meta');
+  if (meta) meta.textContent = dieCaption(dieAnim.entry);
 }
 
 function noteRoll(info) {
-  const important = info.tag !== 'HIT';
-  if (!important && diceTokens <= 0) return;
-  if (!important) diceTokens -= 1;
-  diceFeed.unshift(info);
-  if (diceFeed.length > 6) diceFeed.pop();
-  renderDiceLog();
-  if (important) playSound('dice', 0.45);
+  if (!NOTABLE_ROLLS.has(info.tag)) return;
+  dieQueue.push(info);
+  while (dieQueue.length > 3) {
+    const drop = dieQueue.findIndex((item) => item.tag !== 'CRIT');
+    dieQueue.splice(drop === -1 ? 0 : drop, 1);
+  }
+}
+
+function updateDice(realDt) {
+  const stage = document.getElementById('dice-stage');
+  const face = document.getElementById('die-face');
+  const sides = document.getElementById('die-sides');
+  const meta = document.getElementById('die-meta');
+  if (!stage || !face) return;
+  if (!dieAnim) {
+    const next = dieQueue.shift();
+    if (!next) {
+      stage.className = '';
+      return;
+    }
+    dieAnim = {
+      entry: next,
+      phase: 'roll',
+      left: reducedMotion ? 0.04 : 0.7,
+      tick: 0,
+      hold: dieQueue.length ? 0.9 : 1.45
+    };
+    stage.className = 'show rolling';
+    if (sides) sides.textContent = `d${next.sides}`;
+    if (meta) meta.textContent = '';
+    playSound('dice', 0.4);
+  }
+  dieAnim.left -= realDt;
+  if (dieAnim.phase === 'roll') {
+    dieAnim.tick -= realDt;
+    if (dieAnim.tick <= 0) {
+      dieAnim.tick = 0.07;
+      face.textContent = String(rollDie(dieAnim.entry.sides));
+    }
+    if (dieAnim.left <= 0) {
+      dieAnim.phase = 'hold';
+      dieAnim.left = dieAnim.hold;
+      face.textContent = String(dieAnim.entry.roll);
+      stage.className = `show ${dieAnim.entry.tag.toLowerCase()}`;
+      if (meta) meta.textContent = dieCaption(dieAnim.entry);
+    }
+    return;
+  }
+  if (dieAnim.left <= 0) dieAnim = null;
 }
 
 function meleeRoll(attacker) {
@@ -1187,7 +1301,7 @@ function damageOf(attacker, target, diceMul, asRanged) {
 
 function strikeMelee(attacker, target, allAlive) {
   const rolled = meleeRoll(attacker);
-  const { damage, matchup } = damageOf(attacker, target, rolled.mul);
+  const { damage } = damageOf(attacker, target, rolled.mul);
   attacker.attackAnim = 0.3;
   const dx = target.x - attacker.x;
   const dy = target.y - attacker.y;
@@ -1202,14 +1316,13 @@ function strikeMelee(attacker, target, allAlive) {
     });
   }
   dealDamage(target, damage, attacker);
-  floatText(target.x, target.y - target.size - 8, damageText(damage, rolled.tag, matchup), matchup >= 1.6 ? '#ffd56a' : '#fff6ea', rolled.tag !== 'HIT');
 }
 
 function fireRanged(attacker, target, allAlive, override) {
   const accuracy = override ? override.accuracy : attacker.accuracy || 0.7;
   const spec = shotRoll(accuracy * (target.moving ? 0.86 : 1) * (1 - Math.min(1, Math.hypot(target.x - attacker.x, target.y - attacker.y) / (attacker.range || 1)) * 0.12));
   noteRoll({ sides: 20, roll: spec.roll, tag: spec.tag, id: attacker.id });
-  const { damage, matchup } = damageOf(attacker, target, (override ? override.damageMul : 1) * spec.mul, true);
+  const { damage } = damageOf(attacker, target, (override ? override.damageMul : 1) * spec.mul, true);
   const dx = target.x - attacker.x;
   const dy = target.y - attacker.y;
   const dist = Math.hypot(dx, dy) || 1;
@@ -1233,20 +1346,13 @@ function fireRanged(attacker, target, allAlive, override) {
     sx: attacker.x, sy: attacker.y,
     tx, ty, t: 0,
     duration: Math.max(0.18, dist / speed),
-    arc, damage, matchup, tag: spec.tag,
+    arc, damage, tag: spec.tag,
     willHit: spec.hit,
     target: spec.hit ? target : null,
     attacker, splash: attacker.splash || 0
   });
   playAttackSound(attacker);
   if (attacker.tags.includes('pilum')) attacker.threw = true;
-}
-
-function damageText(damage, tag, matchup) {
-  const bits = [String(damage)];
-  if (tag && tag !== 'HIT') bits.push(t(tag.toLowerCase()));
-  if (matchup >= 1.6) bits.push(`×${matchup.toFixed(1)}`);
-  return bits.join(' ');
 }
 
 function dealDamage(target, damage, attacker) {
@@ -1267,8 +1373,8 @@ function killUnit(target, attacker) {
     attacker.furyStacks = Math.min(3, (attacker.furyStacks || 0) + 1);
     attacker.furyTime = 8;
     teamMomentum[attacker.team] = Math.min(12, (teamMomentum[attacker.team] || 0) + 1);
-    floatText(attacker.x, attacker.y - attacker.size - 18, `${t('fury')} ${attacker.furyStacks}`, TEAM_COLORS[attacker.team].light, false);
   }
+  if (ELITE_IDS.has(target.id)) chronicle(`${field(target.short) || field(target.name)} ${t('falls')}`);
   if (target.behavior === 'aura') showEventBanner(`${target.team.toUpperCase()} ${t('standardDown')}`, TEAM_COLORS[target.team].main);
   playSound('death', 0.45);
   deadUnits.push({
@@ -1291,10 +1397,6 @@ function burst(x, y, color, count) {
     });
   }
 }
-function floatText(x, y, text, color, big) {
-  particles.push({ x, y, text, color, big, life: 0.9, maxLife: 0.9, vy: -32 });
-}
-
 function updateProjectiles(dt) {
   projectiles = projectiles.filter((shot) => {
     if (shot.kind === 'beam') {
@@ -1312,12 +1414,10 @@ function updateProjectiles(dt) {
       const clipped = units.filter((unit) => unit.alive && unit.team !== shot.team && distToSegment(unit.x, unit.y, shot.sx, shot.sy, shot.tx, shot.ty) < 20).slice(0, 3);
       if (!clipped.length) {
         missMarkers.push({ x: shot.tx, y: shot.ty, life: 0.6 });
-        floatText(shot.tx, shot.ty - 10, t('miss'), '#d9c7b0', false);
       }
       clipped.forEach((unit, index) => {
         const amount = Math.max(1, Math.round(shot.damage * (index === 0 ? 1 : 0.68)));
         dealDamage(unit, amount, shot.attacker);
-        floatText(unit.x, unit.y - unit.size, damageText(amount, shot.tag, shot.matchup), '#fff6ea', shot.tag !== 'HIT');
       });
       playImpactSound(shot);
       return false;
@@ -1332,17 +1432,14 @@ function updateProjectiles(dt) {
           if (dist <= shot.splash) {
             const amount = Math.max(1, Math.round(shot.damage * (1 - dist / shot.splash * 0.45)));
             dealDamage(unit, amount, shot.attacker);
-            floatText(unit.x, unit.y - 8, String(amount), '#ffd0a8', false);
           }
         });
         burst(shot.tx, shot.ty, '#d9c7a2', 14);
       } else if (shot.target) {
         dealDamage(shot.target, shot.damage, shot.attacker);
-        floatText(shot.tx, shot.ty - (shot.target.size || 10), damageText(shot.damage, shot.tag, shot.matchup), shot.matchup >= 1.6 ? '#ffd56a' : '#fff6ea', shot.tag !== 'HIT');
       }
     } else {
       missMarkers.push({ x: shot.tx, y: shot.ty, life: 0.6 });
-      floatText(shot.tx, shot.ty - 8, t('miss'), '#d9c7b0', false);
       burst(shot.tx, shot.ty, '#8a8175', 4);
     }
     return false;
@@ -1382,17 +1479,28 @@ function showResult(winner, redLeft, blueLeft) {
   }
   document.getElementById('result').classList.add('open');
   gameState = 'ended';
+  cameraMode = 'free';
+  glide = false;
   refreshBattleButton();
 }
 
 function updateCamera(dt) {
-  if (titleOpen && !reducedMotion) {
-    camera.x += Math.sin(animTime * 0.15) * 12 * dt;
-    camera.y += Math.cos(animTime * 0.11) * 8 * dt;
-    clampCamera();
-    return;
+  if (cameraHold) return;
+  const following = gameState === 'battle' && cameraMode === 'follow';
+  if (!following && !glide) return;
+  const focus = battleFocus();
+  const k = 1 - Math.exp(-Math.max(0, dt) * 2.6);
+  camera.zoom += (focus.zoom - camera.zoom) * k;
+  const tx = focus.cx - canvas.width / (2 * camera.zoom);
+  const ty = focus.cy - canvas.height / (2 * camera.zoom);
+  camera.x += (tx - camera.x) * k;
+  camera.y += (ty - camera.y) * k;
+  clampCamera();
+  if (glide && !following) {
+    const viewX = camera.x + canvas.width / (2 * camera.zoom);
+    const viewY = camera.y + canvas.height / (2 * camera.zoom);
+    if (Math.hypot(viewX - focus.cx, viewY - focus.cy) < 8 && Math.abs(camera.zoom - focus.zoom) < 0.04) glide = false;
   }
-  if (gameState === 'battle') frameArmies(false);
 }
 
 let lastTime = 0;
@@ -1404,6 +1512,7 @@ function gameLoop(timestamp) {
   const dt = real * gameSpeed;
   try {
     updateCamera(real);
+    updateDice(real);
     updateBattle(dt);
     render();
   } catch (err) {
@@ -1423,12 +1532,27 @@ function gameLoop(timestamp) {
   requestAnimationFrame(gameLoop);
 }
 
-window.__age = () => ({
-  gameState,
-  battleTime,
-  alive: units.filter((unit) => unit.alive).length,
-  total: units.length,
-  projectiles: projectiles.length,
-  loopError
-});
+window.__age = () => {
+  const focus = battleFocus();
+  const viewX = camera.x + (canvas ? canvas.width : 0) / (2 * camera.zoom);
+  const viewY = camera.y + (canvas ? canvas.height : 0) / (2 * camera.zoom);
+  const stage = document.getElementById('dice-stage');
+  return {
+    gameState,
+    battleTime,
+    alive: units.filter((unit) => unit.alive).length,
+    total: units.length,
+    projectiles: projectiles.length,
+    loopError,
+    cameraMode,
+    camera: { x: camera.x, y: camera.y, zoom: camera.zoom },
+    view: { x: viewX, y: viewY },
+    focus,
+    off: focus ? Math.hypot(viewX - focus.cx, viewY - focus.cy) : null,
+    dieShown: !!(stage && stage.classList.contains('show')),
+    dieText: stage ? stage.innerText : '',
+    chronicle: document.getElementById('chronicle') ? document.getElementById('chronicle').innerText : '',
+    floaters: particles.filter((particle) => particle.text).length
+  };
+};
 window.addEventListener('load', init);

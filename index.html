@@ -81,6 +81,7 @@
     <div id="sidebar-overlay"></div>
     <canvas id="canvas"></canvas>
     <div id="topbar">
+      <button id="btn-center" class="hud-pill" type="button" data-i18n="center">Center</button>
       <button id="btn-help" class="hud-pill" type="button" data-i18n="help">How to play</button>
       <label class="hud-pill" for="volume"><span data-i18n="sound">Sound</span>
         <input id="volume" type="range" min="0" max="1" step="0.05" value="0.8">
@@ -106,7 +107,11 @@
         <span style="color:#7fe3ea">BLUE</span>
       </div>
     </div>
-    <div id="dice-log" aria-live="polite"></div>
+    <div id="dice-stage" aria-live="polite">
+      <div class="die-cube" id="die-cube"><span id="die-sides">d8</span><b id="die-face">–</b></div>
+      <div id="die-meta"></div>
+    </div>
+    <div id="chronicle"></div>
     <div id="instructions" data-i18n="instructions">Pick a host and a unit, then click the field. Drag to pan. Scroll to zoom.</div>
     <canvas id="minimap" width="168" height="112"></canvas>
     <div id="result">
@@ -147,10 +152,10 @@
       <ol>
         <li data-i18n="how1">Choose Red or Blue, choose a unit, and click the map. You may deploy anywhere.</li>
         <li data-i18n="how2">Read the blurb. Spears brace against horses, shields blunt arrows, and cavalry punish archers who let them in.</li>
-        <li data-i18n="how3">Start the battle. Melee rolls a d8. Shots roll a d20. Crits, glances, and misses show on the field and in the dice log.</li>
+        <li data-i18n="how3">Start the battle. Melee rolls a d8 and shots roll a d20. Critical blows, charges, glances, and fumbles tumble on the die.</li>
         <li data-i18n="how4">A side wins when the other is gone. A skirmish is a few minutes. Even a grand host ends well under half an hour.</li>
       </ol>
-      <p data-i18n="diceBody">Drag to pan, scroll to zoom, and use the speaker to mute. M toggles mute. Space starts the fight once both hosts are on the field.</p>
+      <p data-i18n="diceBody">Drag to look around. The view stays where you leave it. Center, or the C key, returns to the fighting.</p>
     </section>
   </div>
 </div>
