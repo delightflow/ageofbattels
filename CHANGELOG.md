@@ -1,3 +1,7 @@
+## v16 (2026-10-31)
+- The camera stays where you leave it. Center, or the C key, eases back to the fighting.
+- Notable rolls tumble on a die. Ordinary hit popups are gone. Elite falls are a quiet margin note.
+
 ## v15 (2026-10-31)
 - English-first title and how-to. Korean remains a toggle.
 - Historical roster with era, people, weapon, armor, and a short blurb. Counters follow those roles.
