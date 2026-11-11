@@ -1,215 +1,61 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Age of Battels is a browser battle sandbox. Deploy historical soldiers, roll the dice, and watch the fight.">
-<meta name="theme-color" content="#16130f">
-<title>Age of Battels — Classical Battle Sandbox</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%2316110e' width='64' height='64'/%3E%3Cpath d='M32 6l18 8v16c0 14-8 22-18 26C22 52 14 44 14 30V14z' fill='%23c44536'/%3E%3Ctext x='32' y='38' text-anchor='middle' font-size='16' fill='%23f3e6cf' font-family='serif'%3Ed8%3C/text%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@500;600&family=Literata:opsz,wght@7..72,480;7..72,680&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="description" content="Age of Battels — 지형을 칠하고 군대를 배치한 뒤 전투를 지켜보는 브라우저 전투 시뮬레이션 샌드박스. Paint a map, place armies, watch them fight.">
+<meta name="theme-color" content="#11161c">
+<title>Age of Battels — 전투 시뮬레이션 샌드박스</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%2311161c' width='64' height='64' rx='10'/%3E%3Cpath d='M32 8l18 7v15c0 13-8 21-18 26C22 51 14 43 14 30V15z' fill='%23d33a2c' stroke='%23e8c96a' stroke-width='3'/%3E%3Cpath d='M22 42l20-20M42 42L22 22' stroke='%23f3e6cf' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="css/game.css">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2449142721773499" crossorigin="anonymous"></script>
 </head>
-<body>
-<div id="app">
-  <aside id="sidebar">
-    <header>
-      <h1>AGE OF BATTELS</h1>
-      <p data-i18n="subtitle">Classical battle sandbox</p>
-      <button id="sidebar-close" type="button" aria-label="Close roster">×</button>
-    </header>
-    <div id="sidebar-scroll">
-      <div id="label-placement-team" data-i18n="placementTeam">Deployment host</div>
-      <div class="team-row">
-        <button id="pick-red" class="team-pick active" type="button" data-team="red">RED</button>
-        <button id="pick-blue" class="team-pick" type="button" data-team="blue">BLUE</button>
-      </div>
-      <div class="filters" id="filters"></div>
-      <div id="unit-list"></div>
-      <div id="team-count">
-        <span class="red" id="red-count">0</span>
-        <span data-i18n="versus">versus</span>
-        <span class="blue" id="blue-count">0</span>
-      </div>
-    </div>
-    <section id="unit-detail">
-        <canvas id="detail-preview" width="72" height="72"></canvas>
-        <h3 id="unit-detail-name" data-i18n="none">None</h3>
-        <div id="unit-detail-team" class="fact"></div>
-        <div id="unit-detail-stats" class="stat-line"></div>
-        <div id="unit-detail-counters" class="counters"></div>
-        <div id="unit-detail-facts"></div>
-        <p id="unit-detail-desc" class="blurb" data-i18n="selectHint">Choose a unit to read its history.</p>
-    </section>
-    <div id="controls">
-      <div class="speed-row">
-        <label id="label-speed" for="speed" data-i18n="speed">Speed</label>
-        <input id="speed" type="range" min="0.5" max="4" step="0.25" value="1">
-        <span id="speed-label">1×</span>
-      </div>
-      <button id="btn-settings" class="texty" type="button" data-i18n="settings">Settings</button>
-      <div id="settings-panel">
-        <div class="mix-row">
-          <label for="bgm-volume" data-i18n="music">Music</label>
-          <input id="bgm-volume" type="range" min="0" max="1" step="0.05" value="0.34">
-          <button id="btn-bgm" class="texty" type="button">♪</button>
-        </div>
-        <div class="mix-row">
-          <label for="lang-select-settings" data-i18n="language">Language</label>
-          <select id="lang-select-settings">
-            <option value="en">English</option>
-            <option value="ko">한국어</option>
-          </select>
-        </div>
-        <div>
-          <strong data-i18n="recent">Recent changes</strong>
-          <ul id="settings-changelog-list"></ul>
-        </div>
-      </div>
-      <div id="budget-bar" hidden>
-        <div class="gold-line"><span id="gold-caption" data-i18n="gold">Gold</span> <b id="gold-left">360</b></div>
-        <div id="diff-row" class="diff-row">
-          <button type="button" data-diff="steady" class="texty active" data-i18n="steady">Steady</button>
-          <button type="button" data-diff="bold" class="texty" data-i18n="bold">Bold</button>
-          <button type="button" data-diff="cunning" class="texty" data-i18n="cunning">Cunning</button>
-        </div>
-        <button id="btn-answer" class="iron" type="button" data-i18n="theyAnswer">They answer</button>
-        <button id="btn-refund" class="texty" type="button" data-i18n="removeLast">Remove last</button>
-      </div>
-      <button id="btn-random" class="iron" type="button" data-i18n="random">Random hosts</button>
-      <button id="matchup-btn" class="iron" type="button" data-i18n="matchup">Show matchups</button>
-      <button id="btn-battle" class="wax" type="button" disabled data-i18n="battle">Start battle</button>
-      <button id="btn-reset-placement" class="texty" type="button" data-i18n="reset">Clear the field</button>
-      <button id="btn-menu" class="texty" type="button" data-i18n="backTitle">Title</button>
-    </div>
-  </aside>
+<body class="edit">
+<canvas id="view"></canvas>
 
-  <main id="stage">
-    <button id="sidebar-toggle" class="open" type="button" aria-label="Open roster">☰</button>
-    <div id="sidebar-overlay"></div>
-    <canvas id="canvas"></canvas>
-    <div id="topbar">
-      <span class="hud-pill" id="purse-pill"><span data-i18n="purse">Purse</span> <b id="purse-readout">120</b></span>
-      <button id="btn-center" class="hud-pill" type="button" data-i18n="center">Center</button>
-      <button id="btn-help" class="hud-pill" type="button" data-i18n="help">How to play</button>
-      <label class="hud-pill" for="volume"><span data-i18n="sound">Sound</span>
-        <input id="volume" type="range" min="0" max="1" step="0.05" value="0.8">
-      </label>
-      <button id="btn-sound" class="hud-pill" type="button" aria-label="Mute">🔊</button>
-      <select id="lang-select" aria-label="Language">
-        <option value="en">EN</option>
-        <option value="ko">KR</option>
-      </select>
-    </div>
-    <div id="hud">
-      <div class="team-hp">
-        <span style="color:#ff8d7d">RED</span>
-        <div class="bar"><div class="bar-fill bar-red" id="red-hp"></div></div>
-        <span id="red-alive">0</span>
-        <span id="red-kills">0</span>
-      </div>
-      <div id="battle-timer">0.0s</div>
-      <div class="team-hp">
-        <span id="blue-kills">0</span>
-        <span id="blue-alive">0</span>
-        <div class="bar"><div class="bar-fill bar-blue" id="blue-hp"></div></div>
-        <span style="color:#7fe3ea">BLUE</span>
-      </div>
-    </div>
-    <div id="dice-stage" aria-live="polite">
-      <div class="die-cube" id="die-cube"><span id="die-sides">d8</span><b id="die-face">–</b></div>
-      <div id="die-meta"></div>
-    </div>
-    <div id="chronicle"></div>
-    <div id="moment"></div>
-    <canvas id="strength-graph" width="220" height="64" hidden></canvas>
-    <div id="instructions" data-i18n="instructions">Pick a host and a unit, then click the field. Drag to pan. Scroll to zoom.</div>
-    <canvas id="minimap" width="168" height="112"></canvas>
-    <div id="result">
-      <article>
-        <h2 id="result-text"></h2>
-        <div id="result-sub"></div>
-        <div class="actions">
-          <button id="btn-again" class="wax" type="button" data-i18n="deployAgain">Deploy again</button>
-          <button id="btn-title" class="iron" type="button" data-i18n="backTitle">Title</button>
-        </div>
-      </article>
-    </div>
-  </main>
-</div>
-
-<div id="title-screen">
-  <div id="title-card">
-    <section class="title-hero">
-      <p class="eyebrow" data-i18n="eyebrow">A single-player battle sandbox</p>
-      <h2>AGE OF<br>BATTELS</h2>
-      <p class="motto">ALEA IACTA EST</p>
-      <p class="lede" data-i18n="lede">Place historical soldiers on two hosts, then watch the dice decide a classical battle. No install. One sitting.</p>
-      <div class="title-actions">
-        <button id="btn-watch" class="wax" type="button" data-i18n="quick">Quick battle</button>
-        <button id="btn-budget" class="iron" type="button" data-i18n="budget">Budget battle</button>
-        <button id="btn-scenarios" class="iron" type="button" data-i18n="scenarios">Historical scenarios</button>
-        <button id="btn-campaign" class="iron" type="button" data-i18n="campaign">Campaign</button>
-        <button id="btn-sandbox" class="iron" type="button" data-i18n="sandbox">Place units yourself</button>
-        <button id="btn-grand" class="texty" type="button" data-i18n="grand">Watch a grand host</button>
-      </div>
-      <div class="die-spin" aria-hidden="true">d20</div>
-    </section>
-    <section class="title-brief">
-      <div class="lang-row">
-        <strong data-i18n="howTitle">How to play</strong>
-        <select id="title-lang" aria-label="Language">
-          <option value="en">English</option>
-          <option value="ko">한국어</option>
-        </select>
-      </div>
-      <ol>
-        <li data-i18n="how1">Choose Red or Blue, choose a unit, and click the map. You may deploy anywhere.</li>
-        <li data-i18n="how2">Read the blurb. Spears brace against horses, shields blunt arrows, and cavalry punish archers who let them in.</li>
-        <li data-i18n="how3">Start the battle. Melee rolls a d8 and shots roll a d20. Critical blows, charges, glances, and fumbles tumble on the die.</li>
-        <li data-i18n="how4">A side wins when the other is gone. A skirmish is a few minutes. Even a grand host ends well under half an hour.</li>
-      </ol>
-      <p data-i18n="diceBody">Drag to look around. The view stays where you leave it. Center, or the C key, returns to the fighting.</p>
-    </section>
+<header id="top">
+  <div class="brand"><i class="crest"></i><b data-t="title"></b></div>
+  <input id="mapName" type="text" maxlength="60" spellcheck="false" autocomplete="off">
+  <div class="grp only-edit">
+    <button id="bPresets" data-t="presets"></button>
+    <button id="bNew" data-t="newMap"></button>
+    <button id="bSave" data-t="saveLoad"></button>
+    <button id="bUndo" class="ico" aria-label="undo">↶</button>
+    <button id="bRedo" class="ico" aria-label="redo">↷</button>
   </div>
-</div>
-
-<div id="help-modal">
-  <div class="sheet help-copy">
-    <h2 data-i18n="howTitle">How to play</h2>
-    <ol>
-      <li data-i18n="how1"></li>
-      <li data-i18n="how2"></li>
-      <li data-i18n="how3"></li>
-      <li data-i18n="how4"></li>
-    </ol>
-    <p data-i18n="diceBody"></p>
-    <p data-i18n="creditLine">Sound is synthesized in the browser. Unit names are historical troop types.</p>
-    <button id="help-close" class="iron" type="button" data-i18n="close">Close</button>
+  <div class="grp only-battle">
+    <button id="bPause" class="wide"></button>
+    <div class="seg" id="speeds"></div>
+    <button id="bRestart" data-t="restart"></button>
+    <span id="clock">0:00</span>
   </div>
-</div>
+  <span class="spacer"></span>
+  <button id="bStart" class="primary only-edit"><span class="tri">▶</span> <span data-t="start"></span></button>
+  <button id="bEdit" class="primary only-battle" data-t="toEdit"></button>
+  <button id="bSound" class="ico" aria-label="sound">♪</button>
+  <button id="bLang" class="ico"></button>
+  <button id="bHelp" class="ico" aria-label="help">?</button>
+</header>
 
-<div id="mode-panel">
-  <div class="sheet" id="mode-sheet"></div>
-</div>
+<aside id="panel" class="only-edit">
+  <nav id="tabs"></nav>
+  <div id="tool"></div>
+  <section id="armies"></section>
+</aside>
+<button id="panelToggle" class="only-edit" aria-label="panel">▾</button>
 
-<div id="matchup-panel">
-  <div class="sheet">
-    <h2 id="matchup-title" data-i18n="matchupTitle">Matchups</h2>
-    <p data-i18n="matchupHint">Each cell is the damage multiplier when the row attacks the column. Gold is a strong counter. Pale red is a poor one.</p>
-    <table id="matchup-table"></table>
-    <p><button id="matchup-close" class="iron" type="button" data-i18n="close">Close</button></p>
-  </div>
-</div>
+<div id="hud" class="only-battle"></div>
+<div id="selbar" hidden></div>
+<div id="miniWrap"><canvas id="mini"></canvas></div>
+<div id="modal" hidden><div class="dlg" role="dialog" aria-modal="true"></div></div>
+<div id="toast"></div>
 
-<script src="js/units.js"></script>
-<script src="js/audio.js"></script>
+<script src="js/data.js"></script>
+<script src="js/scenario.js"></script>
+<script src="js/sim.js"></script>
 <script src="js/sprites.js"></script>
 <script src="js/render.js"></script>
-<script src="js/modes.js"></script>
-<script src="js/game.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>
