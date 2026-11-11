@@ -272,7 +272,7 @@ class Sim {
     if (this.gap(e, t) > d.rng + 0.5) return;
     let dmg = d.atk; const charged = d.charge && e.runT > 1.1; if (charged) dmg *= d.charge;
     e.runT = 0;
-    this.ev('hit', t.x, t.y, t.bld ? 'bld' : charged ? 'charge' : e.t === 'ram' ? 'bld' : 'melee', e.fx);
+    this.ev('hit', t.x, t.y, t.bld ? 'bld' : charged ? 'charge' : e.t === 'ram' ? 'bld' : 'melee', e.t);
     this._damage(e, t, dmg);
     if (d.splash) { const self = this; this.near(t.x, t.y, d.splash + 1, c => { if (c !== t && c.team !== e.team && !c.dead && !c.bld && self.cdist(c, t) <= d.splash) self._damage(e, c, dmg * 0.5); }); }
   }
@@ -284,7 +284,7 @@ class Sim {
     if (d.pierce) { const dx = tx - e.x, dy = ty - e.y, l = Math.hypot(dx, dy) || 1; tx = e.x + dx / l * (l + 2.5); ty = e.y + dy / l * (l + 2.5); dur *= (l + 2.5) / l; }
     t.pend += d.atk; this.projs.push({ k: d.proj, sx: e.x, sy: e.y, tx, ty, x: e.x, y: e.y, z: 0, t: 0, dur, src: e, team: e.team, tgt: t, dmg: d.atk,
       z0: e.bld ? (d.size > 1 ? 2.6 : 2) : 0.55, h: dist * P.arc });
-    this.ev('shoot', e.x, e.y, d.proj, e.bld ? 2 : 0);
+    this.ev('shoot', e.x, e.y, d.proj, e.bld ? 'bld' : e.t);
   }
   _land(p) {
     const src = p.src, self = this, sd = src.d; p.tgt.pend -= p.dmg;
@@ -311,7 +311,7 @@ class Sim {
       else if (Math.hypot(t.x - p.tx, t.y - p.ty) < t.r + 0.32) hit = t;
     }
     if (!hit) { let bd = 0.42; this.near(p.tx, p.ty, 1, c => { if (c.team === p.team || c.dead || c.bld) return; const dd = Math.hypot(c.x - p.tx, c.y - p.ty) - c.r * 0.5; if (dd < bd) { bd = dd; hit = c; } }); }
-    if (hit) { this._damage(src, hit, p.dmg); this.ev('thud', hit.x, hit.y, p.k, hit.bld ? 1 : 0); } else this.ev('miss', p.tx, p.ty, p.k);
+    if (hit) { this._damage(src, hit, p.dmg); this.ev('thud', hit.x, hit.y, p.k, hit.bld ? 1 : hit.d.cat === 'siege' ? 2 : 0); } else this.ev('miss', p.tx, p.ty, p.k);
   }
   _damage(src, t, base) {
     const sd = src.d, td = t.d, arm = sd.at === 'm' ? td.am : sd.at === 'p' ? td.ap : 0;

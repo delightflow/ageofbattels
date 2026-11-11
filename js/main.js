@@ -177,7 +177,7 @@ function startBattle() {
   AB.Audio.unlock(); sim = new AB.Sim(sc, { seed: seed += 7919 }); acc = 0; endShown = false; st.mode = 'battle'; st.paused = false; sel.clear(); ghost = null; R.resetFx();
   document.body.classList.replace('edit', 'battle'); R.resize(); updateSel(); buildHud(); syncBattleBar(); closeModal(); AB.Audio.start();
 }
-function stopBattle() { sim = null; st.mode = 'edit'; sel.clear(); R.resetFx(); document.body.classList.replace('battle', 'edit'); R.resize(); updateSel(); closeModal(); R.miniDirty = true; }
+function stopBattle() { AB.Audio.stop(); sim = null; st.mode = 'edit'; sel.clear(); R.resetFx(); document.body.classList.replace('battle', 'edit'); R.resize(); updateSel(); closeModal(); R.miniDirty = true; }
 function syncBattleBar() {
   $('bPause').textContent = st.paused ? '▶ ' + T('resume') : '❚❚ ' + T('pause');
   const s = $('speeds'); s.textContent = ''; [0.5, 1, 2, 4].forEach(v => { const b = el('button', v === st.speed ? 'on' : '', v === 0.5 ? '½×' : v + '×'); b.onclick = () => { st.speed = v; syncBattleBar(); }; s.appendChild(b); });
@@ -376,6 +376,7 @@ function frame(ts) {
       R.fx(sim.events); AB.Audio.feed(sim.events, R); sim.events.length = 0; sdt = dt * st.speed; prune();
       if (sim.over && !endShown) { if (!endAt) endAt = ts + 900; else if (ts >= endAt) { endShown = true; endAt = 0; updateHud(); showResults(); } }
     } else sdt = 0;
+    AB.Audio.tick(sim, dt, st.paused || sim.over);
     if ((hudT -= dt) <= 0) { hudT = 0.25; updateHud(); }
   }
   if (marker) { marker.t += dt * 2; if (marker.t >= 1) marker = null; }

@@ -125,22 +125,25 @@ class Render {
       switch (e.k) {
         case 'hit':
           if (e.a === 'bld') { for (let i = 0; i < 3; i++) this.part(e.x, e.y, 0.5, { vx: (R() - 0.5) * 2, vy: (R() - 0.5) * 2, vz: 1.5 + R() * 2, g: 9, life: 0.5, r: 1.6, col: '150,140,125', a: 1 }); }
-          else { this.part(e.x, e.y, 0.6, { life: 0.14, r: e.a === 'charge' ? 5 : 3, grow: 14, col: '255,244,200', a: 0.9 });
+          else { if (R() < 0.5) this.part(e.x, e.y, 0.7, { life: 0.1, r: e.a === 'charge' ? 4 : 1.6, grow: 10, col: '255,246,210', a: 0.8 });
+            for (let i = 0; i < 2; i++) this.part(e.x, e.y, 0.6, { vx: (R() - 0.5) * 1.6, vy: (R() - 0.5) * 1.6, vz: 0.8 + R() * 1.4, g: 9, life: 0.4, r: 0.9, col: '140,20,16', a: 0.9 });
             if (e.a === 'charge') for (let i = 0; i < 5; i++) this.part(e.x, e.y, 0.1, { vx: (R() - 0.5) * 3, vy: (R() - 0.5) * 3, vz: 0.6, life: 0.6, r: 3, grow: 8, col: '190,170,130', a: 0.45 }); }
           break;
         case 'die': for (let i = 0; i < 4; i++) this.part(e.x, e.y, 0.5, { vx: (R() - 0.5) * 2.4, vy: (R() - 0.5) * 2.4, vz: 1 + R() * 2.4, g: 10, life: 0.55, r: 1.3, col: e.a === 'siege' ? '110,80,50' : '150,24,20', a: 0.95 });
           this.part(e.x, e.y, 0.05, { life: 0.7, r: 4, grow: 10, col: '180,165,130', a: 0.4 }); break;
         case 'shoot':
-          if (e.a === 'bullet' || e.a === 'ball') { const n = e.a === 'ball' ? 7 : 3; for (let i = 0; i < n; i++) this.part(e.x, e.y, 0.6, { vx: (R() - 0.5) * 1.2, vy: (R() - 0.5) * 1.2, vz: 0.5 + R() * 0.8, life: 0.9 + R() * 0.6, r: e.a === 'ball' ? 5 : 3, grow: 9, col: '225,225,225', a: 0.5 }); }
+          if (e.a === 'bullet' || e.a === 'ball') { const n = e.a === 'ball' ? 9 : 4; this.part(e.x, e.y, 0.7, { life: 0.08, r: e.a === 'ball' ? 7 : 3, grow: 30, col: '255,214,120', a: 1 }); for (let i = 0; i < n; i++) this.part(e.x, e.y, 0.6, { vx: (R() - 0.5) * 1.2, vy: (R() - 0.5) * 1.2, vz: 0.5 + R() * 0.8, life: 0.9 + R() * 0.6, r: e.a === 'ball' ? 5 : 3, grow: 9, col: '225,225,225', a: 0.5 }); }
           break;
         case 'boom': { const big = e.a === 'ball' ? 1.2 : 1;
           for (let i = 0; i < 10; i++) this.part(e.x, e.y, 0.1, { vx: (R() - 0.5) * 5 * big, vy: (R() - 0.5) * 5 * big, vz: 0.6 + R() * 1.4, life: 0.7 + R() * 0.5, r: 4, grow: 16, col: '176,150,112', a: 0.55 });
           for (let i = 0; i < 6; i++) this.part(e.x, e.y, 0.2, { vx: (R() - 0.5) * 5, vy: (R() - 0.5) * 5, vz: 2 + R() * 4, g: 12, life: 0.7, r: 1.8, col: '90,70,50', a: 1 });
           if (e.a === 'ball') this.part(e.x, e.y, 0.4, { life: 0.16, r: 8, grow: 60, col: '255,200,90', a: 0.9 });
           this.decals.push({ k: 'crater', x: e.x, y: e.y, t: 0, life: 40 }); break; }
-        case 'miss': if (e.a === 'arrow' || e.a === 'bolt' || e.a === 'javelin' || e.a === 'bigbolt') this.decals.push({ k: 'arrow', x: e.x, y: e.y, t: 0, life: 9, a: R() * 0.8 - 0.4, big: e.a === 'bigbolt' || e.a === 'javelin' });
+        case 'miss': if (e.a === 'arrow' || e.a === 'bolt' || e.a === 'javelin' || e.a === 'bigbolt') { this.decals.push({ k: 'arrow', x: e.x, y: e.y, t: 0, life: 28, a: R() * 0.9 - 0.45, big: e.a === 'bigbolt' || e.a === 'javelin', f: R() < 0.5 });
+            this.part(e.x, e.y, 0.02, { life: 0.35, r: 1.2, grow: 7, col: '160,140,105', a: 0.45 }); }
           else this.part(e.x, e.y, 0.05, { life: 0.4, r: 2, grow: 8, col: '190,170,130', a: 0.5 }); break;
-        case 'thud': if (e.b) this.part(e.x, e.y, 1, { life: 0.3, r: 1.5, grow: 8, col: '200,190,170', a: 0.6 }); break;
+        case 'thud': if (e.b) this.part(e.x, e.y, 1, { life: 0.3, r: 1.5, grow: 8, col: '200,190,170', a: 0.6 });
+          else this.part(e.x, e.y, 0.55, { vx: (R() - 0.5), vy: (R() - 0.5), vz: 0.8, g: 8, life: 0.35, r: 0.9, col: '140,20,16', a: 0.85 }); break;
         case 'heal': for (let i = 0; i < 3; i++) this.part(e.x + (R() - 0.5) * 0.5, e.y + (R() - 0.5) * 0.5, 0.4, { vz: 1.2, life: 0.8, r: 1.8, col: '140,255,150', a: 0.9, plus: 1 }); break;
         case 'collapse': { const n = 14 * e.a; for (let i = 0; i < n; i++) this.part(e.x + (R() - 0.5) * e.a, e.y + (R() - 0.5) * e.a, 0.3 + R(), { vx: (R() - 0.5) * 3, vy: (R() - 0.5) * 3, vz: 0.4 + R(), life: 1.2 + R(), r: 6, grow: 14, col: '170,160,145', a: 0.6 }); break; }
       }
@@ -177,7 +180,10 @@ class Render {
       const X = (d.x - d.y) * HW, Y = (d.x + d.y) * HH; if (X < vx0 - 40 || X > vx1 + 40 || Y < vy0 - 40 || Y > vy1 + 40) continue;
       const al = Math.min(1, (d.life - d.t) / (d.life * 0.3));
       if (d.k === 'crater') { ctx.fillStyle = 'rgba(46,36,26,' + 0.5 * al + ')'; ctx.beginPath(); ctx.ellipse(X, Y, 20, 10, 0, 0, 6.3); ctx.fill(); ctx.fillStyle = 'rgba(30,24,18,' + 0.5 * al + ')'; ctx.beginPath(); ctx.ellipse(X, Y + 1, 11, 5.5, 0, 0, 6.3); ctx.fill(); }
-      else { ctx.strokeStyle = 'rgba(70,52,34,' + al + ')'; ctx.lineWidth = d.big ? 1.5 : 1; const L = d.big ? 12 : 8; ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(X - Math.sin(d.a + 0.5) * L, Y - Math.cos(d.a + 0.5) * L); ctx.stroke(); ctx.fillStyle = 'rgba(235,228,210,' + al + ')'; ctx.fillRect(X - Math.sin(d.a + 0.5) * L - 1, Y - Math.cos(d.a + 0.5) * L - 1, 2, 2); }
+      else { const L = d.big ? 12 : 8, ex = X - Math.sin(d.a + 0.5) * L, ey = Y - Math.cos(d.a + 0.5) * L;
+        ctx.strokeStyle = 'rgba(0,0,0,' + 0.18 * al + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(X + L * 0.7, Y + 1.5); ctx.stroke();
+        ctx.strokeStyle = 'rgba(64,46,30,' + al + ')'; ctx.lineWidth = d.big ? 1.6 : 1.1; ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(ex, ey); ctx.stroke();
+        if (!d.big) { ctx.strokeStyle = (d.f ? 'rgba(201,74,53,' : 'rgba(232,226,212,') + al + ')'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(X - Math.sin(d.a + 0.5) * (L - 3), Y - Math.cos(d.a + 0.5) * (L - 3)); ctx.stroke(); } }
     }
     if (battle) {
       const C = sim.corpses, now = sim.time + (v.alpha || 0) * AB.DT;
@@ -185,10 +191,21 @@ class Render {
         const c = C[i], X = (c.x - c.y) * HW, Y = (c.x + c.y) * HH; if (X < vx0 - 110 || X > vx1 + 110 || Y < vy0 - 60 || Y > vy1 + 200) continue;
         const age = now - c.time;
         if (c.bld) { const s = S.rubble(c.size); ctx.globalAlpha = Math.max(0.35, 1 - age / 60); ctx.drawImage(s.cv, X - s.ax, Y - s.ay, s.w, s.h); ctx.globalAlpha = 1; continue; }
-        if (age > 30) continue;
-        const fr = age < 0.36 ? 'd' + Math.min(3, (age / 0.09) | 0) : 'd3', s = S.get(c.t, c.p, c.fx + c.fy < 0, fr), fl = c.fx - c.fy < 0;
-        ctx.globalAlpha = age < 20 ? 1 : 1 - (age - 20) / 10;
-        if (fl) { ctx.setTransform(-dpr * z, 0, 0, dpr * z, dpr * (ox + X * z), dpr * (oy + Y * z)); ctx.drawImage(s.cv, -s.ax, -s.ay, s.w, s.h); world(); } else ctx.drawImage(s.cv, X - s.ax, Y - s.ay, s.w, s.h);
+        if (age > 120) continue;
+        const cd = U[c.t], mech = cd.cat === 'siege', big = cd.r > 0.33, fl = c.fx - c.fy < 0;
+        // what is left behind: a blood stain and bones, or splintered wood
+        const rest = age < 25 ? 0 : Math.min(1, (age - 25) / 5), gone = age > 100 ? (age - 100) / 20 : 0;
+        if (mech) { if (rest > 0) { const w = S.rubble(1); ctx.globalAlpha = rest * (1 - gone) * 0.8; ctx.drawImage(w.cv, X - w.ax * 0.5, Y - w.ay * 0.5, w.w * 0.5, w.h * 0.5); } }
+        else {
+          const pool = Math.min(1, age / 1.6), rr = (big ? 17 : 9) * (0.4 + pool * 0.6) * (1 - rest * 0.3);
+          ctx.globalAlpha = (0.42 - rest * 0.22) * (1 - gone); ctx.fillStyle = '#5a0e0a'; ctx.beginPath(); ctx.ellipse(X - (fl ? -5 : 5), Y + 1, rr, rr * 0.45, 0, 0, 6.3); ctx.fill();
+          if (rest > 0) { const b = S.bones(big ? 1 : 0, (c.time * 7 | 0) % 3); ctx.globalAlpha = rest * (1 - gone); ctx.drawImage(b.cv, X - b.ax, Y - b.ay, b.w, b.h); }
+        }
+        if (rest < 1) {
+          const fr = age < 0.4 ? 'd' + Math.min(4, (age / 0.08) | 0) : 'd4', s = S.get(c.t, c.p, c.fx + c.fy < 0, fr);
+          ctx.globalAlpha = 1 - rest;
+          if (fl) { ctx.setTransform(-dpr * z, 0, 0, dpr * z, dpr * (ox + X * z), dpr * (oy + Y * z)); ctx.drawImage(s.cv, -s.ax, -s.ay, s.w, s.h); world(); } else ctx.drawImage(s.cv, X - s.ax, Y - s.ay, s.w, s.h);
+        }
       }
       ctx.globalAlpha = 1;
     }
@@ -221,8 +238,10 @@ class Render {
         if (X < vx0 - 110 || X > vx1 + 110 || Y < vy0 - 60 || Y > vy1 + 200) continue;
         const it = item(); n++; it.k = 0; it.e = e; it.X = X; it.Y = Y; it.d = x + y + (e.bld ? 0.01 : 0); it.sc = 1;
         if (e.bld) { it.s = S.get(e.t, e.p, false, 'idle'); it.fl = false; }
-        else { const q = (now - e.atkT) / (e.d.wind + 0.25); const fr = q >= 0 && q < 1 ? 'a' + Math.min(4, (q * 5) | 0) : e.moving ? 'w' + (((e.anim % 1) * 6) | 0) : 'idle';
-          it.s = S.get(e.t, e.p, e.fx + e.fy < -0.15, fr); it.fl = e.fx - e.fy < 0; }
+        else { const q = (now - e.atkT) / (e.d.wind + 0.25), atk = q >= 0 && q < 1; const fr = atk ? 'a' + Math.min(5, (q * 6) | 0) : e.moving ? 'w' + (((e.anim % 1) * 8) | 0) : 'idle';
+          it.s = S.get(e.t, e.p, e.fx + e.fy < -0.15, fr); it.fl = e.fx - e.fy < 0;
+          if (atk && !e.d.proj && e.d.spd) { const k = Math.sin(Math.min(1, Math.max(0, (q - 0.25) / 0.55)) * Math.PI) * (e.r > 0.33 ? 4 : 3); it.X += (e.fx - e.fy) * 0.7 * k; it.Y += (e.fx + e.fy) * 0.35 * k; }
+          else if (sim.time - e.flash < 0.12 && !e.d.proj) { it.X -= (e.fx - e.fy) * 0.6; it.Y -= (e.fx + e.fy) * 0.3; } }
       }
     } else {
       const Us = sc.units, mx = sc.w / 2, my = sc.h / 2;
@@ -260,18 +279,35 @@ class Render {
         ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(it.X - w / 2 - 0.7, top - 0.7, w + 1.4, 3.4);
         ctx.fillStyle = f > 0.6 ? '#5fd35a' : f > 0.3 ? '#e8c53a' : '#e2452f'; ctx.fillRect(it.X - w / 2, top, w * f, 2);
       }
-      // ---- projectiles
+      // ---- projectiles: fletched arrows that follow their arc, ground shadows, tumbling stones
       const P = sim.projs, al = v.alpha || 0;
+      const pos = (p, q) => { const x = p.sx + (p.tx - p.sx) * q, y = p.sy + (p.ty - p.sy) * q, zz = p.z0 * (1 - q) + p.h * 4 * q * (1 - q); return [(x - y) * HW, (x + y) * HH - zz * ZPX, (x + y) * HH, x, y, zz]; };
       for (let i = 0; i < P.length; i++) {
-        const p = P[i], u = Math.min(1, (p.t + al * AB.DT) / p.dur), u0 = Math.max(0, u - 0.07);
-        const pos = (q) => { const x = p.sx + (p.tx - p.sx) * q, y = p.sy + (p.ty - p.sy) * q, zz = p.z0 * (1 - q) + p.h * 4 * q * (1 - q); return [(x - y) * HW, (x + y) * HH - zz * ZPX, (x + y) * HH]; };
-        const [X, Y, GY] = pos(u), [X0, Y0] = pos(u0); if (X < vx0 - 30 || X > vx1 + 30 || Y < vy0 - 30 || Y > vy1 + 30) continue;
-        if (p.k === 'stone' || p.k === 'ball') { const r = p.k === 'stone' ? 3.4 : 2.6; ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(X, GY, r * 1.3, r * 0.6, 0, 0, 6.3); ctx.fill();
-          ctx.fillStyle = p.k === 'stone' ? '#8f8d88' : '#2b2b2e'; ctx.strokeStyle = '#231a14'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(X, Y, r, 0, 6.3); ctx.fill(); ctx.stroke(); }
-        else if (p.k === 'bullet') { ctx.strokeStyle = 'rgba(255,240,190,0.9)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(X0, Y0); ctx.lineTo(X, Y); ctx.stroke(); }
-        else { const dx = X - X0, dy = Y - Y0, l = Math.hypot(dx, dy) || 1, len = p.k === 'bigbolt' ? 16 : p.k === 'javelin' ? 12 : 8, ux = dx / l, uy = dy / l;
-          ctx.strokeStyle = '#231a14'; ctx.lineWidth = p.k === 'bigbolt' ? 2.2 : 1.6; ctx.beginPath(); ctx.moveTo(X - ux * len, Y - uy * len); ctx.lineTo(X, Y); ctx.stroke();
-          ctx.strokeStyle = p.k === 'arrow' ? '#eadfc4' : '#d9c9a0'; ctx.lineWidth = p.k === 'bigbolt' ? 1.1 : 0.8; ctx.stroke(); }
+        const p = P[i], u = Math.min(1, (p.t + al * AB.DT) / p.dur), [X, Y, GY, wx, wy, wz] = pos(p, u);
+        if (X < vx0 - 40 || X > vx1 + 40 || Y < vy0 - 60 || Y > vy1 + 40) continue;
+        const [X0, Y0, GY0] = pos(p, Math.max(0, u - 0.03)), dx = X - X0, dy = Y - Y0, l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
+        const gdx = X - X0, gdy = GY - GY0, gl = Math.hypot(gdx, gdy) || 1, sh = Math.max(0.12, 0.38 - wz * 0.05);
+        if (p.k === 'stone' || p.k === 'ball') {
+          const r = p.k === 'stone' ? 3.8 : 2.7;
+          ctx.fillStyle = 'rgba(0,0,0,' + sh + ')'; ctx.beginPath(); ctx.ellipse(X, GY, r * (1.1 + wz * 0.05), r * 0.5, 0, 0, 6.3); ctx.fill();
+          if (dt > 0 && Math.random() < 0.7) this.part(wx, wy, wz, { life: p.k === 'ball' ? 0.9 : 0.5, r: p.k === 'ball' ? 2.2 : 1.6, grow: 6, col: p.k === 'ball' ? '205,205,205' : '170,155,130', a: p.k === 'ball' ? 0.4 : 0.3 });
+          ctx.save(); ctx.translate(X, Y); ctx.rotate(p.t * 9);
+          ctx.beginPath(); if (p.k === 'stone') { ctx.moveTo(-r, -r * 0.3); ctx.lineTo(-r * 0.4, -r); ctx.lineTo(r * 0.7, -r * 0.8); ctx.lineTo(r, r * 0.2); ctx.lineTo(r * 0.3, r); ctx.lineTo(-r * 0.8, r * 0.7); ctx.closePath(); } else ctx.arc(0, 0, r, 0, 6.3);
+          ctx.fillStyle = p.k === 'stone' ? '#8c877d' : '#2d2c2e'; ctx.fill(); ctx.strokeStyle = '#2b2018'; ctx.lineWidth = 0.8; ctx.stroke();
+          ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.beginPath(); ctx.arc(-r * 0.3, -r * 0.35, r * 0.4, 0, 6.3); ctx.fill(); ctx.restore();
+        } else if (p.k === 'bullet') {
+          ctx.strokeStyle = 'rgba(255,236,170,0.95)'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(X - ux * 14, Y - uy * 14); ctx.lineTo(X, Y); ctx.stroke();
+        } else {
+          const big = p.k === 'bigbolt', L = big ? 17 : p.k === 'javelin' ? 15 : p.k === 'bolt' ? 9 : 11, tx = X - ux * L, ty = Y - uy * L;
+          ctx.strokeStyle = 'rgba(0,0,0,' + sh + ')'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.moveTo(X - gdx / gl * L, GY - gdy / gl * L); ctx.lineTo(X, GY); ctx.stroke();
+          ctx.lineCap = 'round'; ctx.strokeStyle = '#2b2018'; ctx.lineWidth = big ? 2.4 : 1.7; ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(X, Y); ctx.stroke();
+          ctx.strokeStyle = p.k === 'javelin' || big ? '#a07a4a' : '#d8c49c'; ctx.lineWidth = big ? 1.3 : 0.8; ctx.stroke(); ctx.lineCap = 'butt';
+          const nx = -uy, ny = ux, hl = big ? 4 : 2.8, hw = big ? 2 : 1.3;            // head
+          ctx.fillStyle = '#9aa1aa'; ctx.beginPath(); ctx.moveTo(X + ux * hl, Y + uy * hl); ctx.lineTo(X + nx * hw, Y + ny * hw); ctx.lineTo(X - nx * hw, Y - ny * hw); ctx.closePath(); ctx.fill();
+          if (p.k === 'arrow' || p.k === 'bolt') {                                       // fletching
+            const f = p.team % 2 ? '#e8e2d4' : '#c94a35'; ctx.strokeStyle = f; ctx.lineWidth = 1.1; ctx.beginPath();
+            ctx.moveTo(tx + ux * 3, ty + uy * 3); ctx.lineTo(tx - ux * 0.5 + nx * 1.8, ty - uy * 0.5 + ny * 1.8); ctx.moveTo(tx + ux * 3, ty + uy * 3); ctx.lineTo(tx - ux * 0.5 - nx * 1.8, ty - uy * 0.5 - ny * 1.8); ctx.stroke(); }
+        }
       }
     }
     // ---- particles

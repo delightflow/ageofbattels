@@ -2,7 +2,7 @@
 (function (G) {
 'use strict';
 const AB = G.AB = G.AB || {};
-const SS = 2, TAU = Math.PI * 2, OL = '#231a14';
+const SS = 2, TAU = Math.PI * 2, OL = '#2b2018';
 const STEEL = '#bcc3cc', STEEL_D = '#868e99', WOOD = '#8a6238', WOOD_D = '#5e4126', SKIN = '#e2b48c';
 
 function shade(hex, f) {
@@ -12,9 +12,9 @@ function shade(hex, f) {
 }
 function limb(c, x1, y1, x2, y2, w, col) {
   c.lineCap = 'round'; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2);
-  c.strokeStyle = OL; c.lineWidth = w + 1.3; c.stroke(); c.strokeStyle = col; c.lineWidth = w; c.stroke();
+  c.strokeStyle = OL; c.lineWidth = w + 0.95; c.stroke(); c.strokeStyle = col; c.lineWidth = w; c.stroke();
 }
-function ink(c, col, lw) { c.fillStyle = col; c.fill(); c.strokeStyle = OL; c.lineWidth = lw || 0.9; c.lineJoin = 'round'; c.stroke(); }
+function ink(c, col, lw) { c.fillStyle = col; c.fill(); c.strokeStyle = OL; c.lineWidth = (lw || 0.9) * 0.75; c.lineJoin = 'round'; c.stroke(); }
 function poly(c, pts) { c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.closePath(); }
 function ell(c, x, y, rx, ry, rot) { c.beginPath(); c.ellipse(x, y, rx, ry, rot || 0, 0, TAU); }
 function rrect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
@@ -94,7 +94,8 @@ function shield(c, x, y, kind, pc) {
   else { ell(c, x, y, 4.3, 4.6); ink(c, pc.m); c.strokeStyle = pc.d; c.lineWidth = 0.9; ell(c, x, y, 3, 3.2); c.stroke(); c.fillStyle = STEEL; ell(c, x, y, 1.2, 1.2); c.fill(); }
 }
 function head(c, L, pc, y0, back) {
-  const x = 0.5, y = -22.6 + y0, r = 3.3, h = L.helm;
+  const x = 0.5, y = -22.9 + y0, r = 3.3, h = L.helm;
+  c.save(); c.translate(x, y); c.scale(0.8, 0.8); c.translate(-x, -y);
   if (h === 'hood') { ell(c, x - 0.3, y - 0.2, r + 1.3, r + 1.4); ink(c, pc.d); }
   if (!(h === 'great')) { ell(c, x, y, r, r); ink(c, back && h !== 'hood' ? '#5a3d28' : SKIN, 0.8); }
   if (!back && h !== 'great') { c.fillStyle = OL; c.fillRect(x + 1.4, y - 0.7, 0.9, 1.1); if (h === 'none' || h === 'horn' || h === 'fur') { c.fillStyle = '#6b4a30'; c.beginPath(); c.arc(x + 0.6, y + 1.3, 2.5, 0.1, 1.9); c.fill(); } }
@@ -113,11 +114,12 @@ function head(c, L, pc, y0, back) {
     case 'hat': ell(c, x, y - 1.5, r + 3, 1.4); ink(c, '#2f2a2a', 0.7); rrect(c, x - 2.7, y - 5.2, 5.4, 3.8, 1.2); ink(c, '#2f2a2a', 0.7); c.strokeStyle = pc.m; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x - 2.4, y - 2.3); c.lineTo(x + 2.4, y - 2.3); c.stroke();
       c.beginPath(); c.moveTo(x - 2, y - 4.6); c.quadraticCurveTo(x - 6, y - 8, x - 6.5, y - 4); c.strokeStyle = pc.l; c.lineWidth = 1.3; c.stroke(); break;
   }
+  c.restore();
 }
 /* A figure facing right. ps: {walk 0..1|-1, atk 0..1|-1, back}. mounted: legs become a single stirrup leg. */
 function human(c, L, pc, ps, mounted) {
   const wk = ps.walk, back = ps.back, s = wk >= 0 ? Math.sin(wk * TAU) : 0, y0 = wk >= 0 && !mounted ? -Math.abs(Math.cos(wk * TAU)) * 0.9 + 0.45 : 0;
-  const A = ARMOR[L.armor], col = v => v === 'pc' ? pc.m : v === 'pcd' ? pc.d : v;
+  const A = ARMOR[L.armor], col = v => v === 'pc' ? pc.c : v === 'pcd' ? pc.d : v;
   const body = col(A.body), arm = col(A.arm), leg = col(A.leg), W = wpose(L.wpn, ps.atk, mounted ? 0 : s);
   const dual = L.wpn === 'axes', two = L.wpn === 'greatsword' || L.wpn === 'pike' || L.wpn === 'musket' || L.wpn === 'crossbow';
   const wArm = () => { weapon(c, L.wpn === 'axes' ? 'axe' : L.wpn, W, y0, pc); limb(c, 3.5, -17 + y0, W.hx, W.hy + y0, 2.3, arm); c.fillStyle = SKIN; ell(c, W.hx, W.hy + y0, 1.25, 1.25); c.fill(); };
@@ -348,30 +350,59 @@ function rubble(c, size) {
 const BOX = { human: [60, 60, 30, 46], rider: [76, 72, 36, 56], elephant: [100, 84, 46, 68], wolf: [48, 40, 22, 30], siege: [72, 60, 34, 46], b1: [80, 120, 40, 100], b3: [208, 250, 104, 196], tree: [48, 66, 22, 58], rock: [40, 30, 18, 22] };
 const DRAW = { human: (c, L, pc, ps) => human(c, L, pc, ps), rider: (c, L, pc, ps) => horse(c, L, pc, ps, L.mount), elephant, wolf, catapult, ballista, cannon, ram };
 const cache = new Map();
-function mk(box, fn) {
+function mk(box, fn, lit) {
   const [w, h, ax, ay] = BOX[box], cv = document.createElement('canvas'); cv.width = w * SS; cv.height = h * SS;
   const c = cv.getContext('2d'); c.scale(SS, SS); c.translate(ax, ay); fn(c);
+  if (lit) {                         // sunlight from above: warm highlight on top, cool shade toward the ground
+    c.setTransform(SS, 0, 0, SS, 0, 0); c.globalAlpha = 1; c.globalCompositeOperation = 'source-atop';
+    const g = c.createLinearGradient(0, ay - lit, 0, ay + 2);
+    g.addColorStop(0, 'rgba(255,240,214,0.26)'); g.addColorStop(0.45, 'rgba(255,248,236,0.04)'); g.addColorStop(0.8, 'rgba(24,18,30,0.16)'); g.addColorStop(1, 'rgba(14,10,18,0.34)');
+    c.fillStyle = g; c.fillRect(0, 0, w, h);
+    const r = c.createRadialGradient(ax - lit * 0.18, ay - lit * 0.7, 1, ax - lit * 0.18, ay - lit * 0.7, lit * 0.55);
+    r.addColorStop(0, 'rgba(255,236,200,0.14)'); r.addColorStop(1, 'rgba(255,236,200,0)'); c.fillStyle = r; c.fillRect(0, 0, w, h);
+    c.globalCompositeOperation = 'source-over';
+  }
   return { cv, w, h, ax, ay };
 }
-const ATK_T = [0.12, 0.34, 0.55, 0.72, 0.9];
+const ATK_T = [0.08, 0.24, 0.4, 0.54, 0.7, 0.88], LIT = { human: 30, rider: 44, elephant: 52, wolf: 16, siege: 26 };
+function mixHex(a, b, t) { const A = parseInt(a.slice(1), 16), B = parseInt(b.slice(1), 16), f = (s) => Math.round(((A >> s) & 255) * (1 - t) + ((B >> s) & 255) * t);
+  return '#' + ((1 << 24) | (f(16) << 16) | (f(8) << 8) | f(0)).toString(16).slice(1); }
+const PC = AB.PLAYERS.map(p => Object.assign({}, p, { c: mixHex(p.m, '#6e604e', 0.24), m: mixHex(p.m, '#5a5048', 0.08) }));
+function bones(c, big, v) {
+  const R = AB.rng32(v * 31 + (big ? 7 : 3)), k = big ? 1.7 : 1, bone = '#ddd5c2', dk = '#7b705c';
+  c.fillStyle = 'rgba(60,40,30,0.16)'; ell(c, 0, 0, 9 * k, 3.6 * k); c.fill();
+  for (let i = 0; i < (big ? 6 : 4); i++) {
+    const x = (R() - 0.5) * 12 * k, y = (R() - 0.5) * 4.4 * k, a = R() * Math.PI, l = (2.4 + R() * 2.6) * k;
+    c.lineCap = 'round'; c.strokeStyle = dk; c.lineWidth = 1.9; c.beginPath(); c.moveTo(x - Math.cos(a) * l, y - Math.sin(a) * l * 0.5); c.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l * 0.5); c.stroke();
+    c.strokeStyle = bone; c.lineWidth = 1.1; c.stroke();
+  }
+  c.strokeStyle = bone; c.lineWidth = 0.8; for (let i = 0; i < 3; i++) { c.beginPath(); c.arc(1.5 * k, -0.4, (2.2 + i * 0.9) * k * 0.6, 3.6, 5.6); c.stroke(); }
+  const sx = -4 * k, sy = -1.2; ell(c, sx, sy, 2.1 * k, 1.8 * k); c.fillStyle = bone; c.fill(); c.strokeStyle = dk; c.lineWidth = 0.6; c.stroke();
+  c.fillStyle = '#3a3026'; ell(c, sx - 0.7 * k, sy - 0.2, 0.5 * k, 0.55 * k); c.fill(); ell(c, sx + 0.6 * k, sy - 0.2, 0.5 * k, 0.55 * k); c.fill();
+}
 const Sp = AB.Sprites = {
   shade,
-  /* frame: 'idle' | 'w0'..'w5' | 'a0'..'a4' | 'd0'..'d3' */
+  /* frame: 'idle' | 'w0'..'w7' | 'a0'..'a5' | 'd0'..'d4' */
   get(t, p, back, frame) {
     const key = t + '|' + p + '|' + (back ? 1 : 0) + '|' + frame; let s = cache.get(key); if (s) return s;
-    const d = AB.UNITS[t], L = d.look, pc = AB.PLAYERS[p];
+    const d = AB.UNITS[t], L = d.look, pc = PC[p];
     if (d.bld) s = mk(d.size > 1 ? 'b3' : 'b1', c => BLD[L.b](c, pc));
     else {
       const kind = L.b, box = BOX[kind] ? kind : 'siege', k = frame.charCodeAt(0), i = +frame.slice(1) || 0;
-      const ps = { walk: k === 119 ? i / 6 : -1, atk: k === 97 ? ATK_T[i] : -1, back };
+      const ps = { walk: k === 119 ? i / 8 : -1, atk: k === 97 ? ATK_T[i] : -1, back };
       s = mk(box, c => {
-        if (k === 100) { const q = (i + 1) / 4; c.translate(-q * 3, 0); c.rotate(-q * 1.45); c.globalAlpha = 1 - q * 0.12; if (box === 'siege') { c.rotate(q * 1.45 - q * 0.25); c.scale(1, 1 - q * 0.35); } }
+        if (k === 100) {               // death: buckle at the knees, then topple backwards
+          const q = (i + 1) / 5, e = q * q * (3 - 2 * q);
+          if (box === 'siege') { c.rotate(-0.22 * e); c.scale(1, 1 - 0.38 * e); }
+          else { c.translate(-e * 4.5, e * 0.8); c.rotate(-1.52 * e); c.scale(1, 1 - 0.16 * Math.sin(q * Math.PI)); }
+        }
         DRAW[kind](c, L, pc, ps);
-      });
+      }, LIT[box]);
     }
     cache.set(key, s); return s;
   },
   scenery(kind, v) { const key = 's|' + kind + '|' + v; let s = cache.get(key); if (!s) { s = kind === 'rock' ? mk('rock', c => rock(c, v / 2)) : mk('tree', c => tree(c, kind, v - 1)); cache.set(key, s); } return s; },
+  bones(big, v) { const key = 'bone|' + big + '|' + v; let s = cache.get(key); if (!s) { s = mk('human', c => bones(c, big, v)); cache.set(key, s); } return s; },
   rubble(size) { const key = 'rub|' + size; let s = cache.get(key); if (!s) { s = mk(size > 1 ? 'b3' : 'b1', c => rubble(c, size)); cache.set(key, s); } return s; },
   icon(t, p, size) {
     const d = AB.UNITS[t], s = Sp.get(t, p, false, 'idle'), cv = document.createElement('canvas'); cv.width = cv.height = size * 2; cv.style.width = cv.style.height = size + 'px';
