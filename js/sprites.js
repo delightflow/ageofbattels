@@ -28,18 +28,43 @@ const ARMOR = {
   plate:   { body: '#c3c9d1', arm: '#c3c9d1', leg: '#9aa1ab', tab: 1 },
   robe:    { body: 'pc', arm: 'pc', leg: 'pc', robe: 1 },
   bare:    { body: SKIN, arm: SKIN, leg: '#5b4a3a', strap: 1 },
+  lorica:  { body: '#b7bec8', arm: 'pc', leg: SKIN, pat: 'lorica' },
+  linothorax: { body: '#e4d9bc', arm: SKIN, leg: SKIN, pat: 'lino' },
+  osode:   { body: 'pcd', arm: 'pcd', leg: '#3b3536', pat: 'lame' },
+  lamellar: { body: '#868c94', arm: 'pc', leg: '#4d4640', pat: 'lame' },
+  slashed: { body: 'pc', arm: 'pc', leg: 'pc', pat: 'slash' },
+  jaguar:  { body: '#d4a03a', arm: '#d4a03a', leg: '#d4a03a', pat: 'spots' },
+  deel:    { body: 'pc', arm: 'pc', leg: '#4b3a2c', pat: 'deel' },
 };
+// surface detail drawn over the torso for the richer armours
+function pattern(c, pat, y0, pc, s) {
+  const T = -19.6 + y0, B = -8.4 + y0;
+  c.save(); rrect(c, -4.3, T, 8.6, 11.2, 2.6); c.clip();
+  switch (pat) {
+    case 'lorica': c.strokeStyle = '#6f7782'; c.lineWidth = 0.8; c.beginPath(); for (let y = T + 2.8; y < B; y += 2.2) { c.moveTo(-4.5, y); c.lineTo(4.5, y); } c.stroke();
+      c.fillStyle = '#d7dde4'; c.fillRect(-4.3, T, 8.6, 1.4); break;
+    case 'lino': c.fillStyle = pc.m; c.fillRect(-4.3, T + 6.6, 8.6, 1.2); c.strokeStyle = 'rgba(120,96,60,0.5)'; c.lineWidth = 0.6; c.beginPath(); c.moveTo(-4.3, T + 3); c.lineTo(4.3, T + 3); c.stroke(); break;
+    case 'lame': c.strokeStyle = pc.m; c.lineWidth = 0.9; c.setLineDash([1.1, 0.8]); c.beginPath(); for (let y = T + 2; y < B; y += 1.9) { c.moveTo(-4.5, y); c.lineTo(4.5, y); } c.stroke(); c.setLineDash([]); break;
+    case 'slash': c.fillStyle = '#efe6d2'; for (const x of [-3.2, -0.6, 2]) c.fillRect(x, T + 1, 1.2, 9.6); c.fillStyle = 'rgba(0,0,0,0.18)'; for (const x of [-2, 0.6]) c.fillRect(x, T + 1, 1.3, 9.6); break;
+    case 'spots': c.fillStyle = '#3d2a18'; for (const [x, y] of [[-2.6, 2], [1.4, 3.2], [-0.6, 6], [2.6, 7.6], [-2.8, 8.4], [0.8, 0.6]]) { ell(c, x, T + y, 0.85, 0.7); c.fill(); } break;
+    case 'deel': c.strokeStyle = pc.d; c.lineWidth = 1.3; c.beginPath(); c.moveTo(-3.4, T + 0.5); c.lineTo(3, T + 7.5); c.stroke(); c.fillStyle = '#6e4a2b'; c.fillRect(-4.3, T + 8, 8.6, 1.8); break;
+  }
+  c.restore();
+  if (pat === 'lino') { for (let i = 0; i < 6; i++) { const x = -4.2 + i * 1.45; c.fillStyle = i % 2 ? pc.m : '#e4d9bc'; c.fillRect(x, B, 1.3, 2.6); } }
+  if (pat === 'lorica') { ell(c, -3.3, T + 1.2, 2, 1.4); ink(c, '#c9d0d8', 0.6); ell(c, 3.3, T + 1.2, 2, 1.4); ink(c, '#c9d0d8', 0.6); }
+  if (pat === 'slash' || pat === 'deel' || pat === 'osode') {}
+}
 
 // hand position + weapon angle (0 = pointing up, + = rotating forward) for a weapon at attack phase t (-1 = none)
 function wpose(w, t, s) {
   const P = { hx: 5.3 - s * 1.3, hy: -11.5, ang: 0.3, ox: null, oy: null, hide: false };
   const a = t >= 0;
   switch (w) {
-    case 'spear': case 'fork': case 'pike': case 'lance': case 'javelin': {
-      P.ang = w === 'pike' ? 0.42 : w === 'lance' ? 0.3 : 0.14;
+    case 'spear': case 'fork': case 'pike': case 'lance': case 'javelin': case 'sarissa': case 'francisca': {
+      P.ang = w === 'pike' ? 0.42 : w === 'sarissa' ? 0.62 : w === 'lance' ? 0.3 : 0.14;
       if (a) {
         const back = seg(t, 0, 0.4), go = seg(t, 0.4, 0.62), ret = seg(t, 0.75, 1);
-        if (w === 'javelin') { P.ang = lerp(0.14, 1.25, back); P.hx = lerp(5.3, 1, back) + go * 8 - ret * 4; P.hy = lerp(-11.5, -20, back) + ret * 8.5; P.hide = t > 0.58; }
+        if (w === 'javelin' || w === 'francisca') { P.ang = lerp(0.14, 1.25, back); P.hx = lerp(5.3, 1, back) + go * 8 - ret * 4; P.hy = lerp(-11.5, -20, back) + ret * 8.5; P.hide = t > 0.58; }
         else { P.ang = lerp(P.ang, 1.48, back) - ret * 0.9; P.hx = lerp(5.3, 2, back) + go * 6.5 - ret * 3; P.hy = lerp(-11.5, -14.5, back) + ret * 2; }
       }
       break; }
@@ -47,7 +72,7 @@ function wpose(w, t, s) {
       P.ang = 0;
       if (a) { const up = seg(t, 0, 0.2), pull = seg(t, 0.15, 0.55), rel = t > 0.6 ? 1 : 0; P.hx = lerp(5.3, 8, up); P.hy = lerp(-11.5, -16, up); P.ox = rel ? 3 : lerp(7, 1.5, pull); P.oy = -16; P.pull = rel ? 0 : pull; P.nock = !rel && t > 0.08; }
       break; }
-    case 'crossbow': P.hx = 6.5; P.hy = -14.5; P.ang = 1.57; P.ox = 3.5; P.oy = -13.5; if (a) { const k = seg(t, 0.55, 0.7) - seg(t, 0.7, 1); P.hx -= k * 1.5; P.loaded = t < 0.6; } else P.loaded = true; break;
+    case 'crossbow': case 'repeater': P.hx = 6.5; P.hy = -14.5; P.ang = 1.57; P.ox = 3.5; P.oy = -13.5; if (a) { const k = seg(t, 0.55, 0.7) - seg(t, 0.7, 1); P.hx -= k * 1.5; P.loaded = t < 0.6; } else P.loaded = true; break;
     case 'musket': P.hx = 3.5; P.hy = -15; P.ang = a ? 1.57 : 0.9; P.ox = a ? 8 : 6; P.oy = a ? -15.2 : -13; if (a) { const k = seg(t, 0.55, 0.68) - seg(t, 0.68, 1); P.hx -= k * 1.6; P.ang -= k * 0.15; P.fire = t > 0.56 && t < 0.78; } break;
     case 'staff': P.ang = 0.1; if (a) { const k = Math.sin(clamp01(t) * Math.PI); P.hy -= k * 5; P.hx += k; P.glow = k; } break;
     default: {          // slashing weapons
@@ -83,12 +108,29 @@ function weapon(c, w, P, y0, pc) {
       c.strokeStyle = '#d8d0c0'; c.lineWidth = 0.5; c.beginPath(); c.moveTo(-5.5, -4.6); c.lineTo(0, P.loaded ? -1.5 : -5); c.lineTo(5.5, -4.6); c.stroke(); break;
     case 'musket': shaft(4, -3, 2, WOOD); shaft(-3, -13, 1.2, '#4c4f55');
       if (P.fire) { c.fillStyle = '#ffd84a'; ell(c, 0, -15.5, 1.8, 3.2); c.fill(); c.fillStyle = '#fff6c8'; ell(c, 0, -14.6, 0.9, 1.6); c.fill(); } break;
+    case 'katana': shaft(3, -1, 1.2, '#2a2424'); c.beginPath(); c.moveTo(-0.6, -1.4); c.quadraticCurveTo(-1.6, -8, 0.4, -14.5); c.lineTo(1, -13.8); c.quadraticCurveTo(0.2, -8, 0.8, -1.4); c.closePath(); ink(c, '#e4e9ef', 0.6);
+      c.fillStyle = '#c9a23c'; ell(c, 0, -1.5, 1.8, 0.8); c.fill(); break;
+    case 'zweihander': shaft(4, -1, 1.3, WOOD_D); poly(c, [-1.3, -2, 1.3, -2, 1.1, -19.5, 0, -22, -1.1, -19.5]); ink(c, '#dfe5ec', 0.7);
+      c.fillStyle = STEEL_D; c.fillRect(-4, -2.6, 8, 1.3); c.fillRect(-2.3, -5.4, 0.9, 1.6); c.fillRect(1.4, -5.4, 0.9, 1.6); break;
+    case 'macuahuitl': poly(c, [-1.2, 2, 1.2, 2, 2.1, -11, -2.1, -11]); ink(c, '#7a5530', 0.8); c.fillStyle = '#1d1a20';
+      for (let i = 0; i < 5; i++) { const y = -2.5 - i * 2; poly(c, [2, y, 3.3, y - 0.9, 2, y - 1.7]); c.fill(); poly(c, [-2, y, -3.3, y - 0.9, -2, y - 1.7]); c.fill(); } break;
+    case 'sarissa': shaft(10, -34, 1.1, WOOD); poly(c, [-1.2, -34, 0, -38.5, 1.2, -34]); ink(c, STEEL, 0.6); break;
+    case 'francisca': shaft(2.5, -6.5, 1.1, WOOD); c.beginPath(); c.moveTo(0.2, -7.2); c.quadraticCurveTo(4.8, -9.6, 4.6, -4.2); c.quadraticCurveTo(2.6, -5.6, 0.2, -4.8); c.closePath(); ink(c, STEEL, 0.6); break;
+    case 'repeater': shaft(3, -8, 1.8, WOOD); c.beginPath(); c.moveTo(-5, -4.6); c.quadraticCurveTo(0, -9, 5, -4.6); c.strokeStyle = OL; c.lineWidth = 2; c.stroke(); c.strokeStyle = WOOD_D; c.lineWidth = 1; c.stroke();
+      rrect(c, -1.6, -6.5, 3.2, 8, 0.6); ink(c, '#9a6a3a', 0.6); c.strokeStyle = '#d8d0c0'; c.lineWidth = 0.5; c.beginPath(); c.moveTo(-5, -4.6); c.lineTo(0, P.loaded ? -1.5 : -5); c.lineTo(5, -4.6); c.stroke(); break;
     case 'staff': shaft(9, -13, 1.1, WOOD); if (P.glow) { c.fillStyle = 'rgba(255,240,160,' + (0.5 * P.glow) + ')'; ell(c, 0, -15, 5, 5); c.fill(); }
       c.fillStyle = '#e8c14a'; c.strokeStyle = OL; c.lineWidth = 0.6; ell(c, 0, -15, 1.9, 1.9); c.fill(); c.stroke(); break;
   }
   c.restore();
 }
 function shield(c, x, y, kind, pc) {
+  if (kind === 'scutum') { c.beginPath(); c.moveTo(x - 3.4, y - 7.4); c.quadraticCurveTo(x - 4.6, y, x - 3.4, y + 7.4); c.lineTo(x + 2.6, y + 7.4); c.quadraticCurveTo(x + 1.4, y, x + 2.6, y - 7.4); c.closePath(); ink(c, pc.m);
+    c.strokeStyle = '#e2c25c'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(x - 2.6, y - 6.4); c.lineTo(x + 1.8, y - 6.4); c.moveTo(x - 2.6, y + 6.4); c.lineTo(x + 1.8, y + 6.4); c.moveTo(x - 0.8, y - 5); c.lineTo(x - 0.1, y - 2); c.moveTo(x - 0.8, y + 5); c.lineTo(x - 0.1, y + 2); c.stroke();
+    c.fillStyle = '#d7b24a'; ell(c, x - 0.4, y, 1.6, 1.6); c.fill(); return; }
+  if (kind === 'aspis') { ell(c, x, y, 5.8, 6.1); ink(c, '#b8873c'); ell(c, x, y, 4.7, 5); c.fillStyle = pc.m; c.fill(); c.fillStyle = pc.l; poly(c, [x - 1.6, y + 2.6, x, y - 3, x + 1.6, y + 2.6]); c.fill(); return; }
+  if (kind === 'pelte') { ell(c, x + 0.6, y - 1.5, 3, 3.2); ink(c, '#b8873c'); ell(c, x + 0.6, y - 1.5, 2, 2.2); c.fillStyle = pc.m; c.fill(); return; }
+  if (kind === 'chimalli') { for (let i = 0; i < 7; i++) { const a = 0.9 + i * 0.22; c.fillStyle = i % 2 ? '#2f9e7a' : '#e4c04a'; ell(c, x + Math.cos(a) * 4.2, y + Math.sin(a) * 4.4, 1.1, 2, a); c.fill(); }
+    ell(c, x, y, 4, 4.2); ink(c, pc.m); c.strokeStyle = '#efe6d2'; c.lineWidth = 0.9; ell(c, x, y, 2.6, 2.8); c.stroke(); c.fillStyle = '#efe6d2'; ell(c, x, y, 0.9, 0.9); c.fill(); return; }
   if (kind === 'kite') { c.beginPath(); c.moveTo(x - 3.6, y - 5); c.quadraticCurveTo(x, y - 6.2, x + 3.6, y - 5); c.quadraticCurveTo(x + 3.8, y + 2, x, y + 6.5); c.quadraticCurveTo(x - 3.8, y + 2, x - 3.6, y - 5); c.closePath(); ink(c, pc.m);
     c.strokeStyle = pc.l; c.lineWidth = 1; c.beginPath(); c.moveTo(x, y - 4.6); c.lineTo(x, y + 4.4); c.moveTo(x - 2.6, y - 1.6); c.lineTo(x + 2.6, y - 1.6); c.stroke(); }
   else { ell(c, x, y, 4.3, 4.6); ink(c, pc.m); c.strokeStyle = pc.d; c.lineWidth = 0.9; ell(c, x, y, 3, 3.2); c.stroke(); c.fillStyle = STEEL; ell(c, x, y, 1.2, 1.2); c.fill(); }
@@ -97,8 +139,8 @@ function head(c, L, pc, y0, back) {
   const x = 0.5, y = -22.9 + y0, r = 3.3, h = L.helm;
   c.save(); c.translate(x, y); c.scale(0.8, 0.8); c.translate(-x, -y);
   if (h === 'hood') { ell(c, x - 0.3, y - 0.2, r + 1.3, r + 1.4); ink(c, pc.d); }
-  if (!(h === 'great')) { ell(c, x, y, r, r); ink(c, back && h !== 'hood' ? '#5a3d28' : SKIN, 0.8); }
-  if (!back && h !== 'great') { c.fillStyle = OL; c.fillRect(x + 1.4, y - 0.7, 0.9, 1.1); if (h === 'none' || h === 'horn' || h === 'fur') { c.fillStyle = '#6b4a30'; c.beginPath(); c.arc(x + 0.6, y + 1.3, 2.5, 0.1, 1.9); c.fill(); } }
+  if (h !== 'great' && h !== 'corinth') { ell(c, x, y, r, r); ink(c, back && h !== 'hood' ? '#5a3d28' : SKIN, 0.8); }
+  if (!back && h !== 'great' && h !== 'corinth') { c.fillStyle = OL; c.fillRect(x + 1.4, y - 0.7, 0.9, 1.1); if (h === 'none' || h === 'horn' || h === 'fur') { c.fillStyle = '#6b4a30'; c.beginPath(); c.arc(x + 0.6, y + 1.3, 2.5, 0.1, 1.9); c.fill(); } }
   const dome = (col, low) => { c.beginPath(); c.arc(x, y - 0.2, r + 0.5, Math.PI - low, TAU + low); c.closePath(); ink(c, col, 0.8); };
   switch (h) {
     case 'none': dome('#5a3d28', back ? 0.9 : 0.05); break;
@@ -111,6 +153,24 @@ function head(c, L, pc, y0, back) {
     case 'hood': if (back) { ell(c, x, y, r + 0.9, r + 1); ink(c, pc.d); } break;
     case 'turban': ell(c, x, y - 1.9, r + 1.1, 2.7); ink(c, '#f0e8d6', 0.8); c.fillStyle = pc.m; ell(c, x + (back ? 0 : 1.6), y - 2.2, 1, 1); c.fill(); break;
     case 'fur': rrect(c, x - 3.9, y - 4.6, 7.8, 4.2, 1.8); ink(c, '#6e4a2b', 0.8); c.fillStyle = pc.m; ell(c, x, y - 4.6, 1.3, 1); c.fill(); break;
+    case 'galea': dome('#c3cad2', back ? 0.4 : 0.05); if (!back) { c.fillStyle = '#c3cad2'; c.fillRect(x + 1.6, y - 0.4, 1.4, 3.2); }
+      c.beginPath(); c.moveTo(x - 3.6, y - 3.4); c.quadraticCurveTo(x, y - 8.4, x + 3.6, y - 3.4); c.lineTo(x + 2.6, y - 3); c.quadraticCurveTo(x, y - 6.2, x - 2.6, y - 3); c.closePath(); ink(c, '#b3322a', 0.6); break;
+    case 'corinth': { const B = '#b8873c'; rrect(c, x - 3.6, y - 4, 7.2, 7.4, 2.6); ink(c, B); if (!back) { c.fillStyle = OL; c.fillRect(x + 0.4, y - 1.2, 3.3, 1); c.fillRect(x + 1.6, y - 1.2, 0.9, 4); }
+      c.beginPath(); c.moveTo(x - 4.4, y - 2.8); c.quadraticCurveTo(x - 2, y - 9.6, x + 3.8, y - 4.6); c.lineTo(x + 2.8, y - 3.6); c.quadraticCurveTo(x - 1.4, y - 6.8, x - 3.2, y - 2.6); c.closePath(); ink(c, pc.m, 0.6); break; }
+    case 'phrygian': c.beginPath(); c.moveTo(x - 3.7, y + 0.2); c.quadraticCurveTo(x - 4, y - 5, x + 1, y - 5.6); c.quadraticCurveTo(x + 5, y - 6, x + 3.6, y - 2.6); c.lineTo(x + 3.8, y + 0.2); c.closePath(); ink(c, '#b8873c', 0.8);
+      c.fillStyle = 'rgba(255,240,200,0.35)'; ell(c, x - 0.6, y - 3.6, 1.6, 0.9); c.fill(); break;
+    case 'gogu': dome('#6f757f', 0.05); c.fillStyle = '#5a5f68'; c.fillRect(x - 4, y - 0.4, 2.2, 3.4); c.strokeStyle = OL; c.lineWidth = 1.1; c.beginPath(); c.moveTo(x, y - 3.8); c.lineTo(x - 0.4, y - 7.2); c.stroke();
+      ell(c, x - 1.2, y - 8.2, 1.6, 1.1, -0.5); c.fillStyle = pc.m; c.fill(); break;
+    case 'kabuto': ell(c, x, y - 0.4, r + 3.6, 1.6); ink(c, '#2d2a2a', 0.7); dome('#2d2a2a', 0.05);
+      if (!back) { c.strokeStyle = '#e1b84a'; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 0.6, y - 2.6); c.quadraticCurveTo(x - 1.8, y - 5.8, x - 2.4, y - 8.2); c.moveTo(x + 1.4, y - 2.6); c.quadraticCurveTo(x + 3.8, y - 5.8, x + 4.4, y - 8.2); c.stroke(); }
+      c.fillStyle = pc.m; c.fillRect(x - 3.4, y - 0.4, 6.8, 0.9); break;
+    case 'mongol': poly(c, [x - 3.6, y - 0.6, x - 2.4, y - 4.8, x, y - 7.6, x + 2.4, y - 4.8, x + 3.6, y - 0.6]); ink(c, '#9aa1aa', 0.7); ell(c, x, y - 0.3, r + 1.5, 1.5); ink(c, '#6e4a2b', 0.7);
+      c.strokeStyle = pc.m; c.lineWidth = 1.1; c.beginPath(); c.moveTo(x, y - 7.6); c.lineTo(x - 1, y - 9.4); c.stroke(); break;
+    case 'jaguar': { const Y = '#d4a03a'; c.beginPath(); c.arc(x - 0.4, y - 0.6, r + 1.6, Math.PI * 0.95, Math.PI * 2.08); c.closePath(); ink(c, Y, 0.8);
+      if (!back) { poly(c, [x + 1.6, y - 2.6, x + 6.4, y - 1.8, x + 5.4, y + 0.2, x + 2, y - 0.4]); ink(c, Y, 0.7); c.fillStyle = '#efe6d2'; c.fillRect(x + 3.2, y - 0.6, 2.4, 0.6); }
+      poly(c, [x - 2.2, y - 4.6, x - 1.4, y - 6.8, x - 0.2, y - 4.8]); ink(c, Y, 0.6); c.fillStyle = '#3d2a18'; for (const [dx, dy] of [[-2.6, -2.4], [-0.4, -4], [1.4, -3]]) { ell(c, x + dx, y + dy, 0.6, 0.5); c.fill(); } break; }
+    case 'beret': ell(c, x - 0.4, y - 2.8, r + 2.6, 1.9, -0.15); ink(c, pc.d, 0.7); c.fillStyle = pc.m; ell(c, x - 0.4, y - 3.3, r + 1.2, 1.2, -0.15); c.fill();
+      for (let i = 0; i < 3; i++) { c.beginPath(); c.moveTo(x - 1, y - 3.6); c.quadraticCurveTo(x - 6 + i, y - 8 - i, x - 7.5 + i * 2, y - 5.2 - i * 1.6); c.strokeStyle = i === 1 ? pc.l : '#f2ede4'; c.lineWidth = 1.3; c.stroke(); } break;
     case 'hat': ell(c, x, y - 1.5, r + 3, 1.4); ink(c, '#2f2a2a', 0.7); rrect(c, x - 2.7, y - 5.2, 5.4, 3.8, 1.2); ink(c, '#2f2a2a', 0.7); c.strokeStyle = pc.m; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x - 2.4, y - 2.3); c.lineTo(x + 2.4, y - 2.3); c.stroke();
       c.beginPath(); c.moveTo(x - 2, y - 4.6); c.quadraticCurveTo(x - 6, y - 8, x - 6.5, y - 4); c.strokeStyle = pc.l; c.lineWidth = 1.3; c.stroke(); break;
   }
@@ -121,7 +181,7 @@ function human(c, L, pc, ps, mounted) {
   const wk = ps.walk, back = ps.back, s = wk >= 0 ? Math.sin(wk * TAU) : 0, y0 = wk >= 0 && !mounted ? -Math.abs(Math.cos(wk * TAU)) * 0.9 + 0.45 : 0;
   const A = ARMOR[L.armor], col = v => v === 'pc' ? pc.c : v === 'pcd' ? pc.d : v;
   const body = col(A.body), arm = col(A.arm), leg = col(A.leg), W = wpose(L.wpn, ps.atk, mounted ? 0 : s);
-  const dual = L.wpn === 'axes', two = L.wpn === 'greatsword' || L.wpn === 'pike' || L.wpn === 'musket' || L.wpn === 'crossbow';
+  const dual = L.wpn === 'axes', two = /^(greatsword|pike|musket|crossbow|katana|zweihander|sarissa|repeater)$/.test(L.wpn);
   const wArm = () => { weapon(c, L.wpn === 'axes' ? 'axe' : L.wpn, W, y0, pc); limb(c, 3.5, -17 + y0, W.hx, W.hy + y0, 2.3, arm); c.fillStyle = SKIN; ell(c, W.hx, W.hy + y0, 1.25, 1.25); c.fill(); };
   const oArm = () => {
     let ox = -4.6 + s * 1.4, oy = -11.6;
@@ -143,7 +203,8 @@ function human(c, L, pc, ps, mounted) {
   else { rrect(c, -4.3, -19.6 + y0, 8.6, 11.2, 2.6); ink(c, body);
     if (A.tab) { c.fillStyle = pc.m; c.fillRect(-2.1, -19 + y0, 4.2, 10); c.fillStyle = pc.d; c.fillRect(-2.1, -12.2 + y0, 4.2, 1.1); }
     else if (A.strap) { c.strokeStyle = pc.m; c.lineWidth = 2; c.beginPath(); c.moveTo(-3.6, -18.6 + y0); c.lineTo(3.6, -10 + y0); c.stroke(); c.fillStyle = '#6e4a2b'; c.fillRect(-4.3, -11 + y0, 8.6, 2.4); }
-    else { c.fillStyle = pc.d; c.fillRect(-4.3, -11.6 + y0, 8.6, 1.5); c.fillStyle = pc.l; c.fillRect(-0.5, -19 + y0, 1, 7); } }
+    else if (!A.pat) { c.fillStyle = pc.d; c.fillRect(-4.3, -11.6 + y0, 8.6, 1.5); c.fillStyle = pc.l; c.fillRect(-0.5, -19 + y0, 1, 7); }
+    if (A.pat) pattern(c, A.pat, y0, pc, s); }
   if (back) { oArm(); if (L.cape) cape(); }
   head(c, L, pc, y0, back);
   if (L.banner) { c.strokeStyle = OL; c.lineWidth = 1.8; c.beginPath(); c.moveTo(-4.5, -9 + y0); c.lineTo(-4.5, -38 + y0); c.stroke(); c.strokeStyle = WOOD; c.lineWidth = 0.9; c.stroke(); poly(c, [-4.5, -38 + y0, -14.5, -36 + y0 + s, -11.5, -33.5 + y0, -14.5, -30.5 + y0 - s, -4.5, -29.5 + y0]); ink(c, pc.m); c.fillStyle = pc.l; ell(c, -8.6, -33.6 + y0, 1.5, 1.5); c.fill(); }
@@ -173,7 +234,12 @@ function horse(c, L, pc, ps, kind) {
   c.save(); c.translate(nx, ny); c.rotate(0.55); rrect(c, -2.6, -2.6, 8.6, 4.8, 2.1); ink(c, col); c.fillStyle = OL; c.fillRect(1, -1.4, 1, 1); c.restore();
   poly(c, [nx - 2, ny - 2, nx - 1.2, ny - 5.2, nx + 0.6, ny - 2.2]); ink(c, col, 0.7);
   if (!camel) { c.beginPath(); c.moveTo(nx - 2.4, ny - 1.5); c.quadraticCurveTo(6, by - 8, 5, by - 3.6); c.strokeStyle = '#2e221a'; c.lineWidth = 2.2; c.stroke(); }
-  if (L.bard) { c.beginPath(); c.moveTo(-10, by - 3.6); c.lineTo(8.5, by - 3.8); c.lineTo(10, by + 5.5); c.lineTo(3, by + 4); c.lineTo(-3, by + 6); c.lineTo(-10.5, by + 4.6); c.closePath(); ink(c, pc.m);
+  if (L.bard === 2) {                       // lamellar horse armour, with a face plate
+    c.beginPath(); c.moveTo(-10.4, by - 4); c.lineTo(9, by - 4.4); c.lineTo(10.6, by + 6); c.lineTo(-10.8, by + 6); c.closePath(); ink(c, '#6f757f');
+    c.save(); c.clip(); c.strokeStyle = '#4b5059'; c.lineWidth = 0.7; c.setLineDash([1.4, 0.9]); c.beginPath(); for (let y = by - 2.6; y < by + 6; y += 1.8) { c.moveTo(-11, y); c.lineTo(11, y); } c.stroke(); c.setLineDash([]); c.restore();
+    c.fillStyle = pc.m; c.fillRect(-10.4, by + 4.6, 21, 1.4);
+    poly(c, [6, by - 3.5, 9.5, by + 2.5, nx + 2, ny + 2.5, nx - 2.5, ny - 0.5]); ink(c, '#6f757f'); c.save(); c.translate(nx, ny); c.rotate(0.55); rrect(c, -2, -2.4, 6.4, 4.4, 1.6); ink(c, '#8a9099'); c.restore();
+  } else if (L.bard) { c.beginPath(); c.moveTo(-10, by - 3.6); c.lineTo(8.5, by - 3.8); c.lineTo(10, by + 5.5); c.lineTo(3, by + 4); c.lineTo(-3, by + 6); c.lineTo(-10.5, by + 4.6); c.closePath(); ink(c, pc.m);
     c.strokeStyle = pc.l; c.lineWidth = 1; c.beginPath(); c.moveTo(-10, by + 3.4); c.lineTo(-3, by + 4.8); c.lineTo(3, by + 2.8); c.lineTo(9.6, by + 4.2); c.stroke(); }
   else { rrect(c, -5, by - 5.4, 8.5, 5.5, 1.5); ink(c, pc.m, 0.8); }
   c.save(); c.translate(-0.8, by - 4.6 + 9.5 - (camel ? 4.5 : 0)); human(c, L, pc, { walk: -1, atk: ps.atk, back: ps.back }, true); c.restore();
@@ -248,6 +314,30 @@ function cannon(c, L, pc, ps) {
   c.save(); c.translate(0, -10.5); c.rotate(-0.16); rrect(c, -8, -2.8, 21, 5.6, 2.4); ink(c, '#4d4a47'); c.fillStyle = '#7a6a3c'; c.fillRect(-4, -2.8, 1.6, 5.6); c.fillRect(9, -2.8, 1.6, 5.6);
   if (t > 0.55 && t < 0.75) { c.fillStyle = '#ffd84a'; ell(c, 17, 0, 5, 3.4); c.fill(); c.fillStyle = '#fff6c8'; ell(c, 15.5, 0, 2.6, 1.8); c.fill(); }
   c.restore(); wheel(c, 0, -5, 5.2); c.restore();
+}
+function hwacha(c, L, pc, ps) {
+  const t = ps.atk, fire = t > 0.5 && t < 0.85; shadow(c, 14, 4.4);
+  limb(c, -12, -6, 12, -6, 2.4, WOOD_D); limb(c, -15, -9, -11, -6, 1.4, WOOD_D);
+  wheel(c, -7, -4.4, 4.8); wheel(c, 7, -4.4, 4.8);
+  c.save(); c.translate(1, -11); c.rotate(-0.5);
+  rrect(c, -8, -6.5, 16, 11, 1.2); ink(c, WOOD); c.fillStyle = '#3b2c1e';
+  for (let j = 0; j < 4; j++) for (let i = 0; i < 6; i++) { const ox = -6.2 + i * 2.5, oy = -4.6 + j * 2.6; c.fillStyle = '#3b2c1e'; ell(c, ox, oy, 0.85, 0.85); c.fill(); if (!fire && t < 0.6) { c.fillStyle = '#c94a35'; ell(c, ox, oy, 0.45, 0.45); c.fill(); } }
+  c.fillStyle = pc.m; c.fillRect(-8, 4.5, 16, 1.3);
+  if (fire) { for (let i = 0; i < 6; i++) { c.fillStyle = i % 2 ? 'rgba(255,200,80,0.9)' : 'rgba(255,120,40,0.85)'; ell(c, -10 - Math.random() * 4, -3 + i * 1.6 - 2, 2.4, 1.2); c.fill(); } }
+  c.restore(); flag(c, -13, -7, pc);
+}
+function trebuchet(c, L, pc, ps) {
+  const t = ps.atk, k = t >= 0 ? seg(t, 0.35, 0.62) - seg(t, 0.8, 1) * 0.0 : 0, rel = t >= 0 && t < 0.85 ? k : 0, ang = lerp(-2.2, 0.75, rel);
+  shadow(c, 26, 7);
+  limb(c, -24, -5, 24, -5, 3, WOOD_D); limb(c, -20, -2, 20, -2, 2.4, WOOD);
+  limb(c, -16, -5, -1, -58, 2.6, WOOD_D); limb(c, 14, -5, 1, -58, 2.6, WOOD_D); limb(c, -9, -28, 9, -28, 1.8, WOOD);
+  const px = 0, py = -57, ca = Math.cos(ang), sa = Math.sin(ang), lx = px + sa * 40, ly = py - ca * 40, sx = px - sa * 13, sy = py + ca * 13;
+  limb(c, sx, sy, lx, ly, 2.6, WOOD);
+  rrect(c, sx - 6, sy - 1, 12, 10, 1.4); ink(c, WOOD_D); c.strokeStyle = '#2b2018'; c.lineWidth = 0.7; c.beginPath(); c.moveTo(sx - 6, sy + 4); c.lineTo(sx + 6, sy + 4); c.stroke();
+  const slx = lx + (rel < 0.9 ? -3 : 6), sly = ly + (rel < 0.9 ? 9 : -2); c.strokeStyle = '#6b5a45'; c.lineWidth = 0.7; c.beginPath(); c.moveTo(lx, ly); c.lineTo(slx, sly); c.stroke();
+  if (rel < 0.9) { ell(c, slx, sly, 3, 2.8); ink(c, '#8c877d', 0.7); }
+  c.fillStyle = STEEL_D; ell(c, px, py, 1.8, 1.8); c.fill();
+  wheel(c, -18, -3.6, 3.4); wheel(c, 18, -3.6, 3.4); flag(c, 22, -5, pc);
 }
 function ram(c, L, pc, ps) {
   const t = ps.atk, k = t >= 0 ? -seg(t, 0, 0.5) * 4 + seg(t, 0.5, 0.64) * 10 - seg(t, 0.7, 1) * 6 : 0; shadow(c, 16, 5);
@@ -347,8 +437,8 @@ function rubble(c, size) {
 }
 
 // ---------------------------------------------------------------- cache
-const BOX = { human: [60, 60, 30, 46], rider: [76, 72, 36, 56], elephant: [100, 84, 46, 68], wolf: [48, 40, 22, 30], siege: [72, 60, 34, 46], b1: [80, 120, 40, 100], b3: [208, 250, 104, 196], tree: [48, 66, 22, 58], rock: [40, 30, 18, 22] };
-const DRAW = { human: (c, L, pc, ps) => human(c, L, pc, ps), rider: (c, L, pc, ps) => horse(c, L, pc, ps, L.mount), elephant, wolf, catapult, ballista, cannon, ram };
+const BOX = { trebuchet: [120, 126, 58, 104], human: [60, 60, 30, 46], rider: [76, 72, 36, 56], elephant: [100, 84, 46, 68], wolf: [48, 40, 22, 30], siege: [72, 60, 34, 46], b1: [80, 120, 40, 100], b3: [208, 250, 104, 196], tree: [48, 66, 22, 58], rock: [40, 30, 18, 22] };
+const DRAW = { human: (c, L, pc, ps) => human(c, L, pc, ps), rider: (c, L, pc, ps) => horse(c, L, pc, ps, L.mount), elephant, wolf, catapult, ballista, cannon, ram, hwacha, trebuchet };
 const cache = new Map();
 function mk(box, fn, lit) {
   const [w, h, ax, ay] = BOX[box], cv = document.createElement('canvas'); cv.width = w * SS; cv.height = h * SS;
@@ -364,7 +454,7 @@ function mk(box, fn, lit) {
   }
   return { cv, w, h, ax, ay };
 }
-const ATK_T = [0.08, 0.24, 0.4, 0.54, 0.7, 0.88], LIT = { human: 30, rider: 44, elephant: 52, wolf: 16, siege: 26 };
+const ATK_T = [0.08, 0.24, 0.4, 0.54, 0.7, 0.88], LIT = { human: 30, rider: 44, elephant: 52, wolf: 16, siege: 26, trebuchet: 70 };
 function mixHex(a, b, t) { const A = parseInt(a.slice(1), 16), B = parseInt(b.slice(1), 16), f = (s) => Math.round(((A >> s) & 255) * (1 - t) + ((B >> s) & 255) * t);
   return '#' + ((1 << 24) | (f(16) << 16) | (f(8) << 8) | f(0)).toString(16).slice(1); }
 const PC = AB.PLAYERS.map(p => Object.assign({}, p, { c: mixHex(p.m, '#6e604e', 0.24), m: mixHex(p.m, '#5a5048', 0.08) }));
@@ -408,7 +498,7 @@ const Sp = AB.Sprites = {
     const d = AB.UNITS[t], s = Sp.get(t, p, false, 'idle'), cv = document.createElement('canvas'); cv.width = cv.height = size * 2; cv.style.width = cv.style.height = size + 'px';
     const c = cv.getContext('2d'); let sx = 0, sy = 0, sw = s.w, sh = s.h;
     if (d.bld) { const hh = d.size > 1 ? 150 : 88, ww = d.size > 1 ? 200 : 72; sx = s.ax - ww / 2; sy = s.ay - hh + (d.size > 1 ? 46 : 18); sw = ww; sh = hh; }
-    else { const b = { human: [26, 34, 31], rider: [44, 46, 40], elephant: [56, 56, 44], wolf: [28, 22, 18], siege: [40, 34, 28] }[BOX[d.look.b] ? d.look.b : 'siege']; sw = b[0] + 6; sh = b[1] + 4; sx = s.ax - sw / 2 + 1; sy = s.ay - b[2] - 5; if (t === 'pikeman') { sy -= 6; sh += 6; } }
+    else { const b = { human: [26, 34, 31], rider: [44, 46, 40], elephant: [56, 56, 44], wolf: [28, 22, 18], siege: [40, 34, 28], trebuchet: [70, 100, 92] }[BOX[d.look.b] ? d.look.b : 'siege']; sw = b[0] + 6; sh = b[1] + 4; sx = s.ax - sw / 2 + 1; sy = s.ay - b[2] - 5; if (t === 'pikeman' || t === 'phalangite') { const k = t === 'pikeman' ? 6 : 12; sy -= k; sh += k; } }
     const k = Math.min(size * 2 / sw, size * 2 / sh); c.imageSmoothingQuality = 'high';
     c.drawImage(s.cv, sx * SS, sy * SS, sw * SS, sh * SS, (size * 2 - sw * k) / 2, (size * 2 - sh * k) / 2, sw * k, sh * k);
     return cv;

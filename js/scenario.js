@@ -193,12 +193,15 @@ function woods(sc, seed, thr, keep) {
     if (fbm(x / 7, y / 7, seed) > thr && R() < 0.7) sc.objects[i] = 1; else if (R() < 0.004) sc.objects[i] = 2;
   }
 }
+// per-preset army multipliers so the shipped battles are close calls (tuned with tests/presets-odds.cjs)
+const BAL = S.balance = { field: [1, 0.925], river: [0.6, 1], ele: [1, 0.97] };
+const B = (id, p, n) => Math.max(1, Math.round(n * ((BAL[id] && BAL[id][p]) || 1)));
 const P = S.presets = [
   { id: 'field', build() {
     const sc = S.create(60, 60, 0); patches(sc, 11, 1, 0.56, 9); patches(sc, 23, 2, 0.7, 6);
     woods(sc, 5, 0.66, (x, y) => Math.abs(x + y - 60) < 17);
     sc.players[0].team = 0; sc.players[1].team = 1;
-    const g = (p, t, n, u, v) => S.group(sc, p, t, n, u, v, p ? -1 : 1);
+    const g = (p, t, n, u, v) => S.group(sc, p, t, B('field', p, n), u, v, p ? -1 : 1);
     g(0, 'swordsman', 44, -0.2, 0); g(0, 'spearman', 30, -0.21, -0.22); g(0, 'spearman', 30, -0.21, 0.22);
     g(0, 'archer', 40, -0.31, 0); g(0, 'knight', 8, -0.24, -0.4); g(0, 'knight', 8, -0.24, 0.4);
     g(0, 'catapult', 3, -0.4, 0.1); g(0, 'monk', 3, -0.36, -0.1); g(0, 'commander', 1, -0.36, 0);
@@ -215,7 +218,7 @@ const P = S.presets = [
       else if (bridge && a < 16) sc.terrain[i] = 5;
     }
     woods(sc, 8, 0.67, (x, y) => Math.abs(x - y) < 9 || Math.abs(x + y - 64) < 10);
-    const g = (p, t, n, u, v, s) => S.group(sc, p, t, n, u, v, p ? -1 : 1, s);
+    const g = (p, t, n, u, v, s) => S.group(sc, p, t, B('river', p, n), u, v, p ? -1 : 1, s);
     g(0, 'swordsman', 50, -0.3, 0); g(0, 'manatarms', 20, -0.3, -0.3); g(0, 'spearman', 30, -0.3, 0.3); g(0, 'archer', 36, -0.42, 0);
     g(0, 'knight', 12, -0.4, 0.3); g(0, 'catapult', 3, -0.5, -0.05); g(0, 'commander', 1, -0.47, 0.05);
     g(1, 'pikeman', 18, 0.17, 0, 1); g(1, 'spearman', 16, 0.18, -0.47, 1); g(1, 'spearman', 16, 0.18, 0.47, 1);
@@ -237,10 +240,10 @@ const P = S.presets = [
       put(corner ? 'tower' : 'wall', x1, y0 + k); put(corner ? 'tower' : 'wall', x0 + k, y0);
     }
     put('keep', x0 + 9, y0 + 5); put('tent', x0 + 5, y0 + 3); put('tent', x0 + 12, y0 + 12); put('tent', x0 + 4, y0 + 12);
-    const d = (t, n2, x, y, s) => S.formation(sc, t, 1, x, y, n2, -1, 1, s);
-    d('archer', 24, x0 + 3.5, y0 + 6, 2); d('archer', 24, x0 + 8, y1 - 2.5, 2); d('crossbow', 14, x0 + 3.5, y0 + 11.5, 2);
+    const d = (t, n2, x, y, s) => S.formation(sc, t, 1, x, y, B('siege', 1, n2), -1, 1, s);
+    d('archer', 24, x0 + 3.5, y0 + 6, 1); d('archer', 24, x0 + 8, y1 - 2.5, 1); d('crossbow', 14, x0 + 3.5, y0 + 11.5, 1);
     d('swordsman', 24, x0 + 6.5, y0 + 9, 1); d('pikeman', 14, x0 + 4, y0 + 8.5, 1); d('manatarms', 10, x0 + 8, y0 + 12, 1); d('commander', 1, x0 + 8, y0 + 8.5, 1);
-    const a = (t, n2, u, v) => S.group(sc, 0, t, n2, u, v, 1);
+    const a = (t, n2, u, v) => S.group(sc, 0, t, B('siege', 0, n2), u, v, 1);
     a('swordsman', 60, -0.32, 0.1); a('manatarms', 24, -0.34, -0.14); a('spearman', 30, -0.34, 0.34); a('archer', 44, -0.44, 0.1);
     a('ram', 5, -0.24, 0.04); a('catapult', 5, -0.52, -0.02); a('cannon', 3, -0.56, 0.16); a('knight', 14, -0.42, 0.36); a('commander', 1, -0.48, 0.12); a('monk', 4, -0.46, 0);
     return sc; } },
@@ -255,18 +258,18 @@ const P = S.presets = [
       [['berserker', 26], ['skirmisher', 26], ['horsearcher', 16], ['monk', 3]],
       [['pikeman', 26], ['musketeer', 20], ['camel', 14], ['cannon', 2]]];
     armies.forEach((arm, p) => { const [u, v] = at[p]; const [cx, cy] = S.uv(sc, u, v); const fx = sc.w / 2 - cx, fy = sc.h / 2 - cy, l = Math.hypot(fx, fy);
-      arm.forEach(([t, n], k) => { const dep = [0, 4.5, 0, 8][k], lat = k === 2 ? 9 : 0; S.formation(sc, t, p, cx - fx / l * dep - fy / l * lat, cy - fy / l * dep + fx / l * lat, n, fx, fy, 0); });
+      arm.forEach(([t, n], k) => { const dep = [0, 4.5, 0, 8][k], lat = k === 2 ? 9 : 0; S.formation(sc, t, p, cx - fx / l * dep - fy / l * lat, cy - fy / l * dep + fx / l * lat, B('ffa', p, n), fx, fy, 0); });
       S.formation(sc, 'commander', p, cx - fx / l * 6.5 + fy / l * 5, cy - fy / l * 6.5 - fx / l * 5, 1, fx, fy, 0); });
     return sc; } },
   { id: 'knights', build() {
     const sc = S.create(56, 56, 0); patches(sc, 91, 1, 0.5, 10); woods(sc, 14, 0.7, (x, y) => Math.abs(x + y - 56) < 20);
-    S.group(sc, 0, 'knight', 40, -0.3, 0, 1); S.group(sc, 1, 'levy', 400, 0.26, 0, -1);
+    S.group(sc, 0, 'knight', B('knights', 0, 40), -0.3, 0, 1); S.group(sc, 1, 'levy', B('knights', 1, 400), 0.26, 0, -1);
     return sc; } },
   { id: 'ele', build() {
     const sc = S.create(60, 60, 3); const R = rng32(77);
     for (let y = 0; y < 60; y++) for (let x = 0; x < 60; x++) { const i = x + y * 60; if (fbm(x / 8, y / 8, 4) > 0.62) sc.terrain[i] = 2;
       if (Math.abs(x + y - 60) > 30 && R() < 0.05) sc.objects[i] = R() < 0.6 ? 1 : 2; }
-    const g = (p, t, n, u, v) => S.group(sc, p, t, n, u, v, p ? -1 : 1);
+    const g = (p, t, n, u, v) => S.group(sc, p, t, B('ele', p, n), u, v, p ? -1 : 1);
     g(0, 'elephant', 12, -0.26, 0); g(0, 'camel', 16, -0.3, -0.36); g(0, 'horsearcher', 16, -0.3, 0.36); g(0, 'archer', 30, -0.4, 0); g(0, 'commander', 1, -0.46, 0);
     g(1, 'pikeman', 44, 0.2, 0); g(1, 'spearman', 30, 0.22, -0.3); g(1, 'spearman', 30, 0.22, 0.3); g(1, 'skirmisher', 30, 0.31, 0); g(1, 'crossbow', 20, 0.38, 0.12); g(1, 'ballista', 4, 0.42, -0.1); g(1, 'commander', 1, 0.44, 0.04);
     return sc; } },

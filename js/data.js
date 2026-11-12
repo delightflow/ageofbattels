@@ -38,6 +38,9 @@ AB.PROJ = {
   stone:   { spd: 6.5, arc: 0.36 },
   ball:    { spd: 17,  arc: 0.07 },
   bigbolt: { spd: 15,  arc: 0.04 },
+  axe:     { spd: 9,   arc: 0.18 },
+  fire:    { spd: 10,  arc: 0.22 },
+  boulder: { spd: 6,   arc: 0.42 },
 };
 
 /* Unit fields:
@@ -52,10 +55,10 @@ AB.UNITS = {
   // ---- infantry
   levy:      U({ hp: 36, atk: 4, cost: 25, look: { b: 'human', helm: 'none', armor: 'cloth', wpn: 'fork' } }),
   swordsman: U({ hp: 70, atk: 9, am: 2, ap: 1, rof: 1.4, spd: 1.8, cost: 55, look: { b: 'human', helm: 'nasal', armor: 'mail', wpn: 'sword', shield: 'round' } }),
-  spearman:  U({ hp: 55, atk: 5, am: 1, ap: 1, rng: 0.6, rof: 1.6, cost: 40, bonus: { cav: 3, camel: 2, ele: 3 }, look: { b: 'human', helm: 'kettle', armor: 'leather', wpn: 'spear', shield: 'round' } }),
-  pikeman:   U({ hp: 75, atk: 6, am: 2, ap: 2, rng: 0.9, rof: 1.7, spd: 1.65, cost: 65, bonus: { cav: 3.6, camel: 2.4, ele: 3.6 }, look: { b: 'human', helm: 'kettle', armor: 'mail', wpn: 'pike' } }),
+  spearman:  U({ hp: 55, atk: 5, am: 1, ap: 1, rng: 0.6, rof: 1.6, cost: 40, cls: ['inf', 'spear'], bonus: { cav: 3, camel: 2, ele: 3 }, look: { b: 'human', helm: 'kettle', armor: 'leather', wpn: 'spear', shield: 'round' } }),
+  pikeman:   U({ hp: 75, atk: 6, am: 2, ap: 2, rng: 0.9, rof: 1.7, spd: 1.65, cost: 65, cls: ['inf', 'spear'], bonus: { cav: 3.6, camel: 2.4, ele: 3.6 }, look: { b: 'human', helm: 'kettle', armor: 'mail', wpn: 'pike' } }),
   manatarms: U({ hp: 120, atk: 13, am: 5, ap: 3, rof: 1.6, spd: 1.55, cost: 110, look: { b: 'human', helm: 'great', armor: 'plate', wpn: 'greatsword' } }),
-  berserker: U({ hp: 80, atk: 13, am: 1, ap: 0, rof: 1.15, wind: 0.28, spd: 2.3, cost: 100, bonus: { bld: 1.5 }, look: { b: 'human', helm: 'horn', armor: 'bare', wpn: 'axes' } }),
+  berserker: U({ hp: 80, atk: 13, am: 1, ap: 0, rof: 1.15, wind: 0.28, spd: 2.3, cost: 100, regen: 1.6, bonus: { bld: 1.5 }, look: { b: 'human', helm: 'horn', armor: 'bare', wpn: 'axes' } }),
   // ---- ranged
   archer:     U({ cat: 'rng', hp: 35, atk: 7, at: 'p', rng: 6.5, rof: 1.5, wind: 0.5, proj: 'arrow', acc: 0.82, cost: 45, cls: ['inf', 'archer'], look: { b: 'human', helm: 'cap', armor: 'cloth', wpn: 'bow' } }),
   crossbow:   U({ cat: 'rng', hp: 42, atk: 12, at: 'p', am: 1, ap: 1, rng: 7, rof: 2.3, wind: 0.55, proj: 'bolt', acc: 0.9, cost: 60, cls: ['inf', 'archer'], look: { b: 'human', helm: 'kettle', armor: 'leather', wpn: 'crossbow' } }),
@@ -76,6 +79,31 @@ AB.UNITS = {
   // ---- support / other
   monk: U({ cat: 'sup', hp: 38, atk: 0, heal: 7, rng: 3.2, rof: 1, wind: 0.4, spd: 1.7, cost: 80, look: { b: 'human', helm: 'hood', armor: 'robe', wpn: 'staff' } }),
   wolf: U({ cat: 'sup', hp: 26, atk: 5, rof: 1.2, wind: 0.25, spd: 3.3, r: 0.25, cost: 30, cls: ['beast'], look: { b: 'wolf' } }),
+  // ---- unique units: each one changes how a fight plays out
+  legionary:   U({ hp: 100, atk: 10, am: 3, ap: 6, rof: 1.4, spd: 1.75, cost: 85, uniq: 1, cls: ['inf', 'unique'], opener: { rng: 4.5, atk: 16, proj: 'javelin' },
+    look: { b: 'human', helm: 'galea', armor: 'lorica', wpn: 'sword', shield: 'scutum' } }),
+  hoplite:     U({ hp: 95, atk: 8, am: 4, ap: 4, rng: 0.7, rof: 1.6, spd: 1.6, cost: 85, uniq: 1, cls: ['inf', 'spear', 'unique'], phalanx: 3, bonus: { cav: 2, camel: 1.6, ele: 2 },
+    look: { b: 'human', helm: 'corinth', armor: 'linothorax', wpn: 'spear', shield: 'aspis' } }),
+  phalangite:  U({ hp: 80, atk: 7, am: 2, ap: 1, rng: 1.45, rof: 1.8, spd: 1.45, cost: 70, uniq: 1, cls: ['inf', 'spear', 'unique'], bonus: { cav: 3.6, camel: 2.6, ele: 3.6 },
+    look: { b: 'human', helm: 'phrygian', armor: 'linothorax', wpn: 'sarissa', shield: 'pelte' } }),
+  samurai:     U({ hp: 95, atk: 12, am: 3, ap: 2, rof: 1.0, wind: 0.24, spd: 2, cost: 105, uniq: 1, cls: ['inf', 'unique'], bonus: { unique: 2.4 },
+    look: { b: 'human', helm: 'kabuto', armor: 'osode', wpn: 'katana' } }),
+  landsknecht: U({ hp: 110, atk: 14, am: 3, ap: 2, rof: 1.9, wind: 0.45, spd: 1.7, cost: 120, uniq: 1, cls: ['inf', 'unique'], cleave: 2, bonus: { spear: 1.9 },
+    look: { b: 'human', helm: 'beret', armor: 'slashed', wpn: 'zweihander' } }),
+  jaguar:      U({ hp: 85, atk: 11, am: 1, ap: 1, rof: 1.25, wind: 0.3, spd: 2.15, cost: 90, uniq: 1, cls: ['inf', 'unique'], frenzy: 0.15, bonus: { inf: 1.7 },
+    look: { b: 'human', helm: 'jaguar', armor: 'jaguar', wpn: 'macuahuitl', shield: 'chimalli' } }),
+  axeman:      U({ cat: 'rng', hp: 62, atk: 10, at: 'm', am: 1, ap: 1, rng: 3.2, rof: 1.7, wind: 0.45, proj: 'axe', acc: 0.9, spd: 1.9, cost: 55, uniq: 1, cls: ['inf', 'unique'],
+    look: { b: 'human', helm: 'none', armor: 'leather', wpn: 'francisca', shield: 'round' } }),
+  repeater:    U({ cat: 'rng', hp: 45, atk: 6, at: 'p', rng: 5, rof: 1.9, wind: 0.45, proj: 'bolt', acc: 0.82, volley: 3, cost: 55, uniq: 1, cls: ['inf', 'archer', 'unique'],
+    look: { b: 'human', helm: 'cap', armor: 'lamellar', wpn: 'repeater' } }),
+  keshig:      U({ cat: 'cav', hp: 75, atk: 7, at: 'p', rng: 6, rof: 1.35, wind: 0.42, proj: 'arrow', acc: 0.8, spd: 3.4, r: 0.36, cost: 85, uniq: 1, kite: 1, cls: ['cav', 'archer', 'unique'],
+    look: { b: 'rider', mount: 'horse', mc: '#7d6a55', helm: 'mongol', armor: 'deel', wpn: 'bow' } }),
+  gaemamusa:   U({ cat: 'cav', hp: 235, atk: 16, am: 6, ap: 6, rof: 1.6, spd: 2.45, r: 0.4, cost: 225, uniq: 1, cls: ['cav', 'unique'], charge: 2.4,
+    look: { b: 'rider', mount: 'horse', mc: '#4a3a2e', bard: 2, helm: 'gogu', armor: 'lamellar', wpn: 'lance' } }),
+  hwacha:      U({ cat: 'siege', hp: 95, atk: 16, at: 'p', ap: 5, rng: 9, minR: 2, rof: 7, wind: 0.6, proj: 'fire', salvo: 16, acc: 0.7, spd: 1.1, r: 0.48, cost: 220, uniq: 1, cls: ['siege', 'unique'],
+    look: { b: 'hwacha' } }),
+  trebuchet:   U({ cat: 'siege', hp: 150, atk: 110, at: 's', ap: 4, rng: 16, minR: 5, rof: 11, wind: 1.1, proj: 'boulder', acc: 0.6, splash: 1.5, spd: 0.75, r: 0.62, cost: 450, uniq: 1, cls: ['siege', 'unique'], bonus: { bld: 3 },
+    look: { b: 'trebuchet' } }),
   // ---- buildings
   palisade: B({ hp: 350, am: 3, ap: 9, wall: 1, cost: 8, look: { b: 'palisade' } }),
   wall:     B({ hp: 1400, am: 8, ap: 14, wall: 1, cost: 25, look: { b: 'wall' } }),
@@ -86,9 +114,11 @@ AB.UNITS = {
 };
 for (const k in AB.UNITS) { const d = AB.UNITS[k]; d.id = k; if (!d.bld) d.hp = Math.round(d.hp * 1.25 / 5) * 5; }
 AB.UNIT_ORDER = ['levy', 'swordsman', 'spearman', 'pikeman', 'manatarms', 'berserker', 'archer', 'crossbow', 'skirmisher', 'musketeer',
-  'lightcav', 'knight', 'horsearcher', 'camel', 'elephant', 'catapult', 'ballista', 'cannon', 'ram', 'commander', 'monk', 'wolf'];
+  'lightcav', 'knight', 'horsearcher', 'camel', 'elephant', 'catapult', 'ballista', 'cannon', 'ram', 'commander', 'monk', 'wolf',
+  'legionary', 'hoplite', 'phalangite', 'samurai', 'landsknecht', 'jaguar', 'axeman', 'repeater', 'keshig', 'gaemamusa', 'hwacha', 'trebuchet'];
+AB.UNIQUE = AB.UNIT_ORDER.filter(t => AB.UNITS[t].uniq);
 AB.BLD_ORDER = ['palisade', 'wall', 'gate', 'tower', 'keep', 'tent'];
-AB.CATS = ['all', 'inf', 'rng', 'cav', 'siege', 'sup'];
+AB.CATS = ['all', 'uniq', 'inf', 'rng', 'cav', 'siege', 'sup'];
 
 // ---------------------------------------------------------------- strings
 const ko = {

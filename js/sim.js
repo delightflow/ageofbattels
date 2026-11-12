@@ -31,7 +31,7 @@ class Sim {
     const e = { id: ++this.nid, t, d, p, team: this.teamOf[p], x, y, px: x, py: y, vx: 0, vy: 0, hp: d.hp, r: d.r, bld: !!d.bld,
       fx: 1, fy: 0, tgt: null, cd: R() * d.rof * 0.6, sw: 0, rec: 0, atkT: -9, think: R() * 0.5, path: null, pi: 0, pgx: 0, pgy: 0, pT: 0,
       partial: false, arrived: false, breach: false, order: null, stance, hx: x, hy: y, kills: 0, runT: 0, buff: 0, anim: R(),
-      moving: false, dead: false, avoid: null, avoidT: 0, gT: 0, nAtk: 0, flash: 0, pend: 0, tk: 0, follow: null, sx: x, sy: y, tl: null };
+      moving: false, dead: false, avoid: null, avoidT: 0, gT: 0, nAtk: 0, flash: 0, pend: 0, tk: 0, rank: 0, adj: 0, opened: 0, flee: null, fleeCd: 0, uid: 0, follow: null, sx: x, sy: y, tl: null };
     if (d.bld) {
       e.x0 = x; e.y0 = y; e.x1 = x + d.size; e.y1 = y + d.size; e.x = e.px = x + d.size / 2; e.y = e.py = y + d.size / 2;
       for (let j = 0; j < d.size; j++) for (let i = 0; i < d.size; i++) this.bmap[x + i + (y + j) * this.w] = e;
@@ -42,7 +42,7 @@ class Sim {
     this.stats[p].value0 += d.cost;
     this.ents.push(e); return e;
   }
-  ev(k, x, y, a, b) { if (this.events.length < 700) this.events.push({ k, x, y, a, b }); }
+  ev(k, x, y, a, b, c, d, v) { if (this.events.length < 900) this.events.push({ k, x, y, a, b, c, d, v }); }
 
   // ------------------------------------------------------------ geometry
   canStand(x, y, team) {
@@ -177,6 +177,14 @@ class Sim {
     const d = e.d;
     if (d.aura) { const self = this; this.near(e.x, e.y, d.aura, c => { if (c.team === e.team && !c.bld && self.cdist(e, c) <= d.aura) c.buff = self.time + 1.2; }); }
     if (d.heal) return this._thinkHeal(e);
+    if (d.phalanx) { let n = 0; const self = this; this.near(e.x, e.y, 1.2, c => { if (c !== e && c.team === e.team && !c.bld && !c.dead && self.cdist(e, c) < 1.05) n++; }); e.adj = Math.min(d.phalanx, n); }
+    if (d.kite && !e.order && this.time >= e.fleeCd) {   // feigned retreat: back away from anyone who can hit us in melee
+      let th = null, td = 2.3; const self = this;
+      this.near(e.x, e.y, 3, c => { if (c.team === e.team || c.dead || c.bld || c.d.proj || !c.d.spd) return; const g = self.gap(e, c); if (g < td) { td = g; th = c; } });
+      if (th) { const dx = e.x - th.x, dy = e.y - th.y, l = Math.hypot(dx, dy) || 1;
+        for (const a of [0, 0.6, -0.6, 1.2, -1.2]) { const ca = Math.cos(a), sa = Math.sin(a), ux = (dx * ca - dy * sa) / l, uy = (dx * sa + dy * ca) / l, fx = e.x + ux * 3.2, fy = e.y + uy * 3.2;
+          if (this.walkLine(e.x, e.y, fx, fy, e.team)) { e.flee = { x: fx, y: fy, t: this.time + 0.9 }; e.fleeCd = this.time + 1.5; e.path = null; return; } } }
+    }
     const o = e.order;
     if (o) {
       if (o.k === 'move') { this._plan(e, o.x, o.y, 0.3); return; }
@@ -227,10 +235,12 @@ class Sim {
   }
   _unit(e) {
     const d = e.d; e.cd -= DT; e.moving = false;
+    if (d.regen && e.hp < d.hp) e.hp = Math.min(d.hp, e.hp + d.regen * DT);
     if (e.sw > 0) { e.sw -= DT; if (e.sw <= 0) this._strike(e); return; }
     if (e.rec > 0) { e.rec -= DT; return; }
     if (e.tgt && e.tgt.dead && e.think > 0.12) e.think = this.rnd() * 0.12;      // lost the target: look again right away
     if ((e.think -= DT) <= 0) { e.think = (0.35 + this.rnd() * 0.3) * this.load; this._think(e); }
+    if (e.flee) { if (this.time < e.flee.t) { this._move(e, e.flee.x, e.flee.y); return; } e.flee = null; }
     const o = e.order;
     if (o && o.k === 'move') {
       if (Math.hypot(o.x - e.x, o.y - e.y) < 0.35 || e.arrived) { e.order = null; e.arrived = false; e.path = null; e.hx = e.x; e.hy = e.y; }
@@ -242,7 +252,13 @@ class Sim {
       if (this.gap(e, t) <= d.rng && !(d.minR && this.cdist(e, t) < d.minR)) {
         const dx = t.x - e.x, dy = t.y - e.y, l = Math.hypot(dx, dy) || 1; e.fx = dx / l; e.fy = dy / l;
         if (e.cd <= 0) { e.sw = d.wind; e.atkT = this.time; }
-      } else if (e.stance !== 2) this._move(e, t.x, t.y);
+      } else {
+        if (d.opener && !e.opened && !t.bld) {           // pilum: one throw while closing in
+          const g = this.gap(e, t);
+          if (g <= d.opener.rng && g > d.rng + 0.6) { e.opened = 1; const dx = t.x - e.x, dy = t.y - e.y, l = Math.hypot(dx, dy) || 1; e.fx = dx / l; e.fy = dy / l; this._fire(e, t, 0, d.opener); e.atkT = this.time; e.rec = 0.4; return; }
+        }
+        if (e.stance !== 2) this._move(e, t.x, t.y);
+      }
       return;
     }
     if (d.heal) { const f = e.follow; if (f && !f.dead && this.cdist(e, f) > 2.4) this._move(e, f.x, f.y); return; }
@@ -268,40 +284,45 @@ class Sim {
     const d = e.d, t = e.tgt; e.cd = d.rof * (0.9 + this.rnd() * 0.2); e.rec = 0.22;
     if (!t || t.dead) return;
     if (d.heal) { if (t.hp < t.d.hp) { t.hp = Math.min(t.d.hp, t.hp + d.heal); this.ev('heal', t.x, t.y); } return; }
-    if (d.proj) { this._fire(e, t); return; }
+    if (d.salvo) { for (let k = 0; k < d.salvo; k++) this._fire(e, t, k * 0.035, null, true); return; }
+    if (d.proj) { for (let k = 0, n = d.volley || 1; k < n; k++) this._fire(e, t, k * 0.13); return; }
     if (this.gap(e, t) > d.rng + 0.5) return;
     let dmg = d.atk; const charged = d.charge && e.runT > 1.1; if (charged) dmg *= d.charge;
     e.runT = 0;
     this.ev('hit', t.x, t.y, t.bld ? 'bld' : charged ? 'charge' : e.t === 'ram' ? 'bld' : 'melee', e.t);
     this._damage(e, t, dmg);
     if (d.splash) { const self = this; this.near(t.x, t.y, d.splash + 1, c => { if (c !== t && c.team !== e.team && !c.dead && !c.bld && self.cdist(c, t) <= d.splash) self._damage(e, c, dmg * 0.5); }); }
+    if (d.cleave) { let n = 0; const self = this; this.near(t.x, t.y, 1.6, c => { if (n < d.cleave && c !== t && c.team !== e.team && !c.dead && !c.bld && self.gap(e, c) <= d.rng + 0.55) { n++; self._damage(e, c, dmg * 0.6); } }); }
   }
-  _fire(e, t) {
-    const d = e.d, P = AB.PROJ[d.proj], R = this.rnd, dist = this.cdist(e, t); let dur = Math.max(0.12, dist / P.spd);
+  // delay: seconds before it leaves; ov: {proj, atk} for a one-off throw; spread: scatter around the target (salvo)
+  _fire(e, t, delay, ov, spread) {
+    const d = e.d, kind = ov ? ov.proj : d.proj, atk = ov ? ov.atk : d.atk, P = AB.PROJ[kind], R = this.rnd, dist = this.cdist(e, t); let dur = Math.max(0.12, dist / P.spd);
     let tx = t.x + t.vx * dur * 0.85, ty = t.y + t.vy * dur * 0.85;
-    const sc = (1 - (d.acc || 0.8)) * (0.25 + dist * 0.11) + (t.bld ? 0 : 0.05);
+    const sc = (1 - (ov ? 0.85 : d.acc || 0.8)) * (0.25 + dist * 0.11) + (t.bld ? 0 : 0.05);
     tx += (R() + R() - 1) * sc * 1.6; ty += (R() + R() - 1) * sc * 1.6;
-    if (d.pierce) { const dx = tx - e.x, dy = ty - e.y, l = Math.hypot(dx, dy) || 1; tx = e.x + dx / l * (l + 2.5); ty = e.y + dy / l * (l + 2.5); dur *= (l + 2.5) / l; }
-    t.pend += d.atk; this.projs.push({ k: d.proj, sx: e.x, sy: e.y, tx, ty, x: e.x, y: e.y, z: 0, t: 0, dur, src: e, team: e.team, tgt: t, dmg: d.atk,
-      z0: e.bld ? (d.size > 1 ? 2.6 : 2) : 0.55, h: dist * P.arc });
-    this.ev('shoot', e.x, e.y, d.proj, e.bld ? 'bld' : e.t);
+    if (spread) { const a = R() * 6.283, r = Math.sqrt(R()) * 1.6; tx += Math.cos(a) * r; ty += Math.sin(a) * r * 0.8; }
+    if (d.pierce && !ov) { const dx = tx - e.x, dy = ty - e.y, l = Math.hypot(dx, dy) || 1; tx = e.x + dx / l * (l + 2.5); ty = e.y + dy / l * (l + 2.5); dur *= (l + 2.5) / l; }
+    const tg = spread ? null : t; if (tg) tg.pend += atk;
+    this.projs.push({ k: kind, sx: e.x, sy: e.y, tx, ty, x: e.x, y: e.y, z: 0, t: -(delay || 0), dur, src: e, team: e.team, tgt: tg, dmg: atk, at: ov ? 'p' : d.at, ov: !!ov,
+      z0: e.bld ? (d.size > 1 ? 2.6 : 2) : 0.55, h: dist * P.arc * (spread ? 1.2 + R() * 0.5 : 1) });
+    if (!spread || !delay) this.ev('shoot', e.x, e.y, kind, e.bld ? 'bld' : e.t);
   }
   _land(p) {
-    const src = p.src, self = this, sd = src.d; p.tgt.pend -= p.dmg;
-    if (sd.splash) {
+    const src = p.src, self = this, sd = src.d; if (p.tgt) p.tgt.pend -= p.dmg;
+    if (sd.splash && !p.ov) {
       this.near(p.tx, p.ty, sd.splash + 2, c => {
         if (c.team === p.team || c.dead) return;
         const dd = c.bld ? Math.hypot(Math.max(c.x0 - p.tx, 0, p.tx - c.x1), Math.max(c.y0 - p.ty, 0, p.ty - c.y1)) : Math.max(0, Math.hypot(c.x - p.tx, c.y - p.ty) - c.r * 0.5);
-        if (dd <= sd.splash) self._damage(src, c, p.dmg * (1 - 0.55 * dd / sd.splash));
+        if (dd <= sd.splash) self._damage(src, c, p.dmg * (1 - 0.55 * dd / sd.splash), p.at);
       });
       this.ev('boom', p.tx, p.ty, p.k); return;
     }
-    if (sd.pierce) {
+    if (sd.pierce && !p.ov) {
       const ax = p.sx, ay = p.sy, bx = p.tx - ax, by = p.ty - ay, l2 = bx * bx + by * by || 1; let n = 0;
       this.near((ax + p.tx) / 2, (ay + p.ty) / 2, Math.sqrt(l2) / 2 + 1, c => {
         if (c.team === p.team || c.dead || n >= 4) return;
         const u = Math.max(0, Math.min(1, ((c.x - ax) * bx + (c.y - ay) * by) / l2)), dd = Math.hypot(c.x - ax - bx * u, c.y - ay - by * u);
-        if (dd <= c.r + 0.25) { n++; self._damage(src, c, p.dmg); }
+        if (dd <= c.r + 0.25) { n++; self._damage(src, c, p.dmg, p.at); }
       });
       this.ev(n ? 'thud' : 'miss', p.tx, p.ty, p.k); return;
     }
@@ -310,13 +331,15 @@ class Sim {
       if (t.bld) { if (Math.hypot(Math.max(t.x0 - p.tx, 0, p.tx - t.x1), Math.max(t.y0 - p.ty, 0, p.ty - t.y1)) < 0.5) hit = t; }
       else if (Math.hypot(t.x - p.tx, t.y - p.ty) < t.r + 0.32) hit = t;
     }
-    if (!hit) { let bd = 0.42; this.near(p.tx, p.ty, 1, c => { if (c.team === p.team || c.dead || c.bld) return; const dd = Math.hypot(c.x - p.tx, c.y - p.ty) - c.r * 0.5; if (dd < bd) { bd = dd; hit = c; } }); }
-    if (hit) { this._damage(src, hit, p.dmg); this.ev('thud', hit.x, hit.y, p.k, hit.bld ? 1 : hit.d.cat === 'siege' ? 2 : 0); } else this.ev('miss', p.tx, p.ty, p.k);
+    if (!hit) { let bd = p.k === 'fire' ? 0.55 : 0.42; this.near(p.tx, p.ty, 1, c => { if (c.team === p.team || c.dead || c.bld) return; const dd = Math.hypot(c.x - p.tx, c.y - p.ty) - c.r * 0.5; if (dd < bd) { bd = dd; hit = c; } }); }
+    if (hit) { this._damage(src, hit, p.dmg, p.at); this.ev('thud', hit.x, hit.y, p.k, hit.bld ? 1 : hit.d.cat === 'siege' ? 2 : 0); } else this.ev('miss', p.tx, p.ty, p.k);
   }
-  _damage(src, t, base) {
-    const sd = src.d, td = t.d, arm = sd.at === 'm' ? td.am : sd.at === 'p' ? td.ap : 0;
+  _damage(src, t, base, at) {
+    const sd = src.d, td = t.d; at = at || sd.at;
+    const arm = (at === 'm' ? td.am : at === 'p' ? td.ap : 0) + (at !== 's' ? t.adj : 0);
     let m = 1; if (sd.bonus) { const cl = td.cls; for (let i = 0; i < cl.length; i++) { const b = sd.bonus[cl[i]]; if (b > m) m = b; } }
-    let dmg = Math.max(1, base * m - arm); if (src.buff > this.time) dmg *= 1.2;
+    let k = 1 + 0.1 * src.rank; if (sd.frenzy) k += sd.frenzy * Math.min(3, src.kills); if (src.buff > this.time) k *= 1.2;
+    let dmg = Math.max(1, base * m * k - arm);
     if (dmg > t.hp) dmg = t.hp;
     t.hp -= dmg; t.flash = this.time; this.stats[src.p].dmg += dmg; this.lastAct = this.time; this.bestD = Infinity;
     if (t.hp <= 0.001) { this._kill(t, src); return; }
@@ -325,8 +348,14 @@ class Sim {
   _kill(t, src) {
     t.dead = true; t.hp = 0; this.anyDead = true;
     const ss = this.stats[src.p], ts = this.stats[t.p];
-    if (t.bld) { ts.bLost++; ss.razed++; for (let j = t.y0; j < t.y1; j++) for (let i = t.x0; i < t.x1; i++) this.bmap[i + j * this.w] = null; this.ev('collapse', t.x, t.y, t.d.size); }
-    else { ts.lost++; ss.kills++; src.kills++; if (!ss.best || src.kills > ss.best.kills) ss.best = src; this.ev('die', t.x, t.y, t.d.cat, t.t); }
+    if (t.bld) { ts.bLost++; ss.razed++; for (let j = t.y0; j < t.y1; j++) for (let i = t.x0; i < t.x1; i++) this.bmap[i + j * this.w] = null; this.ev('collapse', t.x, t.y, t.d.size, t.t, src.t, src.p, t.p); }
+    else {
+      ts.lost++; ss.kills++; src.kills++; if (!ss.best || src.kills > ss.best.kills) ss.best = src;
+      this.ev('die', t.x, t.y, t.d.cat, t.t, src.t, src.p, t.p);
+      // veterans: 3, 6 and 10 kills earn a rank and +10% damage each
+      const r = src.kills >= 10 ? 3 : src.kills >= 6 ? 2 : src.kills >= 3 ? 1 : 0;
+      if (r > src.rank && !src.bld) { src.rank = r; this.ev('rank', src.x, src.y, r, src.t, src.kills, src.p); }
+    }
     this.corpses.push({ x: t.x, y: t.y, t: t.t, p: t.p, fx: t.fx, fy: t.fy, time: this.time, bld: t.bld, size: t.d.size || 1 });
     if (this.corpses.length > 900) this.corpses.splice(0, 100);
   }
@@ -358,7 +387,7 @@ class Sim {
     this._separate();
     const P = this.projs;
     for (let i = P.length - 1; i >= 0; i--) {
-      const p = P[i]; p.t += DT; const u = Math.min(1, p.t / p.dur);
+      const p = P[i]; p.t += DT; if (p.t < 0) continue; const u = Math.min(1, p.t / p.dur);
       p.x = p.sx + (p.tx - p.sx) * u; p.y = p.sy + (p.ty - p.sy) * u; p.z = p.z0 * (1 - u) + p.h * 4 * u * (1 - u);
       if (u >= 1) { P[i] = P[P.length - 1]; P.pop(); this._land(p); }
     }

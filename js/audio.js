@@ -6,7 +6,7 @@
 const AB = G.AB = G.AB || {};
 let ac = null, master = null, dry = null, verb = null, noise = null, on = true, bed = null;
 const last = {}, GAP = { clang: 0.035, block: 0.05, chop: 0.05, release: 0.03, whoosh: 0.06, flesh: 0.04, tick: 0.05, wood: 0.07, die: 0.08, horse: 0.6, ele: 0.9,
-  creak: 0.25, impact: 0.12, cannon: 0.15, gun: 0.06, crash: 0.3, heal: 0.25, xbow: 0.05, charge: 1.2, wolf: 0.4 };
+  creak: 0.25, impact: 0.12, cannon: 0.15, gun: 0.06, crash: 0.3, heal: 0.25, xbow: 0.05, charge: 1.2, wolf: 0.4, rocket: 0.4 };
 
 function init() {
   if (ac) return true;
@@ -99,6 +99,7 @@ const SND = {
   cannon(t, d) { tone(t, 0.7, 'sine', 70, 24, 1, d); nz(t, 0.08, 'highpass', 1200, 400, 0.5, 0.9, d); nz(t, 0.9, 'lowpass', 900, 90, 0.5, 0.75, d); },
   gun(t, d) { nz(t, 0.05, 'highpass', 1600, 700, 0.5, 0.8, d); nz(t, 0.25, 'lowpass', 1500, 200, 0.5, 0.45, d); tone(t, 0.06, 'square', 180, 60, 0.2, d); },
   crash(t, d) { tone(t, 1.4, 'sine', 60, 22, 0.9, d); nz(t, 1.6, 'lowpass', 1400, 100, 0.4, 0.9, d); for (let i = 0; i < 14; i++) nz(t + R() * 1.3, 0.06 + R() * 0.08, 'bandpass', 600 + R() * 2400, 400, 2, 0.18, d); },
+  rocket(t, d) { for (let i = 0; i < 12; i++) { const at = t + i * 0.035 + R() * 0.02; nz(at, 0.35, 'bandpass', 900 + R() * 400, 2600, 2.5, 0.12, d, 0.02); nz(at, 0.05, 'highpass', 2000, 3000, 1, 0.12, d); } tone(t, 0.25, 'sine', 120, 50, 0.4, d); },
   heal(t, d) { [523, 659, 784].forEach((f, i) => tone(t + i * 0.07, 0.5, 'sine', f, f, 0.06, d, 0.02)); },
   charge(t, d) { for (let i = 0; i < 9; i++) { const f = 120 + R() * 110; voice(t + R() * 0.25, f, f * 0.92, 0.7 + R() * 0.4, R() < 0.5 ? 'a' : 'ah', 0.05, d, true); } },
 };
@@ -144,14 +145,16 @@ AB.Audio = {
         case 'shoot':
           if (e.a === 'arrow') { play('release', 0.3 * vol, pan, wet); play('whoosh', 0.35 * vol, pan, wet); }
           else if (e.a === 'bolt' || e.a === 'bigbolt') { play('xbow', (e.a === 'bigbolt' ? 0.5 : 0.3) * vol, pan, wet); play('whoosh', 0.4 * vol, pan, wet); }
-          else if (e.a === 'javelin') play('whoosh', 0.45 * vol, pan, wet);
+          else if (e.a === 'javelin' || e.a === 'axe') play('whoosh', 0.45 * vol, pan, wet);
+          else if (e.a === 'fire') { play('rocket', 0.6 * vol, pan, wet + 0.1); }
+          else if (e.a === 'boulder') { play('creak', 0.9 * vol, pan, wet); }
           else if (e.a === 'stone') play('creak', 0.6 * vol, pan, wet);
           else if (e.a === 'ball') play('cannon', 0.75 * vol, pan, wet + 0.2);
           else if (e.a === 'bullet') play('gun', 0.45 * vol, pan, wet + 0.1);
           break;
         case 'thud': play(e.b === 1 ? 'wood' : e.b === 2 ? 'tick' : 'flesh', 0.3 * vol, pan, wet); break;
         case 'miss': if (e.a !== 'stone' && e.a !== 'ball') play('tick', 0.18 * vol, pan, wet); break;
-        case 'boom': play('impact', 0.7 * vol, pan, wet + 0.1); break;
+        case 'boom': play('impact', (e.a === 'boulder' ? 1 : 0.7) * vol, pan, wet + 0.1); break;
         case 'die': {
           const t = e.b, kind = t === 'elephant' ? 'ele' : t === 'wolf' ? 'wolf' : e.a === 'cav' || t === 'commander' ? (R() < 0.5 ? 'horse' : 'man') : e.a === 'siege' ? 'siege' : 'man';
           if (kind === 'siege') play('wood', 0.5 * vol, pan, wet); else if (kind === 'horse') play('horse', 0.5 * vol, pan, wet); else if (kind === 'ele') play('ele', 0.7 * vol, pan, wet);

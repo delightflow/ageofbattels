@@ -138,8 +138,10 @@ class Render {
           for (let i = 0; i < 10; i++) this.part(e.x, e.y, 0.1, { vx: (R() - 0.5) * 5 * big, vy: (R() - 0.5) * 5 * big, vz: 0.6 + R() * 1.4, life: 0.7 + R() * 0.5, r: 4, grow: 16, col: '176,150,112', a: 0.55 });
           for (let i = 0; i < 6; i++) this.part(e.x, e.y, 0.2, { vx: (R() - 0.5) * 5, vy: (R() - 0.5) * 5, vz: 2 + R() * 4, g: 12, life: 0.7, r: 1.8, col: '90,70,50', a: 1 });
           if (e.a === 'ball') this.part(e.x, e.y, 0.4, { life: 0.16, r: 8, grow: 60, col: '255,200,90', a: 0.9 });
+          if (e.a === 'boulder') for (let i = 0; i < 10; i++) this.part(e.x, e.y, 0.2, { vx: (R() - 0.5) * 6, vy: (R() - 0.5) * 6, vz: 1 + R() * 2, life: 1.2, r: 5, grow: 18, col: '170,150,115', a: 0.5 });
           this.decals.push({ k: 'crater', x: e.x, y: e.y, t: 0, life: 40 }); break; }
-        case 'miss': if (e.a === 'arrow' || e.a === 'bolt' || e.a === 'javelin' || e.a === 'bigbolt') { this.decals.push({ k: 'arrow', x: e.x, y: e.y, t: 0, life: 28, a: R() * 0.9 - 0.45, big: e.a === 'bigbolt' || e.a === 'javelin', f: R() < 0.5 });
+        case 'miss': if (e.a === 'fire') { for (let i = 0; i < 3; i++) this.part(e.x, e.y, 0.1, { vz: 0.6 + R(), life: 0.6 + R() * 0.4, r: 1.6, grow: 6, col: R() < 0.5 ? '255,140,50' : '120,110,100', a: 0.6 }); break; }
+          if (e.a === 'arrow' || e.a === 'bolt' || e.a === 'javelin' || e.a === 'bigbolt') { this.decals.push({ k: 'arrow', x: e.x, y: e.y, t: 0, life: 28, a: R() * 0.9 - 0.45, big: e.a === 'bigbolt' || e.a === 'javelin', f: R() < 0.5 });
             this.part(e.x, e.y, 0.02, { life: 0.35, r: 1.2, grow: 7, col: '160,140,105', a: 0.45 }); }
           else this.part(e.x, e.y, 0.05, { life: 0.4, r: 2, grow: 8, col: '190,170,130', a: 0.5 }); break;
         case 'thud': if (e.b) this.part(e.x, e.y, 1, { life: 0.3, r: 1.5, grow: 8, col: '200,190,170', a: 0.6 });
@@ -211,6 +213,10 @@ class Render {
     }
     // ---- ghost footprint (editor brush / building)
     const gh = v.ghost;
+    if (v.zone) {                       // deployment zone (challenges)
+      const zt = v.zone.tiles; if (!v.zone.path) { const P2 = new Path2D(); for (let i = 0; i < zt.length; i += 2) { const x = zt[i], y = zt[i + 1], X = (x - y) * HW, Y = (x + y) * HH; P2.moveTo(X, Y); P2.lineTo(X + HW, Y + HH); P2.lineTo(X, Y + 2 * HH); P2.lineTo(X - HW, Y + HH); P2.closePath(); } v.zone.path = P2; }
+      ctx.fillStyle = 'rgba(90,160,255,' + (0.14 + 0.04 * Math.sin(this.frame * 0.05)) + ')'; ctx.fill(v.zone.path);
+    }
     if (gh && gh.tiles) { ctx.fillStyle = gh.ok === false ? 'rgba(255,70,50,0.35)' : 'rgba(255,255,255,0.22)'; ctx.strokeStyle = gh.ok === false ? 'rgba(255,90,70,0.9)' : 'rgba(255,255,255,0.75)'; ctx.lineWidth = 1 / z; ctx.beginPath();
       for (let i = 0; i < gh.tiles.length; i += 2) { const x = gh.tiles[i], y = gh.tiles[i + 1], X = (x - y) * HW, Y = (x + y) * HH; ctx.moveTo(X, Y); ctx.lineTo(X + HW, Y + HH); ctx.lineTo(X, Y + 2 * HH); ctx.lineTo(X - HW, Y + HH); ctx.closePath(); }
       ctx.fill(); if (gh.tiles.length <= 50) ctx.stroke(); }
@@ -274,6 +280,10 @@ class Render {
       for (let i = 0; i < n; i++) {
         const it = vis[i]; if (it.k !== 0) continue; const e = it.e, f = e.hp / e.d.hp, isSel = sel && sel.has(e);
         if (e.bld && f < 0.55 && Math.random() < dt * (f < 0.25 ? 14 : 6)) { this.part(e.x + (Math.random() - 0.5) * e.d.size * 0.7, e.y + (Math.random() - 0.5) * e.d.size * 0.7, 0.8 + Math.random(), { vz: 1.6, life: 1.1, r: 4, grow: 10, col: Math.random() < 0.4 ? '255,150,50' : '70,66,62', a: 0.6 }); }
+        if (e.rank && !e.bld && z > 0.45) {                       // veteran chevrons
+          const top = it.Y - (e.r > 0.5 ? 58 : e.r > 0.3 ? 50 : 39); ctx.fillStyle = '#f2cf5b'; ctx.strokeStyle = '#3a2a10'; ctx.lineWidth = 0.8;
+          for (let k = 0; k < e.rank; k++) { const x = it.X - (e.rank - 1) * 2.6 + k * 5.2; ctx.beginPath(); ctx.moveTo(x - 2.2, top); ctx.lineTo(x, top - 2.2); ctx.lineTo(x + 2.2, top); ctx.lineTo(x + 2.2, top + 1.6); ctx.lineTo(x, top - 0.6); ctx.lineTo(x - 2.2, top + 1.6); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+        }
         if (!(isSel || (showAll && f < 0.999))) continue;
         const w = e.bld ? 30 * e.d.size : Math.max(12, e.r * 48), top = it.Y - (e.bld ? (e.d.size > 1 ? 150 : it.s.ay * 0.72) : e.r > 0.5 ? 52 : e.r > 0.3 ? 44 : 33);
         ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(it.X - w / 2 - 0.7, top - 0.7, w + 1.4, 3.4);
@@ -283,18 +293,27 @@ class Render {
       const P = sim.projs, al = v.alpha || 0;
       const pos = (p, q) => { const x = p.sx + (p.tx - p.sx) * q, y = p.sy + (p.ty - p.sy) * q, zz = p.z0 * (1 - q) + p.h * 4 * q * (1 - q); return [(x - y) * HW, (x + y) * HH - zz * ZPX, (x + y) * HH, x, y, zz]; };
       for (let i = 0; i < P.length; i++) {
-        const p = P[i], u = Math.min(1, (p.t + al * AB.DT) / p.dur), [X, Y, GY, wx, wy, wz] = pos(p, u);
+        const p = P[i]; if (p.t < 0) continue; const u = Math.min(1, (p.t + al * AB.DT) / p.dur), [X, Y, GY, wx, wy, wz] = pos(p, u);
         if (X < vx0 - 40 || X > vx1 + 40 || Y < vy0 - 60 || Y > vy1 + 40) continue;
         const [X0, Y0, GY0] = pos(p, Math.max(0, u - 0.03)), dx = X - X0, dy = Y - Y0, l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
         const gdx = X - X0, gdy = GY - GY0, gl = Math.hypot(gdx, gdy) || 1, sh = Math.max(0.12, 0.38 - wz * 0.05);
-        if (p.k === 'stone' || p.k === 'ball') {
-          const r = p.k === 'stone' ? 3.8 : 2.7;
+        if (p.k === 'stone' || p.k === 'ball' || p.k === 'boulder') {
+          const r = p.k === 'boulder' ? 6 : p.k === 'stone' ? 3.8 : 2.7;
           ctx.fillStyle = 'rgba(0,0,0,' + sh + ')'; ctx.beginPath(); ctx.ellipse(X, GY, r * (1.1 + wz * 0.05), r * 0.5, 0, 0, 6.3); ctx.fill();
           if (dt > 0 && Math.random() < 0.7) this.part(wx, wy, wz, { life: p.k === 'ball' ? 0.9 : 0.5, r: p.k === 'ball' ? 2.2 : 1.6, grow: 6, col: p.k === 'ball' ? '205,205,205' : '170,155,130', a: p.k === 'ball' ? 0.4 : 0.3 });
           ctx.save(); ctx.translate(X, Y); ctx.rotate(p.t * 9);
-          ctx.beginPath(); if (p.k === 'stone') { ctx.moveTo(-r, -r * 0.3); ctx.lineTo(-r * 0.4, -r); ctx.lineTo(r * 0.7, -r * 0.8); ctx.lineTo(r, r * 0.2); ctx.lineTo(r * 0.3, r); ctx.lineTo(-r * 0.8, r * 0.7); ctx.closePath(); } else ctx.arc(0, 0, r, 0, 6.3);
-          ctx.fillStyle = p.k === 'stone' ? '#8c877d' : '#2d2c2e'; ctx.fill(); ctx.strokeStyle = '#2b2018'; ctx.lineWidth = 0.8; ctx.stroke();
+          ctx.beginPath(); if (p.k !== 'ball') { ctx.moveTo(-r, -r * 0.3); ctx.lineTo(-r * 0.4, -r); ctx.lineTo(r * 0.7, -r * 0.8); ctx.lineTo(r, r * 0.2); ctx.lineTo(r * 0.3, r); ctx.lineTo(-r * 0.8, r * 0.7); ctx.closePath(); } else ctx.arc(0, 0, r, 0, 6.3);
+          ctx.fillStyle = p.k !== 'ball' ? '#8c877d' : '#2d2c2e'; ctx.fill(); ctx.strokeStyle = '#2b2018'; ctx.lineWidth = 0.8; ctx.stroke();
           ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.beginPath(); ctx.arc(-r * 0.3, -r * 0.35, r * 0.4, 0, 6.3); ctx.fill(); ctx.restore();
+        } else if (p.k === 'axe') {
+          ctx.fillStyle = 'rgba(0,0,0,' + sh + ')'; ctx.beginPath(); ctx.ellipse(X, GY, 3, 1.2, 0, 0, 6.3); ctx.fill();
+          ctx.save(); ctx.translate(X, Y); ctx.rotate(p.t * 22); ctx.strokeStyle = '#2b2018'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(4, 0); ctx.stroke(); ctx.strokeStyle = '#9a6a3a'; ctx.lineWidth = 1; ctx.stroke();
+          ctx.fillStyle = '#b9c0c9'; ctx.beginPath(); ctx.moveTo(3, -0.5); ctx.quadraticCurveTo(6.5, -3.5, 6.5, 2.5); ctx.quadraticCurveTo(5, 1, 3, 1.2); ctx.closePath(); ctx.fill(); ctx.restore();
+        } else if (p.k === 'fire') {
+          if (dt > 0 && Math.random() < 0.5) this.part(wx, wy, wz, { life: 0.5, r: 1.3, grow: 5, col: '190,190,190', a: 0.35 });
+          ctx.strokeStyle = 'rgba(255,150,50,0.35)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(X - ux * 14, Y - uy * 14); ctx.lineTo(X, Y); ctx.stroke();
+          ctx.strokeStyle = '#2b2018'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X - ux * 10, Y - uy * 10); ctx.lineTo(X, Y); ctx.stroke();
+          ctx.fillStyle = '#ffd36a'; ctx.beginPath(); ctx.arc(X - ux * 8, Y - uy * 8, 1.8, 0, 6.3); ctx.fill(); ctx.fillStyle = '#ff7a2a'; ctx.beginPath(); ctx.arc(X - ux * 10.5, Y - uy * 10.5, 1.4, 0, 6.3); ctx.fill();
         } else if (p.k === 'bullet') {
           ctx.strokeStyle = 'rgba(255,236,170,0.95)'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(X - ux * 14, Y - uy * 14); ctx.lineTo(X, Y); ctx.stroke();
         } else {

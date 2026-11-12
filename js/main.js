@@ -18,6 +18,7 @@ const TOOLS = ['terrain', 'object', 'unit', 'bld', 'erase', 'select', 'hand'], T
 const cv = $('view'), R = new AB.Render(cv, $('mini'));
 let sc = null, sim = null, sel = new Set(), undo = [], redo = [], ghost = null, box = null, marker = null, acc = 0, seed = (Date.now() & 0xfffff) | 1, endShown = false, endAt = 0, hover = null, hudT = 0, saveT = 0;
 const keys = {};
+const H = {};                 // hooks filled in by extra.js (codex, lab, challenges, spectating)
 
 // ---------------------------------------------------------------- scenario plumbing
 function setScenario(s, keepCam) {
@@ -38,7 +39,7 @@ function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add
 // ---------------------------------------------------------------- panel
 function buildTabs() {
   const n = $('tabs'); n.textContent = '';
-  TOOLS.forEach((k, i) => { const b = el('button', st.tool === k ? 'on' : '', T(TOOL_T[k])); b.title = T(TOOL_T[k]) + ' (' + (i + 1) + ')'; b.onclick = () => setTool(k); n.appendChild(b); });
+  TOOLS.forEach((k, i) => { if (H.lock && !/^(unit|erase|select|hand)$/.test(k)) return; const b = el('button', st.tool === k ? 'on' : '', T(TOOL_T[k])); b.title = T(TOOL_T[k]) + ' (' + (i + 1) + ')'; b.onclick = () => setTool(k); n.appendChild(b); });
 }
 function setTool(k) { st.tool = k; if (k !== 'select') { sel.clear(); updateSel(); } buildTabs(); buildTool(); ghost = null; }
 function range(label, min, max, step, val, fn, fmt) {
@@ -86,16 +87,17 @@ function buildTool() {
     n.appendChild(range(T('brush'), 1, 11, 1, st.brush, v => st.brush = v)); n.appendChild(range(T('density'), 0.1, 1, 0.1, st.dens, v => st.dens = v, v => Math.round(v * 100) + '%'));
     n.appendChild(el('p', 'hint', T('objHint')));
   } else if (k === 'unit') {
-    n.appendChild(playerRow());
+    if (H.panelTop) H.panelTop(n);
+    if (!H.lock) n.appendChild(playerRow());
     n.appendChild(chips(null, AB.CATS.map(c => [c, T('c_' + c)]), st.cat, v => st.cat = v));
-    const list = AB.UNIT_ORDER.filter(t => st.cat === 'all' || U[t].cat === st.cat); const r = el('div', 'row'); r.appendChild(unitGrid(list, st.ut, t => st.ut = t)); n.appendChild(r);
+    const list = AB.UNIT_ORDER.filter(t => (st.cat === 'all' || (st.cat === 'uniq' ? U[t].uniq : U[t].cat === st.cat)) && (!H.allowed || H.allowed(t))); const r = el('div', 'row'); r.appendChild(unitGrid(list, st.ut, t => st.ut = t)); n.appendChild(r);
     n.appendChild(chips(T('count'), [1, 5, 10, 25, 50, 100].map(v => [v, String(v)]), st.count, v => st.count = v));
     n.appendChild(chips(T('stance'), [0, 1, 2].map(v => [v, T('st' + v), T('st' + v + 'd')]), st.stance, v => st.stance = v));
-    const r2 = el('div', 'row'); r2.appendChild(card(st.ut)); n.appendChild(r2);
+    const r2 = el('div', 'row'); r2.appendChild(card(st.ut)); if (H.cardExtra) H.cardExtra(r2, st.ut); n.appendChild(r2);
   } else if (k === 'bld') {
     n.appendChild(playerRow()); const r = el('div', 'row'); r.appendChild(el('h4', '', T('tBld'))); const g = unitGrid(AB.BLD_ORDER, st.bt, t => st.bt = t); g.className = 'grid g3'; r.appendChild(g); n.appendChild(r);
     const r2 = el('div', 'row'); r2.appendChild(card(st.bt)); n.appendChild(r2);
-  } else if (k === 'erase') { n.appendChild(range(T('brush'), 1, 11, 1, st.brush, v => st.brush = v)); n.appendChild(el('p', 'hint', T('eraseHint'))); }
+  } else if (k === 'erase') { if (H.panelTop) H.panelTop(n); n.appendChild(range(T('brush'), 1, 11, 1, st.brush, v => st.brush = v)); n.appendChild(el('p', 'hint', T('eraseHint'))); }
   else n.appendChild(el('p', 'hint', T(k === 'select' ? 'selHint' : 'handHint')));
 }
 function refreshArmies() {
@@ -111,6 +113,7 @@ function afterEdit() { sel.forEach(u => { if (sc.units.indexOf(u) < 0) sel.delet
 
 // ---------------------------------------------------------------- selection bar
 function updateSel() {
+  if (H.onSel) H.onSel(sel, sim);
   const b = $('selbar'); if (!sel.size) { b.hidden = true; return; } b.hidden = false; b.textContent = '';
   const cnt = {}; let p = 0, stn = -1; sel.forEach(u => { cnt[u.t] = (cnt[u.t] || 0) + 1; p = u.p; const s = sim ? u.stance : (u.s || 0); stn = stn === -1 ? s : stn === s ? s : -2; });
   const who = el('span', 'who', sel.size + ' ' + T('selN')); who.style.color = AB.PLAYERS[p].l; b.appendChild(who);
@@ -150,12 +153,16 @@ function applyTool(sx, sy, first) {
       if (!first && dist < gap) return;
       if (sc.units.length >= AB.MAX_UNITS) { toast(T('capHit')); return; }
       if (!d.face) d.face = facing(wx, wy);
-      if (S.formation(sc, st.ut, st.player, wx, wy, st.count, d.face[0], d.face[1], st.stance)) d.changed = true; d.last = [wx, wy]; break; }
+      const pts = S.formationPts(st.ut, wx, wy, st.count, d.face[0], d.face[1]); let any = false, blocked = false;
+      for (let i = 0; i < pts.length; i += 2) { if (H.place && !H.place(pts[i], pts[i + 1], st.ut)) { blocked = true; continue; } if (S.add(sc, st.ut, st.player, pts[i], pts[i + 1], st.stance)) any = true; }
+      if (any) d.changed = true; else if (blocked && first && H.blockedMsg) toast(H.blockedMsg());
+      d.last = [wx, wy]; if (any && H.afterPlace) H.afterPlace(); break; }
     case 'bld': {
       for (let i = first ? steps : 1; i <= steps; i++) { const [tx, ty] = bldTile(lx + (wx - lx) * i / steps, ly + (wy - ly) * i / steps); if (S.add(sc, st.bt, st.player, tx, ty, 0)) d.changed = true; }
       d.last = [wx, wy]; break; }
     case 'erase': {
       for (let i = first ? steps : 1; i <= steps; i++) { const x = lx + (wx - lx) * i / steps, y = ly + (wy - ly) * i / steps;
+        if (H.lock) { if (S.removeIf(sc, u => u.p === st.player && Math.hypot(u.x - x, u.y - y) <= st.brush / 2)) d.changed = true; continue; }
         if (S.removeIn(sc, x, y, st.brush / 2)) d.changed = true;
         S.brushTiles(sc, x, y, Math.max(1, st.brush), (a, b, k) => { if (sc.objects[k] && Math.hypot(a + 0.5 - x, b + 0.5 - y) <= st.brush / 2 + 0.2) { sc.objects[k] = 0; d.changed = true; } }); }
       R.miniDirty = true; d.last = [wx, wy]; break; }
@@ -176,8 +183,9 @@ function startBattle() {
   if (teams.size < 2) { toast(T('needTwo')); return; }
   AB.Audio.unlock(); sim = new AB.Sim(sc, { seed: seed += 7919 }); acc = 0; endShown = false; st.mode = 'battle'; st.paused = false; sel.clear(); ghost = null; R.resetFx();
   document.body.classList.replace('edit', 'battle'); R.resize(); updateSel(); buildHud(); syncBattleBar(); closeModal(); AB.Audio.start();
+  if (H.onStart) H.onStart(sim, sc);
 }
-function stopBattle() { AB.Audio.stop(); sim = null; st.mode = 'edit'; sel.clear(); R.resetFx(); document.body.classList.replace('battle', 'edit'); R.resize(); updateSel(); closeModal(); R.miniDirty = true; }
+function stopBattle() { if (H.onStop) H.onStop(); AB.Audio.stop(); sim = null; st.mode = 'edit'; sel.clear(); R.resetFx(); document.body.classList.replace('battle', 'edit'); R.resize(); updateSel(); closeModal(); R.miniDirty = true; }
 function syncBattleBar() {
   $('bPause').textContent = st.paused ? '▶ ' + T('resume') : '❚❚ ' + T('pause');
   const s = $('speeds'); s.textContent = ''; [0.5, 1, 2, 4].forEach(v => { const b = el('button', v === st.speed ? 'on' : '', v === 0.5 ? '½×' : v + '×'); b.onclick = () => { st.speed = v; syncBattleBar(); }; s.appendChild(b); });
@@ -207,24 +215,26 @@ function showResults() {
     const m = el('td'); if (s.best) { m.textContent = T('u_' + s.best.t) + ' '; m.appendChild(el('small', '', '×' + s.best.kills)); } else m.textContent = '—'; tr.appendChild(m); tb.appendChild(tr); });
   d.appendChild(tb); d.appendChild(el('h3', '', T('strength'))); const g = el('canvas'); g.id = 'graph'; d.appendChild(g);
   const f = el('div', 'foot'), b1 = el('button', '', T('watch')), b2 = el('button', '', T('toEdit')), b3 = el('button', 'primary', T('again'));
-  b1.onclick = closeModal; b2.onclick = stopBattle; b3.onclick = startBattle; f.append(b1, b2, b3); d.appendChild(f);
+  b1.onclick = closeModal; b2.onclick = stopBattle; b3.onclick = startBattle; f.append(b1, b2, b3);
+  if (H.onResults) H.onResults(d, sim, ban); d.appendChild(f);
   openModal(d);
   // strength graph
-  const r = g.getBoundingClientRect(), W = r.width, H = r.height; g.width = W * 2; g.height = H * 2; const c = g.getContext('2d'); c.scale(2, 2);
+  const r = g.getBoundingClientRect(), W = r.width, GH = r.height; g.width = W * 2; g.height = GH * 2; const c = g.getContext('2d'); c.scale(2, 2);
   const hs = sim.history, tmax = Math.max(1, hs[hs.length - 1].t); let vmax = 1; for (const h of hs) for (const p of players) vmax = Math.max(vmax, h.v[p]);
-  c.strokeStyle = '#ffffff14'; c.lineWidth = 1; for (let i = 1; i < 4; i++) { c.beginPath(); c.moveTo(0, H * i / 4); c.lineTo(W, H * i / 4); c.stroke(); }
-  for (const p of players) { c.strokeStyle = AB.PLAYERS[p].m; c.lineWidth = 2; c.lineJoin = 'round'; c.beginPath(); hs.forEach((h, i) => { const x = 6 + (W - 12) * h.t / tmax, y = H - 6 - (H - 14) * h.v[p] / vmax; if (i) c.lineTo(x, y); else c.moveTo(x, y); }); c.stroke(); }
+  c.strokeStyle = '#ffffff14'; c.lineWidth = 1; for (let i = 1; i < 4; i++) { c.beginPath(); c.moveTo(0, GH * i / 4); c.lineTo(W, GH * i / 4); c.stroke(); }
+  for (const p of players) { c.strokeStyle = AB.PLAYERS[p].m; c.lineWidth = 2; c.lineJoin = 'round'; c.beginPath(); hs.forEach((h, i) => { const x = 6 + (W - 12) * h.t / tmax, y = GH - 6 - (GH - 14) * h.v[p] / vmax; if (i) c.lineTo(x, y); else c.moveTo(x, y); }); c.stroke(); }
+  if (H.onResultsShown) H.onResultsShown(d, sim);
   if (w >= 0) AB.Audio.win(); else AB.Audio.lose();
 }
 
 // ---------------------------------------------------------------- modals
-function openModal(node) { const m = $('modal'), d = m.firstElementChild; d.textContent = ''; d.appendChild(node); m.hidden = false; d.scrollTop = 0; }
+function openModal(node) { const m = $('modal'), d = m.firstElementChild; d.className = 'dlg' + (node.dataset && node.dataset.wide ? ' wide' : ''); d.textContent = ''; d.appendChild(node); m.hidden = false; d.scrollTop = 0; }
 function closeModal() { $('modal').hidden = true; }
 function presetsDlg(welcome) {
   const d = el('div'); d.appendChild(el('h2', '', welcome ? T('title') : T('presets'))); d.appendChild(el('p', 'sub', welcome ? T('welcomeSub') : T('welcome')));
   const g = el('div', 'cards');
   S.presets.forEach(p => { const b = el('button', 'pcard'); b.append(el('b', '', T('pr_' + p.id)), el('span', '', T('pr_' + p.id + '_d'))); b.onclick = () => { if (undo.length || !welcome) pushUndo0(); setScenario(S.preset(p.id)); autosave(); closeModal(); }; g.appendChild(b); });
-  d.appendChild(g); const f = el('div', 'foot');
+  d.appendChild(g); if (H.welcome) H.welcome(d, g, welcome); const f = el('div', 'foot');
   if (welcome) { const a = el('button', '', T('startBlank')); a.onclick = () => { newMapDlg(); }; f.appendChild(a); if (welcome === 2) { const c = el('button', 'primary', T('continueEdit')); c.onclick = closeModal; f.appendChild(c); } }
   else { const c = el('button', '', T('close')); c.onclick = closeModal; f.appendChild(c); }
   d.appendChild(f); openModal(d);
@@ -358,7 +368,7 @@ $('panelToggle').onclick = () => { document.body.classList.toggle('collapsed'); 
 function applyLang() {
   document.documentElement.lang = AB.lang; document.querySelectorAll('[data-t]').forEach(n => n.textContent = T(n.dataset.t));
   $('bLang').textContent = AB.lang === 'ko' ? 'EN' : '한'; $('mapName').placeholder = T('mapName'); $('bUndo').title = T('undo') + ' (Ctrl+Z)'; $('bRedo').title = T('redo') + ' (Ctrl+Y)'; $('bSound').title = T('sound'); $('bHelp').title = T('help');
-  document.title = T('title') + ' — ' + T('sub'); buildTabs(); buildTool(); refreshArmies(); updateSel(); syncBattleBar(); if (sim) buildHud();
+  document.title = T('title') + ' — ' + T('sub'); buildTabs(); buildTool(); refreshArmies(); updateSel(); syncBattleBar(); if (sim) buildHud(); if (H.onLang) H.onLang();
 }
 
 // ---------------------------------------------------------------- main loop
@@ -373,19 +383,24 @@ function frame(ts) {
   if (sim) {
     if (!st.paused) {
       acc += dt * st.speed; let n = 0; while (acc >= DT && n < 14) { sim.step(); acc -= DT; n++; } if (n >= 14) acc = 0;
-      R.fx(sim.events); AB.Audio.feed(sim.events, R); sim.events.length = 0; sdt = dt * st.speed; prune();
+      R.fx(sim.events); AB.Audio.feed(sim.events, R); if (H.onEvents) H.onEvents(sim.events, sim); sim.events.length = 0; sdt = dt * st.speed; prune();
       if (sim.over && !endShown) { if (!endAt) endAt = ts + 900; else if (ts >= endAt) { endShown = true; endAt = 0; updateHud(); showResults(); } }
     } else sdt = 0;
     AB.Audio.tick(sim, dt, st.paused || sim.over);
     if ((hudT -= dt) <= 0) { hudT = 0.25; updateHud(); }
   }
   if (marker) { marker.t += dt * 2; if (marker.t >= 1) marker = null; }
-  R.draw({ sim, alpha: sim && !sim.over ? Math.min(1, acc / DT) : 1, sel, ghost, box, marker, dt: sdt });
+  if (H.onFrame) H.onFrame(dt, sdt);
+  R.draw({ sim, alpha: sim && !sim.over ? Math.min(1, acc / DT) : 1, sel, ghost, box, marker, dt: sdt, zone: st.mode === 'edit' ? H.zone : null });
   requestAnimationFrame(frame);
 }
 
+// ---------------------------------------------------------------- API for extra.js
+AB.App = { H, el, $, store, toast, openModal, closeModal, setScenario, startBattle, stopBattle, setTool, buildTool, buildTabs, refreshArmies, pushUndo0, autosave, syncBattleBar, updateSel, presetsDlg,
+  get sc() { return sc; }, get sim() { return sim; }, get sel() { return sel; }, st, R, U };
+
 // ---------------------------------------------------------------- boot
-(function boot() {
+function boot() {
   const lg = store.get('aob2.lang'); AB.lang = lg === 'ko' || lg === 'en' ? lg : ((navigator.language || 'ko').toLowerCase().startsWith('ko') ? 'ko' : 'en');
   if (store.get('aob2.sound') === '0') { AB.Audio.setOn(false); $('bSound').classList.add('off'); }
   if (window.matchMedia('(pointer: coarse)').matches) st.tool = 'hand';
@@ -395,5 +410,6 @@ function frame(ts) {
   presetsDlg(had ? 2 : 1);
   requestAnimationFrame(frame);
   window.AB_DEBUG = { get sim() { return sim; }, get sc() { return sc; }, R, st, startBattle, stopBattle, setScenario };
-})();
+}
+window.addEventListener('DOMContentLoaded', boot);
 })();

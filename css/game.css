@@ -140,3 +140,67 @@ table.res { width: 100%; border-collapse: collapse; font-size: 12.5px; font-vari
   .dlg { padding: 16px 14px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* ------------------------------------------------ codex, lab, challenges, spectating */
+.dlg.wide { width: min(1100px, 100%); }
+.modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 9px; margin: 2px 0 16px; }
+.mode { text-align: left; white-space: normal; padding: 12px 13px; border-radius: 9px; background: linear-gradient(#3a3020, #2a2418); border: 1px solid #6c5a2e; }
+.mode:hover { border-color: var(--gold); } .mode b { display: block; font: 700 15px var(--serif); color: var(--gold); margin-bottom: 3px; } .mode span { color: #cbbf9f; font-size: 12px; line-height: 1.4; display: block; }
+.mode i { font-style: normal; font-size: 20px; float: right; opacity: .85; }
+h5 { margin: 4px 0 8px; font: 600 11px var(--font); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+.codex { display: grid; grid-template-columns: 330px 1fr; gap: 16px; min-height: 480px; }
+.codex .list { max-height: 68vh; overflow-y: auto; padding-right: 4px; }
+.codex .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.codex .tile { min-height: 70px; }
+.cx-head { display: grid; grid-template-columns: 230px 1fr; gap: 14px; align-items: start; }
+.cx-stage { background: radial-gradient(ellipse at 50% 70%, #5f7f3c, #33461f 70%); border: 1px solid #0007; border-radius: 9px; display: block; width: 230px; height: 180px; }
+.cx-head h2 { margin: 0; } .cx-origin { color: var(--gold); opacity: .85; font-size: 12.5px; margin: 2px 0 6px; } .cx-desc { color: var(--ink); margin: 0 0 8px; }
+.bars { display: grid; grid-template-columns: 88px 1fr 40px; gap: 4px 8px; align-items: center; font-size: 12px; }
+.bars span { color: var(--dim); } .bars b { text-align: right; font-variant-numeric: tabular-nums; }
+.bar { height: 7px; background: #0b0f14; border-radius: 4px; overflow: hidden; } .bar u { display: block; height: 100%; background: linear-gradient(90deg, #9c7f2e, #e8c96a); }
+.abil { margin: 10px 0 0; padding: 0; list-style: none; } .abil li { padding: 5px 9px; margin: 4px 0; background: #2b2417; border-left: 3px solid var(--gold); border-radius: 4px; font-size: 12.5px; }
+.vs { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; } .vs span { display: inline-flex; align-items: center; gap: 4px; background: #0e1318; border: 1px solid var(--line); border-radius: 12px; padding: 1px 8px 1px 2px; font-size: 12px; }
+.vs.good span { border-color: #3f7a3f; } .vs.bad span { border-color: #8a3a2e; }
+.hist { margin-top: 12px; padding: 11px 13px; background: #f2e6c814; border: 1px solid #6c5a2e66; border-radius: 8px; font: 14px/1.65 var(--serif); color: #eadfc6; }
+.lab { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.side { background: #141a21; border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; border-top: 3px solid var(--c); }
+.side select { width: 100%; background: #0e1318; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; color: var(--ink); margin: 4px 0 8px; }
+.side .who { display: flex; gap: 10px; align-items: center; } .side .who canvas { background: radial-gradient(#4d6b38, #2f4426); border-radius: 7px; flex: none; }
+.side .mini { color: var(--dim); font-size: 12px; line-height: 1.5; }
+.labopts { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; margin: 12px 0 4px; }
+.progress { height: 6px; background: #0b0f14; border-radius: 3px; overflow: hidden; margin: 10px 0; } .progress u { display: block; height: 100%; width: 0; background: var(--gold); transition: width .15s; }
+.winbar { display: flex; height: 30px; border-radius: 7px; overflow: hidden; margin: 8px 0 6px; font-weight: 700; font-size: 13px; }
+.winbar div { display: flex; align-items: center; justify-content: center; min-width: 0; overflow: hidden; white-space: nowrap; color: #fff; text-shadow: 0 1px 2px #000; transition: flex-grow .4s; }
+.verdict { font: 700 16px var(--serif); color: var(--gold); margin: 6px 0 2px; } .labstats { color: var(--dim); font-size: 12.5px; }
+.chart { display: grid; grid-template-columns: 22px 120px 1fr 44px; gap: 3px 8px; align-items: center; font-size: 12px; margin-top: 8px; max-height: 44vh; overflow-y: auto; }
+.chart .cb { height: 10px; background: #3a1e1a; border-radius: 3px; overflow: hidden; } .chart .cb u { display: block; height: 100%; background: #5fae55; }
+.chal { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 9px; }
+.chal button { text-align: left; white-space: normal; padding: 11px 12px; border-radius: 8px; display: block; } .chal b { font: 700 14.5px var(--serif); color: var(--gold); } .chal em { float: right; font-style: normal; color: var(--gold); letter-spacing: 1px; }
+.chal span { display: block; color: var(--dim); font-size: 12px; margin-top: 3px; } .chal small { display: block; color: #cbbf9f; font-size: 11.5px; margin-top: 6px; }
+.budget { background: #2a2418; border: 1px solid #6c5a2e; border-radius: 8px; padding: 9px 10px; margin-bottom: 12px; }
+.budget b { font: 700 14px var(--serif); color: var(--gold); } .budget p { margin: 3px 0 7px; color: #cbbf9f; font-size: 12px; }
+.budget .bar { height: 9px; } .budget .bar u { background: linear-gradient(90deg, #4f8f3f, #9ccf5a); } .budget .bar.over u { background: #c0442f; }
+.budget .row2 { display: flex; justify-content: space-between; font-size: 12px; margin-top: 4px; color: var(--dim); } .budget .row2 b { font: 600 12px var(--font); }
+.stars { font-size: 34px; letter-spacing: 6px; color: var(--gold); text-shadow: 0 2px 8px #000; } .stars .off { color: #4a4436; }
+.box2 { background: #141a21; border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; margin: 10px 0; font-size: 13px; }
+.box2 b { color: var(--gold); } .upset { color: #ff8a5b; font: 700 15px var(--serif); }
+#feed { position: fixed; right: 10px; top: calc(var(--top) + 10px); z-index: 9; width: 300px; display: flex; flex-direction: column; gap: 4px; pointer-events: none; }
+#feed div { background: #131920e0; border: 1px solid #0a0d11; border-left: 3px solid var(--gold); border-radius: 6px; padding: 5px 9px; font-size: 12.5px; animation: feedIn .25s ease-out; transition: opacity .6s; }
+#feed div.old { opacity: 0; } #feed .k { font-weight: 600; } #feed .x { color: var(--dim); margin: 0 5px; }
+@keyframes feedIn { from { transform: translateX(20px); opacity: 0; } }
+#predict { position: fixed; left: 50%; top: 22%; transform: translateX(-50%); z-index: 30; background: #131920f2; border: 1px solid var(--gold-d); border-radius: 12px; padding: 16px 20px; text-align: center; box-shadow: 0 14px 40px #000c; max-width: 92vw; }
+#predict h3 { margin: 0 0 4px; font: 700 20px var(--serif); color: var(--gold); } #predict p { margin: 0 0 12px; color: var(--dim); }
+#predict .opts { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; } #predict .opts button { min-width: 120px; padding: 9px 14px; font-weight: 600; }
+#inspect { position: fixed; left: 10px; bottom: 10px; z-index: 9; width: 290px; background: #131920f0; border: 1px solid #3a4756; border-radius: 9px; padding: 9px 11px; box-shadow: 0 6px 20px #0009; font-size: 12px; }
+body.edit #inspect { left: calc(var(--pw) + 10px); }
+#inspect .top { display: flex; gap: 9px; align-items: center; } #inspect canvas { background: radial-gradient(#4d6b38, #2f4426); border-radius: 7px; flex: none; }
+#inspect h4 { margin: 0; font: 700 14px var(--serif); color: var(--gold); text-transform: none; letter-spacing: 0; } #inspect .o { color: var(--dim); font-size: 11.5px; }
+#inspect .hp { height: 6px; background: #0b0f14; border-radius: 3px; overflow: hidden; margin: 7px 0 4px; } #inspect .hp u { display: block; height: 100%; background: #5fd35a; }
+#inspect .ln { display: flex; justify-content: space-between; color: var(--dim); } #inspect .ln b { color: var(--ink); } #inspect p { margin: 6px 0 0; color: #d9cfb6; font: 12.5px/1.5 var(--serif); }
+#inspect .ab { color: var(--gold); margin-top: 4px; }
+button.on2 { background: linear-gradient(#e9bd55, #c58f26); color: #23180a; }
+@media (max-width: 820px) {
+  .codex, .lab, .cx-head { grid-template-columns: 1fr; } .codex .list { max-height: 34vh; } .cx-stage { width: 100%; }
+  #feed { width: 210px; top: calc(var(--top) + 6px); } #feed div { font-size: 11px; padding: 3px 7px; }
+  #inspect { width: auto; right: 10px; bottom: calc(44vh + 8px); } body.battle #inspect { bottom: 100px; }
+}
