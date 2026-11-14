@@ -194,17 +194,17 @@ class Render {
         const age = now - c.time;
         if (c.bld) { const s = S.rubble(c.size); ctx.globalAlpha = Math.max(0.35, 1 - age / 60); ctx.drawImage(s.cv, X - s.ax, Y - s.ay, s.w, s.h); ctx.globalAlpha = 1; continue; }
         if (age > 120) continue;
-        const cd = U[c.t], mech = cd.cat === 'siege', big = cd.r > 0.33, fl = c.fx - c.fy < 0;
+        const cd = U[c.t], mech = cd.cat === 'siege', big = cd.r > 0.33, fl0 = c.fx - c.fy < 0;
         // what is left behind: a blood stain and bones, or splintered wood
         const rest = age < 25 ? 0 : Math.min(1, (age - 25) / 5), gone = age > 100 ? (age - 100) / 20 : 0;
         if (mech) { if (rest > 0) { const w = S.rubble(1); ctx.globalAlpha = rest * (1 - gone) * 0.8; ctx.drawImage(w.cv, X - w.ax * 0.5, Y - w.ay * 0.5, w.w * 0.5, w.h * 0.5); } }
         else {
           const pool = Math.min(1, age / 1.6), rr = (big ? 17 : 9) * (0.4 + pool * 0.6) * (1 - rest * 0.3);
-          ctx.globalAlpha = (0.42 - rest * 0.22) * (1 - gone); ctx.fillStyle = '#5a0e0a'; ctx.beginPath(); ctx.ellipse(X - (fl ? -5 : 5), Y + 1, rr, rr * 0.45, 0, 0, 6.3); ctx.fill();
+          ctx.globalAlpha = (0.42 - rest * 0.22) * (1 - gone); ctx.fillStyle = '#5a0e0a'; ctx.beginPath(); ctx.ellipse(X - (fl0 ? -5 : 5), Y + 1, rr, rr * 0.45, 0, 0, 6.3); ctx.fill();
           if (rest > 0) { const b = S.bones(big ? 1 : 0, (c.time * 7 | 0) % 3); ctx.globalAlpha = rest * (1 - gone); ctx.drawImage(b.cv, X - b.ax, Y - b.ay, b.w, b.h); }
         }
         if (rest < 1) {
-          const fr = age < 0.4 ? 'd' + Math.min(4, (age / 0.08) | 0) : 'd4', s = S.get(c.t, c.p, c.fx + c.fy < 0, fr);
+          const fr = age < 0.4 ? 'd' + Math.min(4, (age / 0.08) | 0) : 'd4', uu = S.unit(c.t, c.p, c.fx, c.fy, fr), s = uu.s, fl = uu.fl;
           ctx.globalAlpha = 1 - rest;
           if (fl) { ctx.setTransform(-dpr * z, 0, 0, dpr * z, dpr * (ox + X * z), dpr * (oy + Y * z)); ctx.drawImage(s.cv, -s.ax, -s.ay, s.w, s.h); world(); } else ctx.drawImage(s.cv, X - s.ax, Y - s.ay, s.w, s.h);
         }
@@ -245,7 +245,7 @@ class Render {
         const it = item(); n++; it.k = 0; it.e = e; it.X = X; it.Y = Y; it.d = x + y + (e.bld ? 0.01 : 0); it.sc = 1;
         if (e.bld) { it.s = S.get(e.t, e.p, false, 'idle'); it.fl = false; }
         else { const q = (now - e.atkT) / (e.d.wind + 0.25), atk = q >= 0 && q < 1; const fr = atk ? 'a' + Math.min(5, (q * 6) | 0) : e.moving ? 'w' + (((e.anim % 1) * 8) | 0) : 'idle';
-          it.s = S.get(e.t, e.p, e.fx + e.fy < -0.15, fr); it.fl = e.fx - e.fy < 0;
+          const uu = S.unit(e.t, e.p, e.fx, e.fy, fr); it.s = uu.s; it.fl = uu.fl;
           if (atk && !e.d.proj && e.d.spd) { const k = Math.sin(Math.min(1, Math.max(0, (q - 0.25) / 0.55)) * Math.PI) * (e.r > 0.33 ? 4 : 3); it.X += (e.fx - e.fy) * 0.7 * k; it.Y += (e.fx + e.fy) * 0.35 * k; }
           else if (sim.time - e.flash < 0.12 && !e.d.proj) { it.X -= (e.fx - e.fy) * 0.6; it.Y -= (e.fx + e.fy) * 0.3; } }
       }
@@ -255,7 +255,7 @@ class Render {
         const u = Us[i], d = U[u.t], x = d.bld ? u.x + d.size / 2 : u.x, y = d.bld ? u.y + d.size / 2 : u.y, X = (x - y) * HW, Y = (x + y) * HH;
         if (X < vx0 - 110 || X > vx1 + 110 || Y < vy0 - 60 || Y > vy1 + 200) continue;
         const it = item(); n++; it.k = 1; it.e = u; it.X = X; it.Y = Y; it.d = x + y + (d.bld ? 0.01 : 0); it.sc = 1;
-        const fx = mx - x, fy = my - y; it.s = S.get(u.t, u.p, false, 'idle'); it.fl = !d.bld && fx - fy < 0;
+        const fx = mx - x, fy = my - y; if (d.bld) { it.s = S.get(u.t, u.p, false, 'idle'); it.fl = false; } else { const uu = S.unit(u.t, u.p, fx, fy, 'idle'); it.s = uu.s; it.fl = uu.fl; }
       }
     }
     L.length = Math.max(L.length, n); const vis = L.slice(0, n).sort((a, b) => a.d - b.d);

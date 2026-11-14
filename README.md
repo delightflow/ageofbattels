@@ -42,6 +42,24 @@ A browser battle sandbox: paint a map, place armies for up to eight players, pre
 | `js/audio.js` | Web Audio로 합성하는 효과음 |
 | `js/main.js` | 편집기, 입력, UI |
 
+## 3D 에셋 (Blender)
+
+유닛·건물·나무 그림은 Blender로 만든 3D 모델을 미리 렌더링한 스프라이트입니다(고전 RTS와 같은 방식). 모델은 이미지 파일이 아니라 `tools/bake/bake.py` 코드로 조립합니다. 관절이 있는 사람·말·낙타·코끼리·늑대, 공성 무기, 성벽·탑·성채, 나무와 바위를 만들고, 병종 정의(`js/data.js`의 투구·갑옷·무기·방패)를 그대로 읽어 입힙니다.
+
+- 유닛마다 5방향 × 20프레임(서 있기 1, 걷기 8, 공격 6, 쓰러짐 5)을 Cycles로 렌더링합니다. 나머지 3방향은 게임에서 좌우 반전합니다.
+- 팀색 부분만 한 번 더 렌더링한 마스크(`*_m.webp`)로 8가지 플레이어 색을 입힙니다.
+- 구운 파일은 `assets/sprites/`에 있고, 없거나 아직 불러오는 중이면 예전 손그림 스프라이트를 씁니다.
+
+다시 굽기:
+
+```
+pip install bpy pillow numpy                     # Blender 5.x 파이썬 모듈
+node tools/bake/export-looks.cjs > tools/bake/looks.json
+python tools/bake/bake.py -- assets/sprites      # 전부 (약 1시간), 또는 뒤에 id를 나열
+python tools/bake/finish.py assets/sprites       # 셀 다듬기, 아이콘 시트, manifest.js
+PREVIEW=1 python tools/bake/bake.py -- /tmp/prev knight   # 3방향 8프레임만 빠르게
+```
+
 ## 테스트
 
 ```
@@ -55,4 +73,4 @@ node tests/presets-odds.cjs        # 예제 전투가 얼마나 박빙인지
 
 ## 출처
 
-그림은 전부 이 저장소의 캔버스 코드로 그리고, 소리는 전부 브라우저에서 합성합니다. 외부 스프라이트·텍스처·음원은 들어 있지 않습니다. 유닛은 역사에 흔한 병종(창병, 궁병, 기사 등)이며 특정 게임의 캐릭터나 자산이 아닙니다.
+그림은 전부 이 저장소의 코드로 만듭니다(Blender 모델 스크립트와 캔버스 그리기). 소리는 전부 브라우저에서 합성합니다. 외부 스프라이트·텍스처·음원은 들어 있지 않습니다. 유닛은 역사에 흔한 병종(창병, 궁병, 기사 등)이며 특정 게임의 캐릭터나 자산이 아닙니다.

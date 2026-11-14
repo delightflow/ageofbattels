@@ -408,6 +408,7 @@ function boot() {
   try { const a = store.get('aob2.autosave'); if (a) { s = S.unpack(JSON.parse(a)); had = true; } } catch (e) { s = null; }
   sc = s || S.preset('field'); applyLang(); setScenario(sc); syncUndo();
   presetsDlg(had ? 2 : 1);
+  AB.Sprites.preload(); window.addEventListener('ab-sprites', () => { buildTool(); refreshArmies(); });
   requestAnimationFrame(frame);
   window.AB_DEBUG = { get sim() { return sim; }, get sc() { return sc; }, R, st, startBattle, stopBattle, setScenario };
 }

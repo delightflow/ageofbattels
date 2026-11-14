@@ -1,0 +1,548 @@
+{
+ "levy": {
+  "look": {
+   "b": "human",
+   "helm": "none",
+   "armor": "cloth",
+   "wpn": "fork"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "swordsman": {
+  "look": {
+   "b": "human",
+   "helm": "nasal",
+   "armor": "mail",
+   "wpn": "sword",
+   "shield": "round"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "spearman": {
+  "look": {
+   "b": "human",
+   "helm": "kettle",
+   "armor": "leather",
+   "wpn": "spear",
+   "shield": "round"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "pikeman": {
+  "look": {
+   "b": "human",
+   "helm": "kettle",
+   "armor": "mail",
+   "wpn": "pike"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "manatarms": {
+  "look": {
+   "b": "human",
+   "helm": "great",
+   "armor": "plate",
+   "wpn": "greatsword"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "berserker": {
+  "look": {
+   "b": "human",
+   "helm": "horn",
+   "armor": "bare",
+   "wpn": "axes"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.28
+ },
+ "archer": {
+  "look": {
+   "b": "human",
+   "helm": "cap",
+   "armor": "cloth",
+   "wpn": "bow"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "arrow",
+  "wind": 0.5
+ },
+ "crossbow": {
+  "look": {
+   "b": "human",
+   "helm": "kettle",
+   "armor": "leather",
+   "wpn": "crossbow"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "bolt",
+  "wind": 0.55
+ },
+ "skirmisher": {
+  "look": {
+   "b": "human",
+   "helm": "none",
+   "armor": "cloth",
+   "wpn": "javelin",
+   "shield": "round"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "javelin",
+  "wind": 0.45
+ },
+ "musketeer": {
+  "look": {
+   "b": "human",
+   "helm": "hat",
+   "armor": "cloth",
+   "wpn": "musket"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "bullet",
+  "wind": 0.6
+ },
+ "lightcav": {
+  "look": {
+   "b": "rider",
+   "mount": "horse",
+   "mc": "#8a5a3a",
+   "helm": "cap",
+   "armor": "leather",
+   "wpn": "sword"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.36,
+  "proj": null,
+  "wind": 0.35
+ },
+ "knight": {
+  "look": {
+   "b": "rider",
+   "mount": "horse",
+   "mc": "#5a4334",
+   "bard": 1,
+   "helm": "great",
+   "armor": "plate",
+   "wpn": "lance",
+   "shield": "kite"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.38,
+  "proj": null,
+  "wind": 0.35
+ },
+ "horsearcher": {
+  "look": {
+   "b": "rider",
+   "mount": "horse",
+   "mc": "#a9834f",
+   "helm": "fur",
+   "armor": "leather",
+   "wpn": "bow"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.36,
+  "proj": "arrow",
+  "wind": 0.5
+ },
+ "camel": {
+  "look": {
+   "b": "rider",
+   "mount": "camel",
+   "mc": "#c9a36a",
+   "helm": "turban",
+   "armor": "cloth",
+   "wpn": "spear"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.38,
+  "proj": null,
+  "wind": 0.35
+ },
+ "elephant": {
+  "look": {
+   "b": "elephant"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.62,
+  "proj": null,
+  "wind": 0.5
+ },
+ "commander": {
+  "look": {
+   "b": "rider",
+   "mount": "horse",
+   "mc": "#e6e0d2",
+   "bard": 1,
+   "helm": "great",
+   "armor": "plate",
+   "wpn": "sword",
+   "cape": 1,
+   "banner": 1
+  },
+  "cat": "sup",
+  "bld": false,
+  "size": 1,
+  "r": 0.38,
+  "proj": null,
+  "wind": 0.35
+ },
+ "catapult": {
+  "look": {
+   "b": "catapult"
+  },
+  "cat": "siege",
+  "bld": false,
+  "size": 1,
+  "r": 0.5,
+  "proj": "stone",
+  "wind": 0.8
+ },
+ "ballista": {
+  "look": {
+   "b": "ballista"
+  },
+  "cat": "siege",
+  "bld": false,
+  "size": 1,
+  "r": 0.46,
+  "proj": "bigbolt",
+  "wind": 0.5
+ },
+ "cannon": {
+  "look": {
+   "b": "cannon"
+  },
+  "cat": "siege",
+  "bld": false,
+  "size": 1,
+  "r": 0.5,
+  "proj": "ball",
+  "wind": 0.6
+ },
+ "ram": {
+  "look": {
+   "b": "ram"
+  },
+  "cat": "siege",
+  "bld": false,
+  "size": 1,
+  "r": 0.5,
+  "proj": null,
+  "wind": 0.6
+ },
+ "monk": {
+  "look": {
+   "b": "human",
+   "helm": "hood",
+   "armor": "robe",
+   "wpn": "staff"
+  },
+  "cat": "sup",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.4
+ },
+ "wolf": {
+  "look": {
+   "b": "wolf"
+  },
+  "cat": "sup",
+  "bld": false,
+  "size": 1,
+  "r": 0.25,
+  "proj": null,
+  "wind": 0.25
+ },
+ "legionary": {
+  "look": {
+   "b": "human",
+   "helm": "galea",
+   "armor": "lorica",
+   "wpn": "sword",
+   "shield": "scutum"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "hoplite": {
+  "look": {
+   "b": "human",
+   "helm": "corinth",
+   "armor": "linothorax",
+   "wpn": "spear",
+   "shield": "aspis"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "phalangite": {
+  "look": {
+   "b": "human",
+   "helm": "phrygian",
+   "armor": "linothorax",
+   "wpn": "sarissa",
+   "shield": "pelte"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "samurai": {
+  "look": {
+   "b": "human",
+   "helm": "kabuto",
+   "armor": "osode",
+   "wpn": "katana"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.24
+ },
+ "landsknecht": {
+  "look": {
+   "b": "human",
+   "helm": "beret",
+   "armor": "slashed",
+   "wpn": "zweihander"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.45
+ },
+ "jaguar": {
+  "look": {
+   "b": "human",
+   "helm": "jaguar",
+   "armor": "jaguar",
+   "wpn": "macuahuitl",
+   "shield": "chimalli"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.3
+ },
+ "axeman": {
+  "look": {
+   "b": "human",
+   "helm": "none",
+   "armor": "leather",
+   "wpn": "francisca",
+   "shield": "round"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "axe",
+  "wind": 0.45
+ },
+ "repeater": {
+  "look": {
+   "b": "human",
+   "helm": "cap",
+   "armor": "lamellar",
+   "wpn": "repeater"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "bolt",
+  "wind": 0.45
+ },
+ "keshig": {
+  "look": {
+   "b": "rider",
+   "mount": "horse",
+   "mc": "#7d6a55",
+   "helm": "mongol",
+   "armor": "deel",
+   "wpn": "bow"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.36,
+  "proj": "arrow",
+  "wind": 0.42
+ },
+ "gaemamusa": {
+  "look": {
+   "b": "rider",
+   "mount": "horse",
+   "mc": "#4a3a2e",
+   "bard": 2,
+   "helm": "gogu",
+   "armor": "lamellar",
+   "wpn": "lance"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.4,
+  "proj": null,
+  "wind": 0.35
+ },
+ "hwacha": {
+  "look": {
+   "b": "hwacha"
+  },
+  "cat": "siege",
+  "bld": false,
+  "size": 1,
+  "r": 0.48,
+  "proj": "fire",
+  "wind": 0.6
+ },
+ "trebuchet": {
+  "look": {
+   "b": "trebuchet"
+  },
+  "cat": "siege",
+  "bld": false,
+  "size": 1,
+  "r": 0.62,
+  "proj": "boulder",
+  "wind": 1.1
+ },
+ "palisade": {
+  "look": {
+   "b": "palisade"
+  },
+  "cat": "bld",
+  "bld": true,
+  "size": 1,
+  "r": 0.5,
+  "proj": null,
+  "wind": 0
+ },
+ "wall": {
+  "look": {
+   "b": "wall"
+  },
+  "cat": "bld",
+  "bld": true,
+  "size": 1,
+  "r": 0.5,
+  "proj": null,
+  "wind": 0
+ },
+ "gate": {
+  "look": {
+   "b": "gate"
+  },
+  "cat": "bld",
+  "bld": true,
+  "size": 1,
+  "r": 0.5,
+  "proj": null,
+  "wind": 0
+ },
+ "tower": {
+  "look": {
+   "b": "tower"
+  },
+  "cat": "bld",
+  "bld": true,
+  "size": 1,
+  "r": 0.5,
+  "proj": "arrow",
+  "wind": 0
+ },
+ "keep": {
+  "look": {
+   "b": "keep"
+  },
+  "cat": "bld",
+  "bld": true,
+  "size": 3,
+  "r": 1.5,
+  "proj": "arrow",
+  "wind": 0
+ },
+ "tent": {
+  "look": {
+   "b": "tent"
+  },
+  "cat": "bld",
+  "bld": true,
+  "size": 1,
+  "r": 0.5,
+  "proj": null,
+  "wind": 0
+ }
+}

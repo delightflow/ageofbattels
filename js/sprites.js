@@ -470,10 +470,62 @@ function bones(c, big, v) {
   const sx = -4 * k, sy = -1.2; ell(c, sx, sy, 2.1 * k, 1.8 * k); c.fillStyle = bone; c.fill(); c.strokeStyle = dk; c.lineWidth = 0.6; c.stroke();
   c.fillStyle = '#3a3026'; ell(c, sx - 0.7 * k, sy - 0.2, 0.5 * k, 0.55 * k); c.fill(); ell(c, sx + 0.6 * k, sy - 0.2, 0.5 * k, 0.55 * k); c.fill();
 }
+// ---------------------------------------------------------------- baked 3D atlases (tools/bake), loaded on demand
+// Each unit has a colour sheet and a team mask: rows are five facings, columns are the animation frames.
+const ATL = { man: null, img: new Map(), cell: new Map(), base: 'assets/sprites/', ver: '' };
+function atlasMan() { if (ATL.man === null) ATL.man = G.AB_SPRITES || false; return ATL.man; }
+function atlasImg(id) {
+  const man = atlasMan(); if (!man || !man[id]) return null;
+  let a = ATL.img.get(id);
+  if (!a) {
+    a = { c: new Image(), m: new Image(), n: 0, ok: false, bad: false }; ATL.img.set(id, a);
+    const done = () => { if (++a.n === 2) a.ok = true; }, fail = () => { a.bad = true; };
+    a.c.onload = done; a.m.onload = done; a.c.onerror = fail; a.m.onerror = fail;
+    const v = man[id].v ? '?v=' + man[id].v : ''; a.c.src = ATL.base + id + '.webp' + v; a.m.src = ATL.base + id + '_m.webp' + v;
+  }
+  return a.ok ? a : null;
+}
+// one frame, tinted for the player, cut out into its own canvas
+function atlasCell(id, p, dir, frame) {
+  const key = id + '|' + p + '|' + dir + '|' + frame; let s = ATL.cell.get(key); if (s) return s;
+  const a = atlasImg(id); if (!a) return null;
+  const m = atlasMan()[id]; let fi = m.frames.indexOf(frame); if (fi < 0) fi = frame[0] === 'd' ? m.frames.length - 1 : 0;
+  const W = m.cw || m.w * m.ss, H = m.ch || m.h * m.ss, sx = fi * W, sy = Math.min(dir, m.dirs - 1) * H;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
+  c.drawImage(a.c, sx, sy, W, H, 0, 0, W, H);
+  const t = document.createElement('canvas'); t.width = W; t.height = H; const g = t.getContext('2d');
+  g.drawImage(a.m, sx, sy, W, H, 0, 0, W, H); g.globalCompositeOperation = 'multiply'; g.fillStyle = AB.PLAYERS[p].m; g.fillRect(0, 0, W, H);
+  g.globalCompositeOperation = 'destination-in'; g.drawImage(a.m, sx, sy, W, H, 0, 0, W, H);
+  c.drawImage(t, 0, 0);
+  s = { cv, w: m.w, h: m.h, ax: m.ax, ay: m.ay, baked: true }; ATL.cell.set(key, s); return s;
+}
+// the icon sheet: one trimmed standing frame per unit, tinted per player
+let ICONS = null;
+function iconSheet() {
+  const man = atlasMan(); if (!man || !man.__icons) return null;
+  if (!ICONS) { const I = man.__icons; ICONS = { I, c: new Image(), m: new Image(), n: 0, ok: false };
+    const done = () => { if (++ICONS.n === 2) { ICONS.ok = true; if (G.dispatchEvent) G.dispatchEvent(new Event('ab-sprites')); } };
+    ICONS.c.onload = done; ICONS.m.onload = done; ICONS.c.src = ATL.base + 'icons.webp?v=' + I.v; ICONS.m.src = ATL.base + 'icons_m.webp?v=' + I.v; }
+  return ICONS.ok ? ICONS : null;
+}
+// facing (fx, fy) in world space → one of five rendered facings, mirrored for the other three
+function facingOf(fx, fy) {
+  let k = Math.round(Math.atan2(fy, fx) / (Math.PI / 4)); k = ((k % 8) + 8) % 8;
+  const deg = k * 45; if (deg >= 45 && deg <= 225) return [(deg - 45) / 45, false];
+  const m = ((90 - deg) % 360 + 360) % 360; return [(m - 45) / 45, true];
+}
 const Sp = AB.Sprites = {
-  shade,
+  shade, facingOf,
+  atlasReady(id) { return !!atlasImg(id); },
+  /* a unit facing (fx, fy): { s: sprite, fl: draw mirrored } */
+  unit(t, p, fx, fy, frame) {
+    const [dir, mir] = facingOf(fx, fy), b = atlasCell(t, p, dir, frame);
+    if (b) return { s: b, fl: mir };
+    return { s: Sp.get(t, p, fx + fy < -0.15, frame, true), fl: fx - fy < 0 };
+  },
   /* frame: 'idle' | 'w0'..'w7' | 'a0'..'a5' | 'd0'..'d4' */
-  get(t, p, back, frame) {
+  get(t, p, back, frame, procedural) {
+    if (!procedural) { const b = atlasCell(t, p, AB.UNITS[t].bld ? 0 : back ? 4 : 1, frame); if (b) return b; }
     const key = t + '|' + p + '|' + (back ? 1 : 0) + '|' + frame; let s = cache.get(key); if (s) return s;
     const d = AB.UNITS[t], L = d.look, pc = PC[p];
     if (d.bld) s = mk(d.size > 1 ? 'b3' : 'b1', c => BLD[L.b](c, pc));
@@ -491,10 +543,19 @@ const Sp = AB.Sprites = {
     }
     cache.set(key, s); return s;
   },
-  scenery(kind, v) { const key = 's|' + kind + '|' + v; let s = cache.get(key); if (!s) { s = kind === 'rock' ? mk('rock', c => rock(c, v / 2)) : mk('tree', c => tree(c, kind, v - 1)); cache.set(key, s); } return s; },
+  scenery(kind, v) { const b = atlasCell(kind, 0, 0, ['idle', 'w0', 'w1'][v % 3]); if (b) return b; const key = 's|' + kind + '|' + v; let s = cache.get(key); if (!s) { s = kind === 'rock' ? mk('rock', c => rock(c, v / 2)) : mk('tree', c => tree(c, kind, v - 1)); cache.set(key, s); } return s; },
   bones(big, v) { const key = 'bone|' + big + '|' + v; let s = cache.get(key); if (!s) { s = mk('human', c => bones(c, big, v)); cache.set(key, s); } return s; },
   rubble(size) { const key = 'rub|' + size; let s = cache.get(key); if (!s) { s = mk(size > 1 ? 'b3' : 'b1', c => rubble(c, size)); cache.set(key, s); } return s; },
   icon(t, p, size) {
+    const IS = iconSheet(), ki = IS ? IS.I.ids.indexOf(t) : -1;
+    if (ki >= 0) {
+      const S2 = IS.I.size, sx = (ki % IS.I.cols) * S2, sy = ((ki / IS.I.cols) | 0) * S2, cv = document.createElement('canvas'); cv.width = cv.height = size * 2; cv.style.width = cv.style.height = size + 'px';
+      const c = cv.getContext('2d'), t2 = document.createElement('canvas'); t2.width = t2.height = size * 2; const g = t2.getContext('2d'); c.imageSmoothingQuality = g.imageSmoothingQuality = 'high';
+      c.drawImage(IS.c, sx, sy, S2, S2, 0, 0, size * 2, size * 2);
+      g.drawImage(IS.m, sx, sy, S2, S2, 0, 0, size * 2, size * 2); g.globalCompositeOperation = 'multiply'; g.fillStyle = AB.PLAYERS[p].m; g.fillRect(0, 0, size * 2, size * 2);
+      g.globalCompositeOperation = 'destination-in'; g.drawImage(IS.m, sx, sy, S2, S2, 0, 0, size * 2, size * 2); c.drawImage(t2, 0, 0);
+      return cv;
+    }
     const d = AB.UNITS[t], s = Sp.get(t, p, false, 'idle'), cv = document.createElement('canvas'); cv.width = cv.height = size * 2; cv.style.width = cv.style.height = size + 'px';
     const c = cv.getContext('2d'); let sx = 0, sy = 0, sw = s.w, sh = s.h;
     if (d.bld) { const hh = d.size > 1 ? 150 : 88, ww = d.size > 1 ? 200 : 72; sx = s.ax - ww / 2; sy = s.ay - hh + (d.size > 1 ? 46 : 18); sw = ww; sh = hh; }
@@ -504,5 +565,6 @@ const Sp = AB.Sprites = {
     return cv;
   },
   clear() { cache.clear(); },
+  preload() { iconSheet(); },
 };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
