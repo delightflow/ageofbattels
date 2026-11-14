@@ -24,7 +24,7 @@ for id, m in man.items():
         out = Image.new('RGBA', (cols * cw, rows * ch))
         for r in range(rows):
             for q in range(cols): out.paste(src.crop((q * W + x0, r * H + y0, q * W + x1, r * H + y1)), (q * cw, r * ch))
-        out.save(os.path.join(D, id + suf), 'WEBP', quality=84, method=6, alpha_quality=85)
+        out.save(os.path.join(D, id + suf), 'WEBP', quality=78, method=6, alpha_quality=80)
     m.update(cw=cw, ch=ch, ax=m['ax'] - x0 / m['ss'], ay=m['ay'] - y0 / m['ss'], w=cw / m['ss'], h=ch / m['ss'])
 for id, m in man.items():                       # cache-busting version from the file contents
     h = hashlib.md5()
