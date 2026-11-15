@@ -1,4 +1,4 @@
-/* Age of Battels — runs lab jobs off the main thread. */
+/* Age of Battles — runs lab jobs off the main thread. */
 importScripts('data.js', 'scenario.js', 'sim.js', 'labcore.js');
 let cancelled = -1;
 onmessage = function (ev) {

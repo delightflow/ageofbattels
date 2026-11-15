@@ -1,4 +1,4 @@
-/* Age of Battels — scenario model: map + placed units, editing ops, presets. DOM-free. */
+/* Age of Battles — scenario model: map + placed units, editing ops, presets. DOM-free. */
 (function (G) {
 'use strict';
 const AB = G.AB = G.AB || {};

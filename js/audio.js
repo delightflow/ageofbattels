@@ -1,4 +1,4 @@
-/* Age of Battels — synthesized battle sound (Web Audio, no samples).
+/* Age of Battles — synthesized battle sound (Web Audio, no samples).
    A small reverb room, metal and wood impacts, bows and whooshes, formant voices for cries and
    shouts, horses, elephants, siege engines, and a crowd/hoofbeat bed that follows the fighting. */
 (function (G) {
@@ -173,12 +173,18 @@ music.set = function (mode, force) {
   if (mode === 'battle' && music.mode !== 'battle') { const opts = (music.siege && has('mus_siege') ? ['mus_siege'] : ['mus_battle', 'mus_skirmish']).filter(has); music.track = opts.length ? opts[(Math.random() * opts.length) | 0] : 'mus_drums'; }
   music.mode = mode;
   const menu = has('mus_menu'), lv = mode === 'edit' ? (menu ? { mus_menu: .55, amb_camp: .35 } : { amb_camp: 1 }) : mode === 'battle' ? { [music.track]: music.track === 'mus_drums' ? .32 : .42 } : {};
-  for (const name of ['amb_camp', 'mus_menu', 'mus_drums', 'mus_battle', 'mus_skirmish', 'mus_siege', 'amb_battle']) { if (name === 'amb_battle') continue; const n = loopNode(name); if (n) n.gain.setTargetAtTime(music.on && on ? (lv[name] || 0) : 0, ac.currentTime, force ? .05 : .8); }
+  for (const name of ['amb_camp', 'mus_menu', 'mus_drums', 'mus_battle', 'mus_skirmish', 'mus_siege', 'amb_battle']) { if (name === 'amb_battle') { loopNode(name); continue; } const n = loopNode(name); if (n) n.gain.setTargetAtTime(music.on && on ? (lv[name] || 0) : 0, ac.currentTime, force ? .05 : .8); }
 };
 const SWORD = { sword: 1, greatsword: 1, zweihander: 1, katana: 1, lance: 1 };
 // signature shouts on attack: [clip, chance, level]
 const SIG = { samurai: ['kiai', .3, .45], berserker: ['roar', .2, .45], jaguar: ['whoop', .2, .45], landsknecht: ['grunt', .2, .35], legionary: ['bash', .15, .3], hoplite: ['bash', .2, .3] };
 let lastVoice = 0, lastOpen = '';
+// lower the music and the battle bed under a spoken line so the words come through
+function duck(sec) {
+  if (!ac) return; const t = ac.currentTime;
+  for (const k in music.nodes) { const g = music.nodes[k].gain; g.cancelScheduledValues(t); g.setTargetAtTime(g.value * 0.3, t, 0.05); }
+  clearTimeout(duck.t); duck.t = setTimeout(() => music.set(music.want || 'edit'), sec * 1000);
+}
 // which language a unit's commander shouts in at the start of a battle
 const LANG = { legionary: 'la', monk: 'la', pikeman: 'de', landsknecht: 'de', cannon: 'de', manatarms: 'fr', axeman: 'fr', trebuchet: 'fr', templar: 'fr',
   skirmisher: 'el', hoplite: 'el', phalangite: 'el', cataphract: 'el', musketeer: 'tr', horsearcher: 'tr', lightcav: 'pl', hussar: 'pl', camel: 'ar', elephant: 'hi',
@@ -262,7 +268,7 @@ AB.Audio = {
     let lang = LANG[lead] || 'en'; if (!has('sp_' + lang)) lang = 'en';
     const opens = ['horn', 'conch', 'trumpet', 'drumroll'].filter(has).filter(x => x !== lastOpen), closes = ['cry', 'shields'].concat(cav / Math.max(1, n) > .3 ? ['hurrah'] : []).filter(has);
     const open = pick(opens.length ? opens : ['horn']); lastOpen = open; const close = pick(closes.length ? closes : ['cry']);
-    const say = () => { if (!has('sp_' + lang)) return; const L = CLIP.buf['sp_' + lang], src = ac.createBufferSource(); src.buffer = pick(L); src.connect(out(.85, 0, .25)); src.start(); };
+    const say = () => { if (!has('sp_' + lang)) return; const L = CLIP.buf['sp_' + lang], src = ac.createBufferSource(); src.buffer = pick(L); const g = out(1, 0, .1); g.gain.value = 1.6; src.connect(g); src.start(); duck(src.buffer.duration + 0.4); };
     const plan = (Math.random() * 4) | 0, T = (f, ms) => setTimeout(f, ms);
     if (plan === 0) { clip(open, .7, 0, .45); T(say, 2100); T(() => clip(close, .6, 0, .35), 3500); }
     else if (plan === 1) { say(); T(() => clip(close, .6, 0, .35), 1600); }
@@ -278,7 +284,7 @@ AB.Audio = {
     const now = ac.currentTime; if (now - lastVoice < .45) return; lastVoice = now;
     const name = 'v_' + t + '_' + kind;
     if (!has(name)) { const beast = { wardog: 'bark', wolf: 'growl', elephant: 'elephant' }[t]; if (beast) { lastVoice = 0; clip(beast, .6, 0, .1); } return; }
-    const L = CLIP.buf[name], src = ac.createBufferSource(); src.buffer = L[(Math.random() * L.length) | 0]; src.connect(out(.75, 0, .08)); src.start(now);
+    const L = CLIP.buf[name], src = ac.createBufferSource(); src.buffer = L[(Math.random() * L.length) | 0]; const g = out(1, 0, .04); g.gain.value = 1.6; src.connect(g); src.start(now); duck(src.buffer.duration + 0.3);
   },
   debug() { return { decoded: Object.keys(CLIP.buf).length, played: CLIP.played, ctx: ac, master }; },
 };

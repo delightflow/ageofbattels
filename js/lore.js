@@ -1,4 +1,4 @@
-/* Age of Battels — names, origins, history and abilities for every unit (Korean and English). */
+/* Age of Battles — names, origins, history and abilities for every unit (Korean and English). */
 (function (G) {
 'use strict';
 const AB = G.AB;

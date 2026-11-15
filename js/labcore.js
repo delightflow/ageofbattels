@@ -1,4 +1,4 @@
-/* Age of Battels — headless battle runs shared by the lab worker and the page (fallback). DOM-free. */
+/* Age of Battles — headless battle runs shared by the lab worker and the page (fallback). DOM-free. */
 (function (G) {
 'use strict';
 const AB = G.AB;

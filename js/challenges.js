@@ -1,4 +1,4 @@
-/* Age of Battels — budget challenges: beat a fixed enemy army with a limited budget. DOM-free. */
+/* Age of Battles — budget challenges: beat a fixed enemy army with a limited budget. DOM-free. */
 (function (G) {
 'use strict';
 const AB = G.AB, S = AB.Scenario;

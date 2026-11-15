@@ -1,4 +1,4 @@
-/* Age of Battels — procedural sprites. Everything is drawn with canvas paths and cached per (type, player, view, frame). */
+/* Age of Battles — procedural sprites. Everything is drawn with canvas paths and cached per (type, player, view, frame). */
 (function (G) {
 'use strict';
 const AB = G.AB = G.AB || {};

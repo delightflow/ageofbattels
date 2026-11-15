@@ -1,4 +1,4 @@
-/* Age of Battels — the ways to play around the editor: unit codex, matchup lab, budget challenges,
+/* Age of Battles — the ways to play around the editor: unit codex, matchup lab, budget challenges,
    and spectating (kill feed, unit inspector, follow camera, pre-battle prediction with simulated odds). */
 (function () {
 'use strict';

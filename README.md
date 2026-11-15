@@ -1,4 +1,4 @@
-# Age of Battels
+# Age of Battles
 
 브라우저에서 돌아가는 전투 시뮬레이션 샌드박스입니다. 지형을 칠하고, 색깔별 군대를 배치하고, **전투 시작**을 누르면 병사들이 알아서 싸웁니다.
 A browser battle sandbox: paint a map, place armies for up to eight players, press Start and watch them fight.

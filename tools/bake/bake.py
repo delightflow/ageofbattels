@@ -1,4 +1,4 @@
-"""Age of Battels sprite baker.
+"""Age of Battles sprite baker.
 
 Builds every unit, building and piece of scenery as a small 3D model in Blender, poses it,
 and renders pre-rendered isometric sprites (the way classic RTS games did), plus a

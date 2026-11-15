@@ -1,4 +1,4 @@
-/* Age of Battels — isometric renderer: per-pixel terrain chunks, depth-sorted sprites, effects, minimap. */
+/* Age of Battles — isometric renderer: per-pixel terrain chunks, depth-sorted sprites, effects, minimap. */
 (function (G) {
 'use strict';
 const AB = G.AB = G.AB || {};

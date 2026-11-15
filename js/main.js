@@ -1,4 +1,4 @@
-/* Age of Battels — editor, battle control, input and UI. */
+/* Age of Battles — editor, battle control, input and UI. */
 (function () {
 'use strict';
 const AB = window.AB, S = AB.Scenario, U = AB.UNITS, T = AB.T, DT = AB.DT;

@@ -1,4 +1,4 @@
-/* Age of Battels — battle simulation. Fixed 20 Hz tick, deterministic, DOM-free. */
+/* Age of Battles — battle simulation. Fixed 20 Hz tick, deterministic, DOM-free. */
 (function (G) {
 'use strict';
 const AB = G.AB = G.AB || {};

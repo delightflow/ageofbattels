@@ -78,10 +78,10 @@ SPEECH = {
 def tts(unit, kind, i, voice, text):
     path = os.path.join(OUT, ('sp_%s%d.mp3' % (kind, i)) if unit == 'sp' else ('v_%s_%s%d.mp3' % (unit, kind, i)))
     if os.path.exists(path): return unit, kind, i, 'cached'
-    body = {'text': text, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.32, 'similarity_boost': 0.8, 'style': 0.65, 'use_speaker_boost': True}}
+    body = {'text': text, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.5, 'similarity_boost': 0.85, 'style': 0.3, 'use_speaker_boost': True}}
     for attempt in range(4):
         try:
-            req = urllib.request.Request('https://api.elevenlabs.io/v1/text-to-speech/%s?output_format=mp3_44100_64' % V[voice], data=json.dumps(body).encode(), method='POST',
+            req = urllib.request.Request('https://api.elevenlabs.io/v1/text-to-speech/%s?output_format=mp3_44100_128' % V[voice], data=json.dumps(body).encode(), method='POST',
                                          headers={'xi-api-key': KEY, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg'})
             with urllib.request.urlopen(req, timeout=120) as r: data = r.read()
             open(path, 'wb').write(data); return unit, kind, i, '%dKB %s' % (len(data) // 1024, text)

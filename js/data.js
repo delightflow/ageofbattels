@@ -1,4 +1,4 @@
-/* Age of Battels — game data: terrain, units, players, strings. DOM-free. */
+/* Age of Battles — game data: terrain, units, players, strings. DOM-free. */
 (function (G) {
 'use strict';
 const AB = G.AB = G.AB || {};
@@ -212,7 +212,7 @@ const ko = {
   pr_random: '무작위 전투', pr_random_d: '지형과 군대를 매번 새로 뽑는다.',
 };
 const en = {
-  title: 'Age of Battels', sub: 'Battle simulation sandbox',
+  title: 'Age of Battles', sub: 'Battle simulation sandbox',
   newMap: 'New map', presets: 'Battles', saveLoad: 'Save · Load', help: 'Help', start: 'Start battle',
   pause: 'Pause', resume: 'Resume', restart: 'Restart', toEdit: 'Back to editor', speed: 'Speed', sound: 'Sound',
   tTerrain: 'Terrain', tObject: 'Objects', tUnit: 'Units', tBld: 'Buildings', tErase: 'Eraser', tSelect: 'Select', tHand: 'Pan',
