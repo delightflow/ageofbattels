@@ -194,7 +194,7 @@ function woods(sc, seed, thr, keep) {
   }
 }
 // per-preset army multipliers so the shipped battles are close calls (tuned with tests/presets-odds.cjs)
-const BAL = S.balance = { field: [1, 0.925], river: [0.6, 1], ele: [1, 0.97] };
+const BAL = S.balance = { field: [1, 0.925], river: [0.6, 1], ele: [1, 0.87] };
 const B = (id, p, n) => Math.max(1, Math.round(n * ((BAL[id] && BAL[id][p]) || 1)));
 const P = S.presets = [
   { id: 'field', build() {

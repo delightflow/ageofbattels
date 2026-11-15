@@ -122,6 +122,8 @@ class Render {
     const R = Math.random;
     for (const e of events) {
       const [sx, sy] = this.w2s(e.x, e.y); if (visibleOnly !== false && (sx < -80 || sy < -80 || sx > this.W + 80 || sy > this.H + 80)) continue;
+      const near = 1 - Math.min(1, Math.hypot(sx - this.W / 2, sy - this.H / 2) / Math.max(this.W, this.H)), kick = q => { this.trauma = Math.min(1, (this.trauma || 0) + q * near * Math.min(1, this.cam.z)); };
+      if (e.k === 'hit' && e.a === 'charge') kick(0.18); else if (e.k === 'boom') kick(e.a === 'boulder' ? 0.5 : e.a === 'ball' ? 0.35 : 0.2); else if (e.k === 'collapse') kick(0.25 + 0.15 * e.a); else if (e.k === 'die' && e.b === 'elephant') kick(0.4);
       switch (e.k) {
         case 'hit':
           if (e.a === 'bld') { for (let i = 0; i < 3; i++) this.part(e.x, e.y, 0.5, { vx: (R() - 0.5) * 2, vy: (R() - 0.5) * 2, vz: 1.5 + R() * 2, g: 9, life: 0.5, r: 1.6, col: '150,140,125', a: 1 }); }
@@ -156,7 +158,9 @@ class Render {
   // ------------------------------------------------------------ frame
   draw(v) {
     const ctx = this.ctx, dpr = this.dpr, z = this.cam.z, W = this.W, H = this.H, sc = this.sc, S = AB.Sprites, U = AB.UNITS;
-    const ox = W / 2 - this.cam.x * z, oy = H / 2 - this.cam.y * z, dt = v.dt || 0, sim = v.sim, battle = !!sim;
+    const dt = v.dt || 0, sim = v.sim, battle = !!sim;
+    this.trauma = Math.max(0, (this.trauma || 0) - (v.dtReal != null ? v.dtReal : dt) * 1.4); const tq = this.shake === false ? 0 : this.trauma * this.trauma * 7;
+    const ox = W / 2 - this.cam.x * z + (tq ? (Math.random() * 2 - 1) * tq : 0), oy = H / 2 - this.cam.y * z + (tq ? (Math.random() * 2 - 1) * tq : 0);
     this.frame++;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const bg = ctx.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#14202a'); bg.addColorStop(1, '#0b1117'); ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
@@ -190,7 +194,7 @@ class Render {
     if (battle) {
       const C = sim.corpses, now = sim.time + (v.alpha || 0) * AB.DT;
       for (let i = 0; i < C.length; i++) {
-        const c = C[i], X = (c.x - c.y) * HW, Y = (c.x + c.y) * HH; if (X < vx0 - 110 || X > vx1 + 110 || Y < vy0 - 60 || Y > vy1 + 200) continue;
+        const c = C[i], sl = c.kx ? (1 - Math.exp(-(now - c.time) * 5)) / 5 : 0, cxp = c.x + (c.kx || 0) * sl * 3, cyp = c.y + (c.ky || 0) * sl * 3, X = (cxp - cyp) * HW, Y = (cxp + cyp) * HH; if (X < vx0 - 110 || X > vx1 + 110 || Y < vy0 - 60 || Y > vy1 + 200) continue;
         const age = now - c.time;
         if (c.bld) { const s = S.rubble(c.size); ctx.globalAlpha = Math.max(0.35, 1 - age / 60); ctx.drawImage(s.cv, X - s.ax, Y - s.ay, s.w, s.h); ctx.globalAlpha = 1; continue; }
         if (age > 120) continue;
@@ -240,14 +244,28 @@ class Render {
     if (battle) {
       const E = sim.ents, al = v.alpha || 0, now = sim.time + al * AB.DT;
       for (let i = 0; i < E.length; i++) {
-        const e = E[i], x = e.px + (e.x - e.px) * al, y = e.py + (e.y - e.py) * al, X = (x - y) * HW, Y = (x + y) * HH;
+        const e = E[i]; let x = e.px + (e.x - e.px) * al, y = e.py + (e.y - e.py) * al;
+        // fighters standing their ground: ease the drawn position so tiny shoves do not read as shuffling
+        if (!e.bld) { if (e.eng && !e.kx && !e.ky && e.rx !== undefined && Math.abs(e.rx - x) + Math.abs(e.ry - y) < 0.6) { const kk = Math.min(1, dt * 6); e.rx += (x - e.rx) * kk; e.ry += (y - e.ry) * kk; x = e.rx; y = e.ry; } else { e.rx = x; e.ry = y; } }
+        const X = (x - y) * HW, Y = (x + y) * HH;
         if (X < vx0 - 110 || X > vx1 + 110 || Y < vy0 - 60 || Y > vy1 + 200) continue;
         const it = item(); n++; it.k = 0; it.e = e; it.X = X; it.Y = Y; it.d = x + y + (e.bld ? 0.01 : 0); it.sc = 1;
         if (e.bld) { it.s = S.get(e.t, e.p, false, 'idle'); it.fl = false; }
         else { const q = (now - e.atkT) / (e.d.wind + 0.25), atk = q >= 0 && q < 1; const fr = atk ? 'a' + Math.min(5, (q * 6) | 0) : e.moving ? 'w' + (((e.anim % 1) * 8) | 0) : 'idle';
           const uu = S.unit(e.t, e.p, e.fx, e.fy, fr); it.s = uu.s; it.fl = uu.fl;
-          if (atk && !e.d.proj && e.d.spd) { const k = Math.sin(Math.min(1, Math.max(0, (q - 0.25) / 0.55)) * Math.PI) * (e.r > 0.33 ? 4 : 3); it.X += (e.fx - e.fy) * 0.7 * k; it.Y += (e.fx + e.fy) * 0.35 * k; }
-          else if (sim.time - e.flash < 0.12 && !e.d.proj) { it.X -= (e.fx - e.fy) * 0.6; it.Y -= (e.fx + e.fy) * 0.3; } }
+          it.rot = 0; it.fx = 0;
+          const sxv = e.fx - e.fy, syv = (e.fx + e.fy) * 0.5;
+          if (atk && !e.d.proj && e.d.spd) {                          // step into the blow: fast in at the strike, ease back out
+            const u = (q * (e.d.wind + 0.25) - e.d.wind * 0.7) / 0.35, k = (u < 0 ? 0 : u < 0.3 ? u / 0.3 : Math.max(0, 1 - (u - 0.3) / 0.7)) * (e.r > 0.33 ? 9 : 7);
+            it.X += sxv * k; it.Y += syv * k; it.rot = (sxv >= 0 ? 1 : -1) * 0.06 * k / 7;
+          }
+          const hq = now - (e.hitT || -9);
+          if (hq >= 0 && hq < 0.22) {                                  // flinch: snap back and lean away, then recover
+            const f = (1 - hq / 0.22), p = Math.min(1.6, 0.5 + (e.hitP || 0)) * f * f, lx = e.lkx || 0, ly = e.lky || 0;
+            it.X += (lx - ly) * 5 * p; it.Y += (lx + ly) * 2.5 * p; it.rot += ((lx - ly) >= 0 ? 1 : -1) * 0.22 * p; it.fx = hq < 0.07 ? 1 : 0;
+          }
+          if (e.eng && !atk && hq > 0.22) { const w = now * 5 + e.id; it.Y -= Math.abs(Math.sin(w)) * 1.1; it.rot += Math.sin(w * 0.5) * 0.03; }   // ready stance
+          if (e.moving && e.d.cat === 'cav' && dt > 0 && Math.random() < dt * 9) this.part(x - e.fx * 0.3, y - e.fy * 0.3, 0.05, { vx: -e.fx * 0.5, vy: -e.fy * 0.5, vz: 0.4, life: 0.7, r: 2.5, grow: 9, col: '170,150,115', a: 0.3 }); }
       }
     } else {
       const Us = sc.units, mx = sc.w / 2, my = sc.h / 2;
@@ -263,6 +281,12 @@ class Render {
     if (sel && sel.size) { ctx.lineWidth = 1.4; ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.beginPath(); for (const it of vis) if (it.k !== 2 && sel.has(it.e)) { const r = U[it.e.t].r; ctx.moveTo(it.X + r * 42, it.Y); ctx.ellipse(it.X, it.Y, r * 42, r * 21, 0, 0, 6.3); } ctx.stroke(); }
     for (let i = 0; i < n; i++) {
       const it = vis[i], s = it.s, k = it.sc;
+      if (it.rot || it.fx) {
+        const cs = Math.cos(it.rot || 0) * dpr * z, sn = Math.sin(it.rot || 0) * dpr * z, sg = it.fl ? -1 : 1;
+        ctx.setTransform(cs * sg, sn * sg, -sn, cs, dpr * (ox + it.X * z), dpr * (oy + it.Y * z)); ctx.drawImage(s.cv, -s.ax, -s.ay, s.w, s.h);
+        if (it.fx) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.4; ctx.drawImage(s.cv, -s.ax, -s.ay, s.w, s.h); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
+        world(); continue;
+      }
       if (it.fl) { ctx.setTransform(-dpr * z * k, 0, 0, dpr * z * k, dpr * (ox + it.X * z), dpr * (oy + it.Y * z)); ctx.drawImage(s.cv, -s.ax, -s.ay, s.w, s.h); }
       else if (k !== 1) { ctx.setTransform(dpr * z * k, 0, 0, dpr * z * k, dpr * (ox + it.X * z), dpr * (oy + it.Y * z)); ctx.drawImage(s.cv, -s.ax, -s.ay, s.w, s.h); }
       else { if (i && (vis[i - 1].fl || vis[i - 1].sc !== 1)) world(); ctx.drawImage(s.cv, it.X - s.ax, it.Y - s.ay, s.w, s.h); }
@@ -284,7 +308,7 @@ class Render {
           const top = it.Y - (e.r > 0.5 ? 58 : e.r > 0.3 ? 50 : 39); ctx.fillStyle = '#f2cf5b'; ctx.strokeStyle = '#3a2a10'; ctx.lineWidth = 0.8;
           for (let k = 0; k < e.rank; k++) { const x = it.X - (e.rank - 1) * 2.6 + k * 5.2; ctx.beginPath(); ctx.moveTo(x - 2.2, top); ctx.lineTo(x, top - 2.2); ctx.lineTo(x + 2.2, top); ctx.lineTo(x + 2.2, top + 1.6); ctx.lineTo(x, top - 0.6); ctx.lineTo(x - 2.2, top + 1.6); ctx.closePath(); ctx.fill(); ctx.stroke(); }
         }
-        if (!(isSel || (showAll && f < 0.999))) continue;
+        if (!(isSel || (showAll && f < 0.999 && (e.bld || sim.time - (e.hitT || -9) < 2.5)))) continue;   // bars only while a unit is being hit
         const w = e.bld ? 30 * e.d.size : Math.max(12, e.r * 48), top = it.Y - (e.bld ? (e.d.size > 1 ? 150 : it.s.ay * 0.72) : e.r > 0.5 ? 52 : e.r > 0.3 ? 44 : 33);
         ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(it.X - w / 2 - 0.7, top - 0.7, w + 1.4, 3.4);
         ctx.fillStyle = f > 0.6 ? '#5fd35a' : f > 0.3 ? '#e8c53a' : '#e2452f'; ctx.fillRect(it.X - w / 2, top, w * f, 2);

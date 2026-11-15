@@ -31,7 +31,7 @@ class Sim {
     const e = { id: ++this.nid, t, d, p, team: this.teamOf[p], x, y, px: x, py: y, vx: 0, vy: 0, hp: d.hp, r: d.r, bld: !!d.bld,
       fx: 1, fy: 0, tgt: null, cd: R() * d.rof * 0.6, sw: 0, rec: 0, atkT: -9, think: R() * 0.5, path: null, pi: 0, pgx: 0, pgy: 0, pT: 0,
       partial: false, arrived: false, breach: false, order: null, stance, hx: x, hy: y, kills: 0, runT: 0, buff: 0, anim: R(),
-      moving: false, dead: false, avoid: null, avoidT: 0, gT: 0, nAtk: 0, flash: 0, pend: 0, tk: 0, rank: 0, adj: 0, opened: 0, flee: null, fleeCd: 0, uid: 0, follow: null, sx: x, sy: y, tl: null };
+      moving: false, dead: false, avoid: null, avoidT: 0, gT: 0, nAtk: 0, flash: 0, pend: 0, tk: 0, rank: 0, adj: 0, opened: 0, kx: 0, ky: 0, stagT: 0, eng: false, engT: -9, slot: R() * 2 - 1, flee: null, fleeCd: 0, uid: 0, follow: null, sx: x, sy: y, tl: null };
     if (d.bld) {
       e.x0 = x; e.y0 = y; e.x1 = x + d.size; e.y1 = y + d.size; e.x = e.px = x + d.size / 2; e.y = e.py = y + d.size / 2;
       for (let j = 0; j < d.size; j++) for (let i = 0; i < d.size; i++) this.bmap[x + i + (y + j) * this.w] = e;
@@ -236,6 +236,13 @@ class Sim {
   _unit(e) {
     const d = e.d; e.cd -= DT; e.moving = false;
     if (d.regen && e.hp < d.hp) e.hp = Math.min(d.hp, e.hp + d.regen * DT);
+    if (e.kx || e.ky) {                                  // knocked back: slide, then settle
+      const nx = e.x + e.kx * DT, ny = e.y + e.ky * DT;
+      if (this.canStand(nx, ny, e.team)) { e.x = nx; e.y = ny; } else { e.kx *= -0.3; e.ky *= -0.3; }
+      e.kx *= 0.8; e.ky *= 0.8; if (Math.abs(e.kx) + Math.abs(e.ky) < 0.05) e.kx = e.ky = 0;
+    }
+    e.eng = false;
+    if (this.time < e.stagT) { e.eng = true; return; }  // staggered by a blow
     if (e.sw > 0) { e.sw -= DT; if (e.sw <= 0) this._strike(e); return; }
     if (e.rec > 0) { e.rec -= DT; return; }
     if (e.tgt && e.tgt.dead && e.think > 0.12) e.think = this.rnd() * 0.12;      // lost the target: look again right away
@@ -249,15 +256,21 @@ class Sim {
     }
     const t = e.tgt;
     if (t && !t.dead) {
-      if (this.gap(e, t) <= d.rng && !(d.minR && this.cdist(e, t) < d.minR)) {
-        const dx = t.x - e.x, dy = t.y - e.y, l = Math.hypot(dx, dy) || 1; e.fx = dx / l; e.fy = dy / l;
+      // once locked in a fight, keep a little slack in range so a nudge does not send the unit shuffling back and forth
+      if (this.gap(e, t) <= d.rng + (!d.proj && this.time - e.engT < 0.6 ? 0.28 : 0) && !(d.minR && this.cdist(e, t) < d.minR)) {
+        e.engT = this.time; const dx = t.x - e.x, dy = t.y - e.y, l = Math.hypot(dx, dy) || 1; if (dx / l * e.fx + dy / l * e.fy < 0.88) { e.fx = dx / l; e.fy = dy / l; } e.eng = !d.proj;   // turn only for a real change of angle
         if (e.cd <= 0) { e.sw = d.wind; e.atkT = this.time; }
       } else {
         if (d.opener && !e.opened && !t.bld) {           // pilum: one throw while closing in
           const g = this.gap(e, t);
           if (g <= d.opener.rng && g > d.rng + 0.6) { e.opened = 1; const dx = t.x - e.x, dy = t.y - e.y, l = Math.hypot(dx, dy) || 1; e.fx = dx / l; e.fy = dy / l; this._fire(e, t, 0, d.opener); e.atkT = this.time; e.rec = 0.4; return; }
         }
-        if (e.stance !== 2) this._move(e, t.x, t.y);
+        if (e.stance !== 2) {
+          // close in on a slot around the target, not its centre, so attackers fan out instead of piling up
+          const g = this.gap(e, t);
+          if (!t.bld && !d.proj && g < 2.5) { const a = Math.atan2(e.y - t.y, e.x - t.x) + e.slot * 0.55, dist = e.r + t.r + d.rng * 0.6; this._move(e, t.x + Math.cos(a) * dist, t.y + Math.sin(a) * dist); }
+          else this._move(e, t.x, t.y);
+        }
       }
       return;
     }
@@ -289,10 +302,20 @@ class Sim {
     if (this.gap(e, t) > d.rng + 0.5) return;
     let dmg = d.atk; const charged = d.charge && e.runT > 1.1; if (charged) dmg *= d.charge;
     e.runT = 0;
-    this.ev('hit', t.x, t.y, t.bld ? 'bld' : charged ? 'charge' : e.t === 'ram' ? 'bld' : 'melee', e.t);
-    this._damage(e, t, dmg);
-    if (d.splash) { const self = this; this.near(t.x, t.y, d.splash + 1, c => { if (c !== t && c.team !== e.team && !c.dead && !c.bld && self.cdist(c, t) <= d.splash) self._damage(e, c, dmg * 0.5); }); }
-    if (d.cleave) { let n = 0; const self = this; this.near(t.x, t.y, 1.6, c => { if (n < d.cleave && c !== t && c.team !== e.team && !c.dead && !c.bld && self.gap(e, c) <= d.rng + 0.55) { n++; self._damage(e, c, dmg * 0.6); } }); }
+    const vx = t.x - e.x, vy = t.y - e.y, vl = Math.hypot(vx, vy) || 1, ux = vx / vl, uy = vy / vl;
+    e.atkT += 0.06;                                                                                          // hit-stop: hold the impact pose
+    const heavy = e.r * e.r / 0.0576, power = charged ? 1.3 + 0.6 * Math.min(3, heavy) : 0.25 + d.atk * 0.02 + 0.3 * Math.min(4, heavy);
+    this.ev('hit', t.x, t.y, t.bld ? 'bld' : charged ? 'charge' : e.t === 'ram' ? 'bld' : 'melee', e.t, power);
+    this._damage(e, t, dmg); if (!t.bld) this._knock(t, ux, uy, power, charged ? 0.45 : 0.1);
+    if (d.splash) { const self = this; this.near(t.x, t.y, d.splash + 1, c => { if (c !== t && c.team !== e.team && !c.dead && !c.bld && self.cdist(c, t) <= d.splash) self._damage(e, c, dmg * 0.5); const cx = c.x - t.x, cy = c.y - t.y, cl = Math.hypot(cx, cy) || 1; self._knock(c, cx / cl, cy / cl, power * 0.7, 0.3); }); }
+    if (d.cleave) { let n = 0; const self = this; this.near(t.x, t.y, 1.6, c => { if (n < d.cleave && c !== t && c.team !== e.team && !c.dead && !c.bld && self.gap(e, c) <= d.rng + 0.55) { n++; self._damage(e, c, dmg * 0.6); self._knock(c, ux, uy, power * 0.8, 0.12); } }); }
+  }
+  // push a unit away along (ux, uy); heavier bodies move less and shrug off the stagger
+  _knock(t, ux, uy, power, stag) {
+    if (t.dead || t.bld) return; let m = t.r * t.r / 0.0576; if (t.d.cat === 'siege') m *= 3;
+    t.lkx = ux; t.lky = uy; t.hitT = this.time; t.hitP = power / m;        // the renderer shows a flinch for every blow
+    const v = power / m; if (v >= 0.9) { t.kx += ux * v; t.ky += uy * v; }  // only real impacts (charges, beasts, big guns) move the body
+    const st = stag * Math.min(1, 1.6 / m); if (st > 0.04) t.stagT = Math.max(t.stagT, this.time + st);
   }
   // delay: seconds before it leaves; ov: {proj, atk} for a one-off throw; spread: scatter around the target (salvo)
   _fire(e, t, delay, ov, spread) {
@@ -313,7 +336,7 @@ class Sim {
       this.near(p.tx, p.ty, sd.splash + 2, c => {
         if (c.team === p.team || c.dead) return;
         const dd = c.bld ? Math.hypot(Math.max(c.x0 - p.tx, 0, p.tx - c.x1), Math.max(c.y0 - p.ty, 0, p.ty - c.y1)) : Math.max(0, Math.hypot(c.x - p.tx, c.y - p.ty) - c.r * 0.5);
-        if (dd <= sd.splash) self._damage(src, c, p.dmg * (1 - 0.55 * dd / sd.splash), p.at);
+        if (dd <= sd.splash) { self._damage(src, c, p.dmg * (1 - 0.55 * dd / sd.splash), p.at); const kx = c.x - p.tx, ky = c.y - p.ty, kl = Math.hypot(kx, ky) || 1; self._knock(c, kx / kl, ky / kl, (p.k === 'stone' ? 2.5 : 3.5) * (1 - dd / sd.splash), 0.35); }
       });
       this.ev('boom', p.tx, p.ty, p.k); return;
     }
@@ -322,7 +345,7 @@ class Sim {
       this.near((ax + p.tx) / 2, (ay + p.ty) / 2, Math.sqrt(l2) / 2 + 1, c => {
         if (c.team === p.team || c.dead || n >= 4) return;
         const u = Math.max(0, Math.min(1, ((c.x - ax) * bx + (c.y - ay) * by) / l2)), dd = Math.hypot(c.x - ax - bx * u, c.y - ay - by * u);
-        if (dd <= c.r + 0.25) { n++; self._damage(src, c, p.dmg, p.at); }
+        if (dd <= c.r + 0.25) { n++; self._damage(src, c, p.dmg, p.at); const bl = Math.sqrt(l2); self._knock(c, bx / bl, by / bl, 2, 0.25); }
       });
       this.ev(n ? 'thud' : 'miss', p.tx, p.ty, p.k); return;
     }
@@ -356,7 +379,9 @@ class Sim {
       const r = src.kills >= 10 ? 3 : src.kills >= 6 ? 2 : src.kills >= 3 ? 1 : 0;
       if (r > src.rank && !src.bld) { src.rank = r; this.ev('rank', src.x, src.y, r, src.t, src.kills, src.p); }
     }
-    this.corpses.push({ x: t.x, y: t.y, t: t.t, p: t.p, fx: t.fx, fy: t.fy, time: this.time, bld: t.bld, size: t.d.size || 1 });
+    // the killing blow throws the body back along the last push
+    const kk = t.bld ? 0 : 0.35 + Math.hypot(t.kx, t.ky) * 0.25;
+    this.corpses.push({ x: t.x, y: t.y, t: t.t, p: t.p, fx: t.fx, fy: t.fy, time: this.time, bld: t.bld, size: t.d.size || 1, kx: (t.lkx || 0) * kk, ky: (t.lky || 0) * kk });
     if (this.corpses.length > 900) this.corpses.splice(0, 100);
   }
 
@@ -397,10 +422,11 @@ class Sim {
     if (this.time >= this.checkT) { this.checkT += 0.5; this._check(); }
   }
   _pair(e, o) {
-    let dx = o.x - e.x, dy = o.y - e.y; const min = (e.r + o.r) * 0.92, d2 = dx * dx + dy * dy;
+    let dx = o.x - e.x, dy = o.y - e.y; const min = (e.r + o.r) * (e.eng && o.eng ? 0.72 : 0.92), d2 = dx * dx + dy * dy;
     if (d2 >= min * min) return;
     let d = Math.sqrt(d2); if (d < 1e-4) { dx = this.rnd() - 0.5; dy = this.rnd() - 0.5; d = Math.hypot(dx, dy) || 1; }
-    const push = (min - d) * 0.6, me = e.r * e.r * (e.moving ? 1 : 2.5), mo = o.r * o.r * (o.moving ? 1 : 2.5), we = mo / (me + mo), wo = 1 - we;
+    // fighters hold their ground: heavy while engaged, and two engaged bodies barely push each other (no jittery sliding)
+    const both = e.eng && o.eng, push = (min - d) * (both ? 0.35 : 0.6), me = e.r * e.r * (e.moving ? 1 : e.eng ? 8 : 2.5), mo = o.r * o.r * (o.moving ? 1 : o.eng ? 8 : 2.5), we = mo / (me + mo), wo = 1 - we;
     const ex = e.x - dx / d * push * we, ey = e.y - dy / d * push * we, ox = o.x + dx / d * push * wo, oy = o.y + dy / d * push * wo;
     if (this.canStand(ex, ey, e.team)) { e.x = ex; e.y = ey; }
     if (this.canStand(ox, oy, o.team)) { o.x = ox; o.y = oy; }

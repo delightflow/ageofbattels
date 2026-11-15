@@ -139,7 +139,7 @@ AB.Audio = {
           const t = e.b, U = AB.UNITS[t]; let snd = 'clang';
           if (t === 'levy' || t === 'monk') snd = 'block'; else if (t === 'berserker') snd = 'chop'; else if (t === 'wolf') snd = 'flesh'; else if (t === 'elephant') snd = 'impact';
           else if (U && U.look && (U.look.wpn === 'spear' || U.look.wpn === 'pike')) snd = R() < 0.5 ? 'block' : 'clang';
-          play(snd, (e.a === 'charge' ? 0.55 : 0.3) * vol, pan, wet);
+          play(snd, (e.a === 'charge' ? 0.55 : 0.24 + Math.min(0.3, (e.c || 0) * 0.12)) * vol, pan, wet);
           if (e.a === 'charge') play('charge', 0.7 * vol, pan, wet);
           break; }
         case 'shoot':
