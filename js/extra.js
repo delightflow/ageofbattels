@@ -4,6 +4,9 @@
 'use strict';
 const AB = window.AB, A = AB.App, H = A.H, S = AB.Scenario, U = AB.UNITS, T = AB.T, el = A.el, $ = A.$;
 Object.assign(AB.L.ko, {
+  why: '왜 이런 결과가 나올까?', rNum: '수 차이: {x} 쪽이 {r}배 많습니다 ({na} : {nb})', rKite: '{r}의 속도({s1})가 {m}({s2})에 밀리지 않아, 물러나며 쏠 수 있습니다',
+  rCatch: '{m}의 속도({s2})가 {r}({s1})보다 빨라서 금방 따라잡습니다', rBonus: '상성: {x}는 {y}에게 {k}배 피해를 줍니다', rArmor: '방어: {y}의 갑옷이 {x}의 공격을 {p}% 막습니다',
+  rReach: '창 길이: {x}의 무기가 더 길어(사거리 {r1} 대 {r2}) 큰 싸움에서 뒷줄도 함께 찌릅니다', rRange: '사거리: {x}가 더 멀리 쏩니다({r1} 대 {r2})',
   hearIt: '대사 듣기', codex: '병종 도감', lab: '실험실', chal: '도전', follow: '관전 카메라', howPlay: '어떻게 즐길까요?', orPreset: '또는 예제 전투로 바로 구경하기',
   m_watch: '전투 구경', m_watchD: '예제 전투를 고르거나 직접 지도를 만들고, 누가 이길지 맞혀 보세요.', m_lab: '실험실', m_labD: '같은 비용이면 누가 이길까? 수십 번 싸워 승률을 냅니다.',
   m_codex: '병종 도감', m_codexD: '44종 병종의 능력치, 특수 능력, 역사를 둘러봅니다.', m_chal: '도전', m_chalD: '정해진 적군을 제한된 예산으로 꺾는 퍼즐 8개.',
@@ -23,6 +26,9 @@ Object.assign(AB.L.ko, {
   firstBlood: '첫 피', razedF: '파괴', vet: '베테랑', killsN: '{n}처치', fell: '전사', hpL: '체력', killsL: '처치', rankL: '계급',
 });
 Object.assign(AB.L.en, {
+  why: 'Why does it come out this way?', rNum: 'Numbers: {x} has {r}× as many ({na} : {nb})', rKite: '{r} is as quick as {m} (speed {s1} vs {s2}), so it can fall back and keep shooting',
+  rCatch: '{m} is faster ({s2} vs {s1}) and catches {r} quickly', rBonus: 'Counter: {x} deals {k}× damage to {y}', rArmor: 'Armour: {y} shrugs off {p}% of each {x} blow',
+  rReach: 'Reach: {x} has the longer weapon (range {r1} vs {r2}), so its rear rank fights too in a big melee', rRange: 'Range: {x} shoots farther ({r1} vs {r2})',
   hearIt: 'Hear them', codex: 'Codex', lab: 'Lab', chal: 'Challenges', follow: 'Follow cam', howPlay: 'How do you want to play?', orPreset: 'Or jump straight into a ready-made battle',
   m_watch: 'Watch a battle', m_watchD: 'Pick a battle or build a map, then guess who wins.', m_lab: 'Lab', m_labD: 'Who wins at equal cost? Fight dozens of times and get the odds.',
   m_codex: 'Codex', m_codexD: 'Stats, abilities and history for all 44 troop types.', m_chal: 'Challenges', m_chalD: 'Eight puzzles: beat a fixed army on a budget.',
@@ -186,6 +192,25 @@ function showDuel(box, r) {
   box.append(el('div', 'verdict', v), bar);
   const s = el('div', 'labstats'); s.textContent = T('count') + ' ' + r[0].na + ' : ' + r[0].nb + ' · ' + T('avgLeft') + ' ' + avg(x => x.a).toFixed(1) + ' : ' + avg(x => x.b).toFixed(1) + ' · ' + T('avgTime') + ' ' + avg(x => x.t).toFixed(0) + T('sec');
   box.appendChild(s);
+  const why = reasons(lab.a, lab.b, r[0].na, r[0].nb);
+  if (why.length) { box.appendChild(el('h5', '', T('why'))); const ul = el('ul', 'abil'); why.forEach(t => ul.appendChild(el('li', '', t))); box.appendChild(ul); }
+}
+// the stats behind a result, in plain words: numbers, speed and kiting, counters, armour, reach
+function reasons(a, b, na, nb) {
+  const A = U[a], B = U[b], out = [], nm = [name(a), name(b)];
+  if (Math.max(na, nb) / Math.min(na, nb) >= 1.25) { const big = na > nb ? 0 : 1; out.push(F('rNum', { x: nm[big], r: (Math.max(na, nb) / Math.min(na, nb)).toFixed(1), na, nb })); }
+  for (const [X, Y, i] of [[A, B, 0], [B, A, 1]]) {
+    if (X.proj && !Y.proj && Y.spd) {
+      if (X.spd >= Y.spd * 0.95 || X.kite) out.push(F('rKite', { r: nm[i], m: nm[1 - i], s1: X.spd, s2: Y.spd }));
+      else out.push(F('rCatch', { r: nm[i], m: nm[1 - i], s1: X.spd, s2: Y.spd }));
+    }
+    if (X.bonus) { let best = 1; for (const c of Y.cls) best = Math.max(best, X.bonus[c] || 1); if (best >= 1.5) out.push(F('rBonus', { x: nm[i], y: nm[1 - i], k: best })); }
+    const arm = X.at === 'm' ? Y.am : X.at === 'p' ? Y.ap : 0, per = Math.max(1, X.atk - arm);
+    if (X.atk && per / X.atk <= 0.6) out.push(F('rArmor', { y: nm[1 - i], x: nm[i], p: Math.round(100 - per / X.atk * 100) }));
+  }
+  if (!A.proj && !B.proj && Math.abs(A.rng - B.rng) >= 0.25) { const l = A.rng > B.rng ? 0 : 1; out.push(F('rReach', { x: nm[l], r1: Math.max(A.rng, B.rng), r2: Math.min(A.rng, B.rng) })); }
+  if (A.proj && B.proj && Math.abs(A.rng - B.rng) >= 1) { const l = A.rng > B.rng ? 0 : 1; out.push(F('rRange', { x: nm[l], r1: Math.max(A.rng, B.rng), r2: Math.min(A.rng, B.rng) })); }
+  return out.slice(0, 5);
 }
 function showChart(box, r) {
   r.sort((x, y) => y.w / y.runs - x.w / x.runs);
@@ -195,10 +220,8 @@ function showChart(box, r) {
   box.appendChild(g);
 }
 function watchDuel() {
-  cancelJobs(); const sc = S.create(44, 44, 0); sc.players[1].team = 1; sc.name = name(lab.a) + ' vs ' + name(lab.b);
-  for (let y = 0; y < 44; y++) for (let x = 0; x < 44; x++) if (AB.hash2(x >> 2, y >> 2, 3) > 0.75) sc.terrain[x + y * 44] = 1;
-  const na = lab.mode === 'cost' ? Math.max(1, Math.round(lab.n / U[lab.a].cost)) : lab.n, nb = lab.mode === 'cost' ? Math.max(1, Math.round(lab.n / U[lab.b].cost)) : lab.n;
-  S.formation(sc, lab.a, 0, 14, 30, na, 1, -1, 0); S.formation(sc, lab.b, 1, 30, 14, nb, -1, 1, 0);
+  cancelJobs(); const [na, nb] = AB.LabCore.counts(lab.a, lab.b, lab.mode, lab.n), sc = AB.LabCore.arena(lab.a, lab.b, na, nb); sc.name = name(lab.a) + ' vs ' + name(lab.b);
+  for (let y = 0; y < sc.h; y++) for (let x = 0; x < sc.w; x++) if (AB.hash2(x >> 2, y >> 2, 3) > 0.75) sc.terrain[x + y * sc.w] = 1;
   leaveChallenge(true); A.pushUndo0(); A.setScenario(sc); A.autosave(); A.closeModal(); skipPredict = true; A.startBattle();
 }
 

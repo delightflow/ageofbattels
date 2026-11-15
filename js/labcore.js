@@ -4,10 +4,14 @@
 const AB = G.AB;
 const C = AB.LabCore = {
   // one duel on an open field; returns { w: 0 | 1 | -1, a, b, na, nb, t }
+  // an open field sized to the armies, so big fights have room to manoeuvre (ranged units need space to fall back)
+  arena(a, b, na, nb) {
+    const S = AB.Scenario, size = Math.round(Math.min(96, Math.max(44, 22 + Math.sqrt(na + nb) * 4))), sc = S.create(size, size, 0), c = size / 2;
+    sc.players[1].team = 1; S.formation(sc, a, 0, c - 8, c + 8, na, 1, -1, 0); S.formation(sc, b, 1, c + 8, c - 8, nb, -1, 1, 0); return sc;
+  },
+  counts(a, b, mode, n) { return mode === 'cost' ? [Math.max(1, Math.round(n / AB.UNITS[a].cost)), Math.max(1, Math.round(n / AB.UNITS[b].cost))] : [n, n]; },
   duel(a, b, mode, n, seed) {
-    const S = AB.Scenario, sc = S.create(44, 44, 0); sc.players[1].team = 1;
-    const na = mode === 'cost' ? Math.max(1, Math.round(n / AB.UNITS[a].cost)) : n, nb = mode === 'cost' ? Math.max(1, Math.round(n / AB.UNITS[b].cost)) : n;
-    S.formation(sc, a, 0, 14, 30, na, 1, -1, 0); S.formation(sc, b, 1, 30, 14, nb, -1, 1, 0);
+    const [na, nb] = C.counts(a, b, mode, n), sc = C.arena(a, b, na, nb);
     return C.run(sc, seed, 300, (sim) => { const left = [0, 0]; for (const e of sim.ents) if (!e.bld) left[e.p]++; return { a: left[0], b: left[1], na: sc.units.filter(u => u.p === 0).length, nb: sc.units.filter(u => u.p === 1).length }; });
   },
   // run a scenario to the end (or the time limit); extra(sim) adds fields to the result
