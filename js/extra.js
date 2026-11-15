@@ -7,7 +7,7 @@ Object.assign(AB.L.ko, {
   why: '왜 이런 결과가 나올까?', rNum: '수 차이: {x} 쪽이 {r}배 많습니다 ({na} : {nb})', rKite: '{r}의 속도({s1})가 {m}({s2})에 밀리지 않아, 물러나며 쏠 수 있습니다',
   rCatch: '{m}의 속도({s2})가 {r}({s1})보다 빨라서 금방 따라잡습니다', rBonus: '상성: {x}는 {y}에게 {k}배 피해를 줍니다', rArmor: '방어: {y}의 갑옷이 {x}의 공격을 {p}% 막습니다',
   rReach: '창 길이: {x}의 무기가 더 길어(사거리 {r1} 대 {r2}) 큰 싸움에서 뒷줄도 함께 찌릅니다', rRange: '사거리: {x}가 더 멀리 쏩니다({r1} 대 {r2})',
-  hearIt: '대사 듣기', codex: '병종 도감', lab: '실험실', chal: '도전', follow: '관전 카메라', howPlay: '어떻게 즐길까요?', orPreset: '또는 예제 전투로 바로 구경하기',
+  ofSel: '선택 {n}명 중', hearIt: '대사 듣기', codex: '병종 도감', lab: '실험실', chal: '도전', follow: '관전 카메라', howPlay: '어떻게 즐길까요?', orPreset: '또는 예제 전투로 바로 구경하기',
   m_watch: '전투 구경', m_watchD: '예제 전투를 고르거나 직접 지도를 만들고, 누가 이길지 맞혀 보세요.', m_lab: '실험실', m_labD: '같은 비용이면 누가 이길까? 수십 번 싸워 승률을 냅니다.',
   m_codex: '병종 도감', m_codexD: '44종 병종의 능력치, 특수 능력, 역사를 둘러봅니다.', m_chal: '도전', m_chalD: '정해진 적군을 제한된 예산으로 꺾는 퍼즐 8개.',
   tryLab: '실험실에서 시험', place: '이 병종 배치하기', seeCodex: '도감 ▸', stats: '능력치', vsWeak: '약한 상대', vsStrong: '강한 상대',
@@ -29,7 +29,7 @@ Object.assign(AB.L.en, {
   why: 'Why does it come out this way?', rNum: 'Numbers: {x} has {r}× as many ({na} : {nb})', rKite: '{r} is as quick as {m} (speed {s1} vs {s2}), so it can fall back and keep shooting',
   rCatch: '{m} is faster ({s2} vs {s1}) and catches {r} quickly', rBonus: 'Counter: {x} deals {k}× damage to {y}', rArmor: 'Armour: {y} shrugs off {p}% of each {x} blow',
   rReach: 'Reach: {x} has the longer weapon (range {r1} vs {r2}), so its rear rank fights too in a big melee', rRange: 'Range: {x} shoots farther ({r1} vs {r2})',
-  hearIt: 'Hear them', codex: 'Codex', lab: 'Lab', chal: 'Challenges', follow: 'Follow cam', howPlay: 'How do you want to play?', orPreset: 'Or jump straight into a ready-made battle',
+  ofSel: 'of {n} selected', hearIt: 'Hear them', codex: 'Codex', lab: 'Lab', chal: 'Challenges', follow: 'Follow cam', howPlay: 'How do you want to play?', orPreset: 'Or jump straight into a ready-made battle',
   m_watch: 'Watch a battle', m_watchD: 'Pick a battle or build a map, then guess who wins.', m_lab: 'Lab', m_labD: 'Who wins at equal cost? Fight dozens of times and get the odds.',
   m_codex: 'Codex', m_codexD: 'Stats, abilities and history for all 44 troop types.', m_chal: 'Challenges', m_chalD: 'Eight puzzles: beat a fixed army on a budget.',
   tryLab: 'Test in the lab', place: 'Place this unit', seeCodex: 'Codex ▸', stats: 'Stats', vsWeak: 'Weak against', vsStrong: 'Strong against',
@@ -281,21 +281,43 @@ H.onEvents = (evs, sim) => {
     else if (e.k === 'rank' && e.a >= 2) feed(el('span', 'k', '★'.repeat(e.a) + ' '), tag(e.d, e.b), F('killsN', { n: e.c }));
   }
 };
-H.onSel = (sel, sim) => { inspTarget = sel.size === 1 ? sel.values().next().value : null; inspDraw(true); };
-let inspTarget = null, inspT = 0, inspKey = '';
+// selection card: one unit, or a group of one troop type, with its live combat numbers in a single compact row
+H.onSel = (sel, sim) => {
+  // a mixed selection shows its most numerous troop type
+  const list = [...sel].filter(u => !u.dead), c = {}; let t = null; for (const u of list) { c[u.t] = (c[u.t] || 0) + 1; if (!t || c[u.t] > c[t]) t = u.t; }
+  inspGroup = t ? list.filter(u => u.t === t) : null; inspTotal = list.length; inspTarget = inspGroup ? inspGroup[0] : null; inspDraw(true);
+};
+let inspTarget = null, inspGroup = null, inspTotal = 0, inspT = 0, inspKey = '';
+function statCell(icon, label, val, extra) { const c = el('div', 'sc'); c.title = label; c.append(el('i', '', icon), el('b', '', val)); if (extra) c.appendChild(el('em', '', extra)); return c; }
 function inspDraw(force) {
-  const e = inspTarget; if (!e || (e.dead)) { insp.hidden = true; return; }
-  const t = e.t, d = U[t], key = t + e.p + (e.rank || 0);
+  if (inspGroup) { inspGroup = inspGroup.filter(u => !u.dead); inspTarget = inspGroup[0] || null; }
+  const e = inspTarget; if (!e || e.dead) { insp.hidden = true; return; }
+  const t = e.t, d = U[t], live = !!A.sim, n = inspGroup ? inspGroup.length : 1, now = live ? A.sim.time : 0;
+  // live modifiers: veteran rank, frenzy, the commander's aura, phalanx armour
+  const k = live ? (1 + 0.1 * (e.rank || 0) + (d.frenzy ? d.frenzy * Math.min(3, e.kills || 0) : 0)) * (e.buff > now ? 1.2 : 1) : 1, adj = live ? e.adj || 0 : 0;
+  const key = t + e.p + n + (e.rank || 0) + Math.round(k * 100) + adj + live;
   if (force || key !== inspKey) {
     inspKey = key; insp.textContent = ''; insp.hidden = false;
-    const top = el('div', 'top'), info = el('div'); top.appendChild(icon(t, e.p, 44)); info.append(el('h4', '', name(t)), el('div', 'o', pname(e.p) + ' · ' + T('o_' + t))); top.appendChild(info); insp.appendChild(top);
+    const top = el('div', 'top'), info = el('div'); top.appendChild(icon(t, e.p, 40));
+    info.append(el('h4', '', name(t) + (n > 1 ? ' ×' + n : '') + (e.rank ? ' ' + '★'.repeat(e.rank) : '')), el('div', 'o', pname(e.p) + ' · ' + T('o_' + t) + (inspTotal > n ? ' · ' + F('ofSel', { n: inspTotal }) : ''))); top.appendChild(info); insp.appendChild(top);
     const hp = el('div', 'hp'), u = el('u'); hp.appendChild(u); insp.appendChild(hp); insp._hp = u;
-    const ln = el('div', 'ln'), hpT = el('b'), kT = el('b'); ln.append(el('span', '', T('hpL') + ' '), hpT, el('span', '', ' · ' + T('killsL') + ' '), kT, el('span', '', e.rank ? ' · ' + '★'.repeat(e.rank) : '')); insp.appendChild(ln); insp._hpT = hpT; insp._k = kT;
-    const ab = AB.abilities(d); if (ab.length) insp.appendChild(el('div', 'ab', ab.map(k => T('ab_' + k).split(' · ')[0]).join(' · ')));
-    insp.appendChild(el('p', '', T('h_' + t).split(/(?<=[.다])\s/)[0]));
-    const go = el('button', '', T('seeCodex')); go.style.cssText = 'margin-top:6px;padding:3px 9px;font-size:12px'; go.onclick = () => codexDlg(t); insp.appendChild(go);
+    const row = el('div', 'stat5'), pct = v => '+' + Math.round((v - 1) * 100) + '%';
+    if (!d.bld || d.atk) row.appendChild(statCell(d.heal ? '✚' : '⚔', T('atk'), d.heal ? String(d.heal) : String(Math.round(d.atk * k * 10) / 10) + (d.volley > 1 ? '×' + d.volley : d.salvo ? '×' + d.salvo : ''), k > 1.001 ? pct(k) : ''));
+    row.appendChild(statCell('🛡', T('armor'), (d.am + adj) + '/' + (d.ap + adj), adj ? '+' + adj : ''));
+    if (d.atk || d.heal) row.appendChild(statCell(d.proj ? '➶' : '↔', T('range'), d.rng > 1 ? String(d.rng) : T('melee')));
+    if (d.spd) row.appendChild(statCell('»', T('move'), String(d.spd)));
+    if (d.atk || d.heal) row.appendChild(statCell('⏱', T('rate'), d.rof + 's'));
+    insp.appendChild(row);
+    const ln = el('div', 'ln'), hpT = el('b'), kT = el('b'); ln.append(el('span', '', T('hpL') + ' '), hpT, el('span', '', ' · ' + T('killsL') + ' '), kT); insp.appendChild(ln); insp._hpT = hpT; insp._k = kT;
+    const ab = AB.abilities(d); if (ab.length) insp.appendChild(el('div', 'ab', ab.map(q => T('ab_' + q).split(' · ')[0]).join(' · ')));
+    if (!d.bld) { const { strong, weak } = counters(t), cut = L => L.slice(0, 3).map(name).join(', ') + (L.length > 3 ? '…' : '');
+      if (strong.length || weak.length) insp.appendChild(el('div', 'vsl', (strong.length ? '▲ ' + cut(strong) : '') + (strong.length && weak.length ? '   ' : '') + (weak.length ? '▼ ' + cut(weak) : ''))); }
+    if (!live) insp.appendChild(el('p', '', T('h_' + t).split(/(?<=[.다])\s/)[0]));
+    const go = el('button', 'mini', T('seeCodex')); go.onclick = () => codexDlg(t); insp.appendChild(go);
   }
-  const hpv = e.hp != null ? e.hp : d.hp; insp._hp.style.width = (100 * hpv / d.hp) + '%'; insp._hpT.textContent = Math.ceil(hpv) + '/' + d.hp; insp._k.textContent = e.kills || 0;
+  let hpv = 0, hpm = 0; for (const q of (inspGroup || [e])) { hpv += q.hp != null ? q.hp : d.hp; hpm += d.hp; }
+  insp._hp.style.width = (100 * hpv / hpm) + '%'; insp._hpT.textContent = n > 1 ? Math.round(100 * hpv / hpm) + '%' : Math.ceil(hpv) + '/' + d.hp;
+  insp._k.textContent = (inspGroup || [e]).reduce((s2, q) => s2 + (q.kills || 0), 0);
 }
 H.onFrame = (dt) => {
   if ((inspT -= dt) <= 0) { inspT = 0.2; if (inspTarget) inspDraw(false); if (chal.bar && chal.bar.isConnected) chal.bar._sync(); }
@@ -316,7 +338,7 @@ H.onStart = (sim, sc) => {
   const done = () => { box.remove(); A.st.paused = false; A.syncBattleBar(); };
   H._predictBox = box;
 };
-H.onStop = () => { if (H._predictBox) H._predictBox.remove(); feedBox.textContent = ''; inspTarget = null; insp.hidden = true; oddsJob++; };
+H.onStop = () => { if (H._predictBox) H._predictBox.remove(); feedBox.textContent = ''; inspTarget = null; inspGroup = null; insp.hidden = true; oddsJob++; };
 H.onResults = (d, sim, ban) => {
   const w = sim.winner;
   if (chal.cur) {

@@ -204,3 +204,10 @@ button.on2 { background: linear-gradient(#e9bd55, #c58f26); color: #23180a; }
   #feed { width: 210px; top: calc(var(--top) + 6px); } #feed div { font-size: 11px; padding: 3px 7px; }
   #inspect { width: auto; right: 10px; bottom: calc(44vh + 8px); } body.battle #inspect { bottom: 100px; }
 }
+
+#inspect .stat5 { display: flex; gap: 4px; margin: 6px 0 4px; }
+#inspect .sc { flex: 1; min-width: 0; background: #0e1318; border: 1px solid var(--line); border-radius: 5px; padding: 3px 4px; text-align: center; line-height: 1.15; }
+#inspect .sc i { display: block; font-style: normal; color: var(--dim); font-size: 11px; } #inspect .sc b { font-size: 12.5px; color: var(--ink); white-space: nowrap; } #inspect .sc em { display: block; font-style: normal; color: #7fdc6a; font-size: 10.5px; }
+#inspect .vsl { color: var(--dim); font-size: 11.5px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#inspect button.mini { margin-top: 6px; padding: 2px 9px; font-size: 11.5px; }
+#inspect .ab { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
