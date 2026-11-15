@@ -182,7 +182,7 @@ function startBattle() {
   const sum = S.summary(sc), teams = new Set(); sum.forEach((s, p) => { if (s.armed) teams.add(sc.players[p].team); });
   if (teams.size < 2) { toast(T('needTwo')); return; }
   AB.Audio.unlock(); sim = new AB.Sim(sc, { seed: seed += 7919 }); acc = 0; endShown = false; st.mode = 'battle'; st.paused = false; sel.clear(); ghost = null; R.resetFx();
-  document.body.classList.replace('edit', 'battle'); R.resize(); updateSel(); buildHud(); syncBattleBar(); closeModal(); AB.Audio.start();
+  document.body.classList.replace('edit', 'battle'); R.resize(); updateSel(); buildHud(); syncBattleBar(); closeModal(); AB.Audio.start(sim);
   if (H.onStart) H.onStart(sim, sc);
 }
 function stopBattle() { if (H.onStop) H.onStop(); AB.Audio.stop(); sim = null; st.mode = 'edit'; sel.clear(); R.resetFx(); document.body.classList.replace('battle', 'edit'); R.resize(); updateSel(); closeModal(); R.miniDirty = true; }

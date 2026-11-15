@@ -15,9 +15,15 @@ counts = collections.Counter()
 for f in sorted(os.listdir(RAW)):
     if not f.endswith('.mp3'): continue
     name = re.sub(r'\d+$', '', f[:-4]); src = os.path.join(RAW, f); dst = os.path.join(OUT, f); loop = name.startswith(('amb_', 'mus_'))
-    if loop:   # loops: just level them, keep stereo and the full length
+    if loop:   # loops: level them; songs (mus_) get their tail crossfaded into their head so they repeat without a seam
         g = -1.5 - peak_db(src)
-        subprocess.run(['ffmpeg', '-y', '-v', 'error', '-i', src, '-af', 'volume=%.2fdB' % g, '-ac', '2', '-b:a', '112k', dst], check=True)
+        d = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', src], capture_output=True, text=True).stdout)
+        if name.startswith('mus_') and d > 12:
+            X = 2.0; fc = ('[0]atrim=0:%.3f,asetpts=N/SR/TB[h];[0]atrim=%.3f:%.3f,asetpts=N/SR/TB[m];[0]atrim=%.3f:%.3f,asetpts=N/SR/TB[t];'
+                           '[t][h]acrossfade=d=%.3f:c1=tri:c2=tri[x];[x][m]concat=n=2:v=0:a=1,volume=%.2fdB[o]') % (X, X, d - X, d - X, d, X - 0.01, g)
+            subprocess.run(['ffmpeg', '-y', '-v', 'error', '-i', src, '-filter_complex', fc, '-map', '[o]', '-ac', '2', '-b:a', '128k', dst], check=True)
+        else:
+            subprocess.run(['ffmpeg', '-y', '-v', 'error', '-i', src, '-af', 'volume=%.2fdB' % g, '-ac', '2', '-b:a', '112k', dst], check=True)
     else:      # one-shots: cut leading and trailing silence, fade the tail, level to -1 dBFS, mono
         trim = 'silenceremove=start_periods=1:start_threshold=-48dB:start_silence=0.01,areverse,silenceremove=start_periods=1:start_threshold=-52dB:start_silence=0.05,areverse,afade=t=out:st=0:d=0.001'
         g = -1.0 - peak_db(src, trim)

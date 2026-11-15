@@ -15,7 +15,7 @@ NOVOX = ' Instrumental only, no vocals. Seamless loop, no fade in or fade out.'
 TRACKS = {
     'menu':    'Calm medieval main theme for a historical strategy game: lute, recorder and soft strings over a gentle frame drum, warm and nostalgic, D Dorian, 80 bpm.' + NOVOX,
     'battle':  'Epic medieval battle music: pounding war drums, low brass and driving strings, tense and heroic, D minor, 120 bpm, cinematic strategy game score.' + NOVOX,
-    'battle2': 'Fast medieval skirmish music: tribal drums, hurdy-gurdy and bagpipe-like drones with fiddle ostinato, urgent and gritty, E minor, 132 bpm.' + NOVOX,
+    'skirmish': 'Fast medieval skirmish music: tribal drums, hurdy-gurdy and bagpipe-like drones with fiddle ostinato, urgent and gritty, E minor, 132 bpm.' + NOVOX,
     'siege':   'Slow ominous siege music: deep timpani, low choir-like pads without words, brass swells and creaking tension, C minor, 70 bpm.' + NOVOX,
 }
 

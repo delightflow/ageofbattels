@@ -170,10 +170,10 @@ function loopNode(name) {
 music.set = function (mode, force) {
   music.want = mode; if (!ac || !CLIP.ok) return;
   // Gemini (Lyria) tracks when present, otherwise the generated drum loop and camp ambience
-  if (mode === 'battle' && music.mode !== 'battle') { const opts = ['mus_battle', 'mus_battle2'].filter(has); music.track = opts.length ? opts[(Math.random() * opts.length) | 0] : 'mus_drums'; }
+  if (mode === 'battle' && music.mode !== 'battle') { const opts = (music.siege && has('mus_siege') ? ['mus_siege'] : ['mus_battle', 'mus_skirmish']).filter(has); music.track = opts.length ? opts[(Math.random() * opts.length) | 0] : 'mus_drums'; }
   music.mode = mode;
   const menu = has('mus_menu'), lv = mode === 'edit' ? (menu ? { mus_menu: .55, amb_camp: .35 } : { amb_camp: 1 }) : mode === 'battle' ? { [music.track]: music.track === 'mus_drums' ? .32 : .42 } : {};
-  for (const name of ['amb_camp', 'mus_menu', 'mus_drums', 'mus_battle', 'mus_battle2', 'amb_battle']) { if (name === 'amb_battle') continue; const n = loopNode(name); if (n) n.gain.setTargetAtTime(music.on && on ? (lv[name] || 0) : 0, ac.currentTime, force ? .05 : .8); }
+  for (const name of ['amb_camp', 'mus_menu', 'mus_drums', 'mus_battle', 'mus_skirmish', 'mus_siege', 'amb_battle']) { if (name === 'amb_battle') continue; const n = loopNode(name); if (n) n.gain.setTargetAtTime(music.on && on ? (lv[name] || 0) : 0, ac.currentTime, force ? .05 : .8); }
 };
 const SWORD = { sword: 1, greatsword: 1, zweihander: 1, katana: 1, lance: 1 };
 // signature shouts on attack: [clip, chance, level]
@@ -245,7 +245,8 @@ AB.Audio = {
     if (st.cav > 0 && (st.t -= dt) <= 0) { st.t = 0.09 + Math.random() * 0.12 / Math.min(4, 1 + st.cav / 10); const v = Math.min(0.3, 0.07 + st.cav * 0.008); hoof(ac.currentTime, v, (Math.random() - 0.5) * 1.2); }
   },
   stop() { if (bed && ac) bed.g.gain.setTargetAtTime(0, ac.currentTime, 0.4); if (music.nodes.amb_battle && ac) music.nodes.amb_battle.gain.setTargetAtTime(0, ac.currentTime, .4); music.set('edit'); },
-  start() {
+  start(sim) {
+    music.siege = !!(sim && sim.ents.some(e => e.bld && e.d.wall)); music.mode = null;
     if (!on || !init()) return; music.set('battle');
     if (has('horn')) { clip('horn', .7, 0, .45); setTimeout(() => clip('cry', .6, 0, .35), 1700); return; }
     synthStart();
