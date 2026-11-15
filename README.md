@@ -60,6 +60,15 @@ python tools/bake/finish.py assets/sprites       # 셀 다듬기, 아이콘 시�
 PREVIEW=1 python tools/bake/bake.py -- /tmp/prev knight   # 3방향 8프레임만 빠르게
 ```
 
+## 소리 (ElevenLabs)
+
+효과음과 배경 소리는 ElevenLabs 효과음 생성 API로 만든 클립입니다(`assets/audio/`, 52개, 약 1.6MB). 칼 부딪힘·베기·막기·도끼·찌르기, 활·석궁·화승총·대포·투석기·화차, 비명과 신음, 말·코끼리·늑대, 성벽 붕괴, 뿔나팔·함성·승리와 패배, 그리고 반복 재생하는 전투 북소리·전장 소음·야영지 분위기가 있습니다. 게임은 재생할 때마다 음높이와 크기를 조금씩 바꾸고, 파일을 불러올 수 없을 때(`file://`)는 브라우저 합성음으로 대신합니다.
+
+```
+ELEVENLABS_API_KEY=... python3 tools/audio/gen.py      # tools/audio/raw/ 에 생성 (키는 파일에 저장하지 않음)
+python3 tools/audio/pack.py                            # 다듬고 크기를 맞춰 assets/audio/ 로
+```
+
 ## 테스트
 
 ```
@@ -73,4 +82,4 @@ node tests/presets-odds.cjs        # 예제 전투가 얼마나 박빙인지
 
 ## 출처
 
-그림은 전부 이 저장소의 코드로 만듭니다(Blender 모델 스크립트와 캔버스 그리기). 소리는 전부 브라우저에서 합성합니다. 외부 스프라이트·텍스처·음원은 들어 있지 않습니다. 유닛은 역사에 흔한 병종(창병, 궁병, 기사 등)이며 특정 게임의 캐릭터나 자산이 아닙니다.
+그림은 전부 이 저장소의 코드로 만듭니다(Blender 모델 스크립트와 캔버스 그리기). 소리는 ElevenLabs(https://elevenlabs.io)로 생성했습니다. 소리는 전부 브라우저에서 합성합니다. 외부 스프라이트·텍스처·음원은 들어 있지 않습니다. 유닛은 역사에 흔한 병종(창병, 궁병, 기사 등)이며 특정 게임의 캐릭터나 자산이 아닙니다.

@@ -121,69 +121,7 @@ function makeBed() {
 }
 function hoof(t, vol, pan) { const d = out(vol, pan, 0.15); tone(t, 0.07, 'sine', 95 + R() * 25, 45, 0.6, d); nz(t, 0.05, 'lowpass', 420, 160, 0.8, 0.35, d); }
 
-AB.Audio = {
-  unlock() { if (init() && ac.state === 'suspended') ac.resume(); },
-  setOn(v) { on = v; if (master) master.gain.value = v ? 0.55 : 0; },
-  isOn() { return on; },
-  // events from the sim; Rn = renderer (screen position → pan and distance)
-  feed(events, Rn) {
-    if (!on || !ac) return; const W = Rn.W, H = Rn.H, zf = Math.min(1, 0.45 + Rn.cam.z * 0.5); let fights = 0;
-    for (const e of events) {
-      if (e.k === 'hit' && e.a !== 'bld') fights++;
-      const [sx, sy] = Rn.w2s(e.x, e.y), dx = (sx - W / 2) / (W / 2), dy = (sy - H / 2) / (H / 2), far = Math.max(Math.abs(dx), Math.abs(dy));
-      const vol = (far < 1 ? 1 - far * 0.25 : Math.max(0, 1.5 - far * 0.6)) * zf; if (vol <= 0.05) continue;
-      const wet = 0.15 + Math.min(0.6, far * 0.3) + (1 - zf) * 0.3, pan = dx * 0.8;
-      switch (e.k) {
-        case 'hit': {
-          if (e.a === 'bld') { play(e.b === 'ram' ? 'impact' : 'wood', e.b === 'ram' ? 0.5 * vol : 0.35 * vol, pan, wet); break; }
-          const t = e.b, U = AB.UNITS[t]; let snd = 'clang';
-          if (t === 'levy' || t === 'monk') snd = 'block'; else if (t === 'berserker') snd = 'chop'; else if (t === 'wolf') snd = 'flesh'; else if (t === 'elephant') snd = 'impact';
-          else if (U && U.look && (U.look.wpn === 'spear' || U.look.wpn === 'pike')) snd = R() < 0.5 ? 'block' : 'clang';
-          play(snd, (e.a === 'charge' ? 0.55 : 0.24 + Math.min(0.3, (e.c || 0) * 0.12)) * vol, pan, wet);
-          if (e.a === 'charge') play('charge', 0.7 * vol, pan, wet);
-          break; }
-        case 'shoot':
-          if (e.a === 'arrow') { play('release', 0.3 * vol, pan, wet); play('whoosh', 0.35 * vol, pan, wet); }
-          else if (e.a === 'bolt' || e.a === 'bigbolt') { play('xbow', (e.a === 'bigbolt' ? 0.5 : 0.3) * vol, pan, wet); play('whoosh', 0.4 * vol, pan, wet); }
-          else if (e.a === 'javelin' || e.a === 'axe') play('whoosh', 0.45 * vol, pan, wet);
-          else if (e.a === 'fire') { play('rocket', 0.6 * vol, pan, wet + 0.1); }
-          else if (e.a === 'boulder') { play('creak', 0.9 * vol, pan, wet); }
-          else if (e.a === 'stone') play('creak', 0.6 * vol, pan, wet);
-          else if (e.a === 'ball') play('cannon', 0.75 * vol, pan, wet + 0.2);
-          else if (e.a === 'bullet') play('gun', 0.45 * vol, pan, wet + 0.1);
-          break;
-        case 'thud': play(e.b === 1 ? 'wood' : e.b === 2 ? 'tick' : 'flesh', 0.3 * vol, pan, wet); break;
-        case 'miss': if (e.a !== 'stone' && e.a !== 'ball') play('tick', 0.18 * vol, pan, wet); break;
-        case 'boom': play('impact', (e.a === 'boulder' ? 1 : 0.7) * vol, pan, wet + 0.1); break;
-        case 'die': {
-          const t = e.b, kind = t === 'elephant' ? 'ele' : t === 'wolf' ? 'wolf' : e.a === 'cav' || t === 'commander' ? (R() < 0.5 ? 'horse' : 'man') : e.a === 'siege' ? 'siege' : 'man';
-          if (kind === 'siege') play('wood', 0.5 * vol, pan, wet); else if (kind === 'horse') play('horse', 0.5 * vol, pan, wet); else if (kind === 'ele') play('ele', 0.7 * vol, pan, wet);
-          else play('die', 0.45 * vol, pan, wet, kind);
-          break; }
-        case 'collapse': play('crash', 0.9 * vol, pan, wet + 0.2); break;
-        case 'heal': play('heal', 0.25 * vol, pan, wet); break;
-      }
-    }
-    this._fights = (this._fights || 0) + fights;
-  },
-  // called every frame during a battle: crowd roar follows the fighting, hooves follow moving cavalry
-  tick(sim, dt, paused) {
-    if (!on || !ac || ac.state !== 'running') return;
-    if (!bed) bed = makeBed(); const now = ac.currentTime;
-    const rate = dt > 0 ? (this._fights || 0) / dt : 0; this._fights = 0;
-    bed.level += ((paused || !sim ? 0 : Math.min(1, rate / 25)) - bed.level) * Math.min(1, dt * 1.5);
-    bed.g.gain.setTargetAtTime(paused || !sim ? 0 : 0.03 + bed.level * 0.22, now, 0.25);
-    if (!sim || paused || sim.over) return;
-    if ((bed.cavT = (bed.cavT || 0) - dt) <= 0) { bed.cavT = 0.5; let n = 0; for (const e of sim.ents) if (e.moving && e.d.cat === 'cav') n++; bed.cav = n; }
-    if (bed.cav > 0 && (bed.hoofT -= dt) <= 0) {
-      bed.hoofT = 0.09 + R() * 0.12 / Math.min(4, 1 + bed.cav / 10); const v = Math.min(0.35, 0.08 + bed.cav * 0.01);
-      hoof(now, v, (R() - 0.5) * 1.2); if (R() < 0.6) hoof(now + 0.05 + R() * 0.03, v * 0.7, (R() - 0.5) * 1.2);
-    }
-    if (bed.level > 0.08 && (bed.clashT -= dt) <= 0) { bed.clashT = 0.05 + R() * 0.3 / bed.level; const d = out(0.06 + bed.level * 0.08, (R() - 0.5) * 1.6, 0.8); metal(now, 900 + R() * 1200, 0.4, 0.1, d); }
-  },
-  stop() { if (bed && ac) bed.g.gain.setTargetAtTime(0, ac.currentTime, 0.4); },
-  // a low war horn, then a shout from the ranks
-  start() {
+function synthStart() {
     if (!on || !init()) return; const t0 = ac.currentTime + 0.05, d = out(0.6, 0, 0.5);
     const horn = (f, at, dur) => { for (const det of [1, 1.004, 2.002]) { const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f * det * 0.94, t0 + at); o.frequency.exponentialRampToValueAtTime(f * det, t0 + at + 0.12);
       const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 2; lp.frequency.setValueAtTime(300, t0 + at); lp.frequency.linearRampToValueAtTime(1100, t0 + at + 0.2); lp.frequency.linearRampToValueAtTime(700, t0 + at + dur);
@@ -191,15 +129,121 @@ AB.Audio = {
       o.connect(lp); lp.connect(g); g.connect(d); o.start(t0 + at); o.stop(t0 + at + dur + 0.05); } };
     horn(98, 0, 0.9); horn(98, 1, 0.5); horn(147, 1.55, 1.6);
     const sh = out(0.8, 0, 0.6); for (let i = 0; i < 16; i++) { const f = 110 + R() * 120; voice(t0 + 2.4 + R() * 0.35, f, f * 0.9, 0.9 + R() * 0.5, R() < 0.6 ? 'a' : 'o', 0.045, sh, true); }
-  },
-  win() { if (!on || !init()) return; const t0 = ac.currentTime + 0.05, d = out(0.45, 0, 0.45);
+  }
+function synthWin() { if (!on || !init()) return; const t0 = ac.currentTime + 0.05, d = out(0.45, 0, 0.45);
     [[262, 0, 0.25], [330, 0.25, 0.25], [392, 0.5, 0.25], [523, 0.75, 1.3]].forEach(([f, at, dur]) => { for (const det of [1, 1.005]) { const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f * det; const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1600;
       const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t0 + at); g.gain.exponentialRampToValueAtTime(0.1, t0 + at + 0.05); g.gain.setValueAtTime(0.1, t0 + at + dur - 0.1); g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + dur);
       o.connect(lp); lp.connect(g); g.connect(d); o.start(t0 + at); o.stop(t0 + at + dur + 0.05); } });
-    const sh = out(0.8, 0, 0.6); for (let i = 0; i < 14; i++) { const f = 130 + R() * 120; voice(t0 + 0.8 + R() * 0.4, f, f * 1.05, 1 + R() * 0.4, 'a', 0.045, sh, true); } },
-  lose() { if (!on || !init()) return; const t0 = ac.currentTime + 0.05, d = out(0.5, 0, 0.6);
+    const sh = out(0.8, 0, 0.6); for (let i = 0; i < 14; i++) { const f = 130 + R() * 120; voice(t0 + 0.8 + R() * 0.4, f, f * 1.05, 1 + R() * 0.4, 'a', 0.045, sh, true); } }
+function synthLose() { if (!on || !init()) return; const t0 = ac.currentTime + 0.05, d = out(0.5, 0, 0.6);
     [[147, 0, 0.9], [131, 0.9, 0.9], [98, 1.8, 1.8]].forEach(([f, at, dur]) => { const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700;
-      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t0 + at); g.gain.exponentialRampToValueAtTime(0.13, t0 + at + 0.15); g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + dur); o.connect(lp); lp.connect(g); g.connect(d); o.start(t0 + at); o.stop(t0 + at + dur + 0.05); }); },
+      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t0 + at); g.gain.exponentialRampToValueAtTime(0.13, t0 + at + 0.15); g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + dur); o.connect(lp); lp.connect(g); g.connect(d); o.start(t0 + at); o.stop(t0 + at + dur + 0.05); }); }
+// --------------------------------------------------------------- recorded clips (assets/audio, generated with ElevenLabs)
+const CLIP = { buf: {}, loading: false, ok: false, base: 'assets/audio/', last: {}, voices: 0, played: {} };
+const CGAP = { clash: .03, hit: .03, block: .05, chop: .05, stab: .04, blunt: .05, bow: .025, arrowhit: .04, arrowmiss: .05, xbow: .05, musket: .05, cannon: .12,
+  catapult: .2, boulder: .12, rocket: .4, die: .07, grunt: .09, horse: .5, elephant: 1, wolf: .4, collapse: .4, woodbreak: .2, charge: 2.5, pray: 1.6 };
+function loadClips() {
+  const man = G.AB_AUDIO; if (CLIP.loading || !man || !ac) return; CLIP.loading = true;
+  const jobs = [];
+  for (const name in man) for (let i = 0; i < man[name]; i++) jobs.push(fetch(CLIP.base + name + i + '.mp3').then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })
+    .then(b => new Promise((res, rej) => ac.decodeAudioData(b, res, rej))).then(buf => { (CLIP.buf[name] = CLIP.buf[name] || []).push(buf); }).catch(() => {}));
+  Promise.all(jobs).then(() => { CLIP.ok = Object.keys(CLIP.buf).length > 0; if (CLIP.ok && music.want) music.set(music.want, true); });
+}
+function has(name) { return CLIP.buf[name] && CLIP.buf[name].length; }
+// play a random take with a little pitch and level variation; false when the clip is not available
+function clip(name, vol, pan, wet, rate) {
+  if (!on || !ac || ac.state !== 'running' || !has(name)) return false;
+  const t = ac.currentTime; if (t - (CLIP.last[name] || 0) < (CGAP[name] || .05) || CLIP.voices > 28) return true; CLIP.last[name] = t;
+  const L = CLIP.buf[name], src = ac.createBufferSource(); src.buffer = L[(Math.random() * L.length) | 0];
+  src.playbackRate.value = (rate || 1) * (0.92 + Math.random() * 0.16);
+  const d = out(Math.min(1, vol * (0.85 + Math.random() * 0.3)), pan, wet); src.connect(d); src.start(t + Math.random() * 0.01);
+  CLIP.played[name] = (CLIP.played[name] || 0) + 1; CLIP.voices++; src.onended = () => { CLIP.voices--; }; return true;
+}
+// background loops: camp ambience in the editor, war drums and distant battle during a fight
+const music = { want: null, on: true, nodes: {} };
+function loopNode(name) {
+  if (music.nodes[name] || !has(name)) return music.nodes[name];
+  const g = ac.createGain(); g.gain.value = 0; g.connect(master);
+  const s = ac.createBufferSource(); s.buffer = CLIP.buf[name][0]; s.loop = true; s.connect(g); s.start(0, Math.random() * s.buffer.duration);
+  return (music.nodes[name] = g);
+}
+music.set = function (mode, force) {
+  music.want = mode; if (!ac || !CLIP.ok) return;
+  const lv = { edit: { amb_camp: 1 }, battle: { mus_drums: .32, amb_battle: .0 }, none: {} }[mode] || {};
+  for (const name of ['amb_camp', 'mus_drums', 'amb_battle']) { const n = loopNode(name); if (n) n.gain.setTargetAtTime(music.on && on ? (lv[name] || 0) : 0, ac.currentTime, force ? .05 : .8); }
+};
+const SWORD = { sword: 1, greatsword: 1, zweihander: 1, katana: 1, lance: 1 };
+
+AB.Audio = {
+  unlock() { if (init()) { if (ac.state === 'suspended') ac.resume(); loadClips(); } },
+  setOn(v) { on = v; if (master) master.gain.value = v ? 0.55 : 0; music.set(music.want || 'edit'); },
+  isOn() { return on; },
+  setMusic(v) { music.on = v; music.set(music.want || 'edit'); },
+  musicOn() { return music.on; },
+  mode(m) { music.set(m); },
+  // events from the sim; Rn = renderer (screen position → pan and distance)
+  feed(events, Rn) {
+    if (!on || !ac) return; const W = Rn.W, H = Rn.H, zf = Math.min(1, 0.45 + Rn.cam.z * 0.5); let fights = 0;
+    for (const e of events) {
+      if (e.k === 'hit' && e.a !== 'bld') fights++;
+      const [sx, sy] = Rn.w2s(e.x, e.y), dx = (sx - W / 2) / (W / 2), dy = (sy - H / 2) / (H / 2), far = Math.max(Math.abs(dx), Math.abs(dy));
+      const vol = (far < 1 ? 1 - far * 0.25 : Math.max(0, 1.5 - far * 0.6)) * zf; if (vol <= 0.05) continue;
+      const wet = 0.12 + Math.min(0.5, far * 0.3) + (1 - zf) * 0.25, pan = dx * 0.8;
+      switch (e.k) {
+        case 'hit': {
+          if (e.a === 'bld') { if (!clip(e.b === 'ram' ? 'boulder' : 'chop', (e.b === 'ram' ? .5 : .35) * vol, pan, wet, e.b === 'ram' ? .7 : .8)) play(e.b === 'ram' ? 'impact' : 'wood', .4 * vol, pan, wet); break; }
+          const U = AB.UNITS[e.b], wpn = U && U.look && U.look.wpn, heavy = Math.min(1, (e.c || 0) / 2.5);
+          let name = 'clash', rate = 1;
+          if (e.b === 'elephant') { name = 'boulder'; rate = .6; } else if (e.b === 'wolf') { name = 'hit'; rate = 1.3; }
+          else if (wpn === 'spear' || wpn === 'pike' || wpn === 'sarissa' || wpn === 'fork') name = Math.random() < .7 ? 'stab' : 'block';
+          else if (wpn === 'axes' || wpn === 'axe') name = 'chop'; else if (wpn === 'macuahuitl' || wpn === 'staff' || wpn === 'club' || e.b === 'levy') name = 'blunt';
+          else if (SWORD[wpn]) name = Math.random() < .5 ? 'clash' : Math.random() < .6 ? 'hit' : 'block';
+          if (!clip(name, (.32 + heavy * .25) * vol, pan, wet, rate)) play('block', .3 * vol, pan, wet);
+          if (Math.random() < .14) clip('grunt', .3 * vol, pan, wet);
+          if (e.a === 'charge') { clip('hit', .55 * vol, pan, wet, .85); clip('charge', .5 * vol, pan, wet); }
+          break; }
+        case 'shoot': {
+          const k = e.a, m = { arrow: ['bow', .32], bolt: ['xbow', .35], bigbolt: ['xbow', .55, .7], javelin: ['stab', .25, 1.3], axe: ['stab', .25, 1.2], bullet: ['musket', .45], ball: ['cannon', .8], stone: ['catapult', .6], boulder: ['catapult', .8, .8], fire: ['rocket', .6] }[k];
+          if (!m || !clip(m[0], m[1] * vol, pan, wet + (k === 'ball' ? .2 : 0), m[2])) { if (k === 'arrow') play('release', .3 * vol, pan, wet); else if (k === 'ball') play('cannon', .7 * vol, pan, wet); else if (k === 'bullet') play('gun', .45 * vol, pan, wet); }
+          break; }
+        case 'thud': if (!clip(e.b === 1 ? 'chop' : e.b === 2 ? 'woodbreak' : 'arrowhit', (e.b === 2 ? .15 : .28) * vol, pan, wet, e.b === 1 ? 1.3 : 1)) play('flesh', .3 * vol, pan, wet); break;
+        case 'miss': if (e.a !== 'stone' && e.a !== 'ball' && e.a !== 'boulder') clip('arrowmiss', .2 * vol, pan, wet); break;
+        case 'boom': if (!clip('boulder', (e.a === 'boulder' ? .9 : .65) * vol, pan, wet + .1, e.a === 'boulder' ? .8 : 1)) play('impact', .7 * vol, pan, wet); break;
+        case 'die': {
+          const t = e.b, cav = e.a === 'cav' || t === 'commander';
+          if (t === 'elephant') clip('elephant', .7 * vol, pan, wet) || play('ele', .7 * vol, pan, wet);
+          else if (t === 'wolf') clip('wolf', .45 * vol, pan, wet) || play('wolf', .4 * vol, pan, wet);
+          else if (e.a === 'siege') clip('woodbreak', .5 * vol, pan, wet) || play('wood', .5 * vol, pan, wet);
+          else { if (cav && Math.random() < .55) clip('horse', .45 * vol, pan, wet); clip('die', .42 * vol, pan, wet) || play('die', .45 * vol, pan, wet, 'man'); }
+          break; }
+        case 'collapse': clip('collapse', .9 * vol, pan, wet + .2) || play('crash', .9 * vol, pan, wet + .2); break;
+        case 'heal': clip('pray', .18 * vol, pan, wet); break;           // a murmur, not a chime
+      }
+    }
+    this._fights = (this._fights || 0) + fights;
+  },
+  // every frame in battle: the distant-battle bed swells with the fighting; hooves under moving cavalry
+  tick(sim, dt, paused) {
+    if (!on || !ac || ac.state !== 'running') return;
+    const rate = dt > 0 ? (this._fights || 0) / dt : 0; this._fights = 0;
+    this._lvl = (this._lvl || 0) + ((paused || !sim ? 0 : Math.min(1, rate / 25)) - (this._lvl || 0)) * Math.min(1, dt * 1.5);
+    const amb = music.nodes.amb_battle;
+    if (amb) amb.gain.setTargetAtTime(paused || !sim || sim.over ? 0 : 0.08 + this._lvl * 0.5, ac.currentTime, 0.3);
+    else { if (!bed) bed = makeBed(); bed.g.gain.setTargetAtTime(paused || !sim ? 0 : 0.03 + this._lvl * 0.2, ac.currentTime, 0.25); }
+    if (!sim || paused || sim.over) return;
+    const st = this._hoof || (this._hoof = { t: 0, cav: 0, n: 0 });
+    if ((st.n -= dt) <= 0) { st.n = 0.5; let n = 0; for (const e of sim.ents) if (e.moving && e.d.cat === 'cav') n++; st.cav = n; }
+    if (st.cav > 0 && (st.t -= dt) <= 0) { st.t = 0.09 + Math.random() * 0.12 / Math.min(4, 1 + st.cav / 10); const v = Math.min(0.3, 0.07 + st.cav * 0.008); hoof(ac.currentTime, v, (Math.random() - 0.5) * 1.2); }
+  },
+  stop() { if (bed && ac) bed.g.gain.setTargetAtTime(0, ac.currentTime, 0.4); if (music.nodes.amb_battle && ac) music.nodes.amb_battle.gain.setTargetAtTime(0, ac.currentTime, .4); music.set('edit'); },
+  start() {
+    if (!on || !init()) return; music.set('battle');
+    if (has('horn')) { clip('horn', .7, 0, .45); setTimeout(() => clip('cry', .6, 0, .35), 1700); return; }
+    synthStart();
+  },
+  win() { music.set('none'); if (!clip('victory', .7, 0, .3)) synthWin(); setTimeout(() => music.set(music.want === 'none' ? 'edit' : music.want), 6000); },
+  lose() { music.set('none'); if (!clip('defeat', .7, 0, .35)) synthLose(); setTimeout(() => music.set(music.want === 'none' ? 'edit' : music.want), 6000); },
   click() { if (init()) play('tick', 0.2, 0, 0.1); },
+  debug() { return { decoded: Object.keys(CLIP.buf).length, played: CLIP.played, ctx: ac, master }; },
 };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

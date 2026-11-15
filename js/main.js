@@ -360,6 +360,7 @@ window.addEventListener('resize', () => R.resize());
 $('bStart').onclick = startBattle; $('bEdit').onclick = stopBattle; $('bRestart').onclick = startBattle;
 $('bPause').onclick = () => { st.paused = !st.paused; syncBattleBar(); };
 $('bPresets').onclick = () => presetsDlg(0); $('bNew').onclick = newMapDlg; $('bSave').onclick = saveDlg; $('bHelp').onclick = helpDlg; $('bUndo').onclick = doUndo; $('bRedo').onclick = doRedo;
+$('bMusic').onclick = () => { AB.Audio.unlock(); const on = !AB.Audio.musicOn(); AB.Audio.setMusic(on); store.set('aob2.music', on ? '1' : '0'); $('bMusic').classList.toggle('off', !on); };
 $('bSound').onclick = () => { AB.Audio.unlock(); const on = !AB.Audio.isOn(); AB.Audio.setOn(on); store.set('aob2.sound', on ? '1' : '0'); $('bSound').classList.toggle('off', !on); };
 $('bLang').onclick = () => { AB.lang = AB.lang === 'ko' ? 'en' : 'ko'; store.set('aob2.lang', AB.lang); applyLang(); };
 $('mapName').oninput = () => { sc.name = $('mapName').value; autosave(); };
@@ -367,7 +368,7 @@ $('modal').addEventListener('pointerdown', e => { if (e.target === $('modal')) c
 $('panelToggle').onclick = () => { document.body.classList.toggle('collapsed'); R.resize(); };
 function applyLang() {
   document.documentElement.lang = AB.lang; document.querySelectorAll('[data-t]').forEach(n => n.textContent = T(n.dataset.t));
-  $('bLang').textContent = AB.lang === 'ko' ? 'EN' : '한'; $('mapName').placeholder = T('mapName'); $('bUndo').title = T('undo') + ' (Ctrl+Z)'; $('bRedo').title = T('redo') + ' (Ctrl+Y)'; $('bSound').title = T('sound'); $('bHelp').title = T('help');
+  $('bLang').textContent = AB.lang === 'ko' ? 'EN' : '한'; $('mapName').placeholder = T('mapName'); $('bUndo').title = T('undo') + ' (Ctrl+Z)'; $('bRedo').title = T('redo') + ' (Ctrl+Y)'; $('bSound').title = T('sound'); $('bMusic').title = AB.lang === 'ko' ? '배경음' : 'Music'; $('bHelp').title = T('help');
   document.title = T('title') + ' — ' + T('sub'); buildTabs(); buildTool(); refreshArmies(); updateSel(); syncBattleBar(); if (sim) buildHud(); if (H.onLang) H.onLang();
 }
 
@@ -403,6 +404,8 @@ AB.App = { H, el, $, store, toast, openModal, closeModal, setScenario, startBatt
 function boot() {
   const lg = store.get('aob2.lang'); AB.lang = lg === 'ko' || lg === 'en' ? lg : ((navigator.language || 'ko').toLowerCase().startsWith('ko') ? 'ko' : 'en');
   if (store.get('aob2.sound') === '0') { AB.Audio.setOn(false); $('bSound').classList.add('off'); }
+  if (store.get('aob2.music') === '0') { AB.Audio.setMusic(false); $('bMusic').classList.add('off'); }
+  AB.Audio.mode('edit'); window.addEventListener('pointerdown', () => AB.Audio.unlock(), { once: true }); window.addEventListener('keydown', () => AB.Audio.unlock(), { once: true });
   if (window.matchMedia('(pointer: coarse)').matches) st.tool = 'hand';
   R.resize(); let s = null, had = false;
   try { const a = store.get('aob2.autosave'); if (a) { s = S.unpack(JSON.parse(a)); had = true; } } catch (e) { s = null; }
