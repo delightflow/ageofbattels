@@ -531,8 +531,12 @@ const Sp = AB.Sprites = {
     const key = t + '|' + p + '|' + (back ? 1 : 0) + '|' + frame; let s = cache.get(key); if (s) return s;
     const d = AB.UNITS[t], pc = PC[p];
     // hand-drawn fallback for looks that only the 3D models have
-    const AL = { longbow: 'bow', sling: 'javelin', firelance: 'spear', morion: 'kettle', jingasa: 'kettle' }, L0 = d.look;
-    const L = L0.wpn in AL || L0.helm in AL ? Object.assign({}, L0, { wpn: AL[L0.wpn] || L0.wpn, helm: AL[L0.helm] || L0.helm }) : L0;
+    const AL = { longbow: 'bow', sling: 'javelin', firelance: 'spear', morion: 'kettle', jingasa: 'kettle', halberd: 'pike', naginata: 'spear', shotel: 'sword', urumi: 'sword', mace: 'sword', keg: 'staff', grenade: 'javelin',
+      mitre: 'hat', lobster: 'kettle', eagle: 'jaguar', plume: 'cap', bork: 'hood', tiara: 'turban', centurion: 'galea', sohei: 'hood', ninja: 'hood', boyar: 'fur',
+      feather: 'cloth', woad: 'bare', scale: 'lamellar', ninja_a: 'cloth', coat: 'leather', pavise: 'kite', rattan: 'round', wicker: 'round', chariot: 'rider', organgun: 'cannon', bombard: 'cannon' }, L0 = d.look;
+    const al = (v, k) => (k && AL[k + '_a']) || AL[v] || v;
+    const L = Object.assign({}, L0, { b: al(L0.b), wpn: al(L0.wpn), helm: al(L0.helm), armor: L0.armor === 'ninja' ? 'cloth' : al(L0.armor), shield: al(L0.shield) });
+    if (L.b === 'rider' && !L.mount) { L.mount = 'horse'; L.mc = '#8a5a3a'; }
     if (d.bld) s = mk(d.size > 1 ? 'b3' : 'b1', c => BLD[L.b](c, pc));
     else {
       const kind = L.b, box = BOX[kind] ? kind : 'siege', k = frame.charCodeAt(0), i = +frame.slice(1) || 0;

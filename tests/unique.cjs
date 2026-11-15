@@ -1,5 +1,5 @@
 /* node tests/unique.cjs — equal-value results for each unique unit against a spread of opponents */
-require('../js/data.js'); require('../js/lore.js'); require('../js/scenario.js'); require('../js/sim.js');
+require('../js/data.js'); require('../js/lore.js'); require('../js/lore2.js'); require('../js/scenario.js'); require('../js/sim.js');
 const AB = globalThis.AB, S = AB.Scenario;
 function duel(a, b, budget, seed) {
   const sc = S.create(40, 40, 0); sc.players[1].team = 1;

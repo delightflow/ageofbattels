@@ -27,7 +27,7 @@ FRAMES = ['idle'] + ['w%d' % i for i in range(8)] + ['a%d' % i for i in range(6)
 ATK_T = [0.08, 0.24, 0.4, 0.54, 0.7, 0.88]
 
 # cell in game pixels: width, height, anchor x, anchor y (feet)
-CELL = {'human': (112, 124, 56, 92), 'rider': (150, 136, 75, 104), 'elephant': (190, 168, 95, 130), 'wolf': (76, 64, 38, 48),
+CELL = {'chariot': (230, 170, 115, 120), 'human': (112, 124, 56, 92), 'rider': (150, 136, 75, 104), 'elephant': (190, 168, 95, 130), 'wolf': (76, 64, 38, 48),
         'siege': (136, 116, 68, 86), 'trebuchet': (200, 224, 100, 186), 'b1': (84, 132, 42, 108), 'b3': (216, 260, 108, 200),
         'tree': (64, 96, 32, 84), 'rock': (48, 40, 24, 28), 'bones': (48, 32, 24, 20), 'rubble1': (84, 60, 42, 40), 'rubble3': (216, 130, 108, 84)}
 
@@ -74,7 +74,7 @@ PALETTE = {
     'wolf': ('#77777c', 0, .9), 'fur': ('#6a4a2e', 0, 1), 'jag': ('#d49c3a', 0, .8), 'feather': ('#f2eee4', 0, .9), 'green': ('#2f8f6a', 0, .7),
     'stone': ('#a9a499', 0, .9), 'stone2': ('#8f8a80', 0, .9), 'roof': ('#6b4a36', 0, .85), 'canvas': ('#e7dcc3', 0, .95), 'leaf': ('#4d8a3a', 0, .9),
     'leaf2': ('#3d7432', 0, .9), 'pine': ('#2f5f38', 0, .9), 'snow': ('#f4f7fa', 0, .7), 'bark': ('#5e4430', 0, 1), 'rock': ('#8c8880', 0, .9),
-    'bone': ('#e2dacb', 0, .7), 'fire': ('#ffb04a', 0, 1), 'blood': ('#5a0e0a', 0, .4), 'obsid': ('#1b1820', .3, .2),
+    'bone': ('#e2dacb', 0, .7), 'fire': ('#ffb04a', 0, 1), 'blood': ('#5a0e0a', 0, .4), 'obsid': ('#1b1820', .3, .2), 'woad': ('#55729e', 0, .6), 'efeather': ('#6b4a2a', 0, .95), 'rattan': ('#c9a46a', 0, .85),
 }
 TEAM = set()                                 # names of materials that carry the player colour
 BUILDERS, SCENERY = {}, {}
@@ -165,9 +165,15 @@ ARMOUR = {
     'slashed': dict(t='team', s='team', l='team', k='team', slash='cloth2', puff=1, belt='leather2'),
     'jaguar': dict(t='jag', s='jag', l='jag', k='jag', belt='team'),
     'deel':   dict(t='team', s='team', l='leather2', k='team', coat=1, trim='fur', belt='leather'),
+    'feather': dict(t='cloth2', s='skin', l='skin', k='team', strips='efeather', belt='team'),
+    'woad':   dict(t='woad', s='woad', l='team2', k=None, belt='leather'),
+    'coat':   dict(t='team', s='team', l='cloth2', k=None, coat=1, trim='team2', belt='leather2'),
+    'scale':  dict(t='bronze', s='team', l='team2', k='team', strips='team2', belt='gold'),
+    'ninja':  dict(t='black', s='black', l='black', k='black', belt='team'),
 }
-SLASH = {'sword', 'greatsword', 'axes', 'axe', 'club', 'macuahuitl', 'katana', 'zweihander'}
-TWOHAND = {'greatsword', 'zweihander', 'katana', 'pike', 'sarissa', 'crossbow', 'repeater', 'musket'}
+SLASH = {'sword', 'greatsword', 'axes', 'axe', 'club', 'macuahuitl', 'katana', 'zweihander', 'shotel', 'urumi', 'mace'}
+SPEAR = {'spear', 'fork', 'pike', 'sarissa', 'firelance', 'halberd', 'naginata'}
+TWOHAND = {'greatsword', 'zweihander', 'katana', 'pike', 'sarissa', 'crossbow', 'repeater', 'musket', 'halberd', 'naginata'}
 
 def torso_shape(parent, z0, z1, wb, wt, d, m, bevel=.045):
     """a slightly tapered, rounded torso block between heights z0 and z1"""
@@ -247,7 +253,7 @@ def human(look, root, mounted=False):
     if look.get('cape'):
         prism(spine, [(-.12, .48), (-.13, .2), (-.24, -.55), (-.18, -.6), (-.14, -.58)], .44, 'team', sp + Vector((0, 0, 0)), bevel=.01)
     if look.get('cross'):
-        box(spine, sp + Vector((.125, 0, .22)), (.02, .24, .46), 'white', bevel=.006); box(spine, sp + Vector((.14, 0, .28)), (.01, .05, .3), 'red', bevel=0); box(spine, sp + Vector((.14, 0, .32)), (.01, .2, .05), 'red', bevel=0)
+        box(spine, sp + Vector((.125, 0, .22)), (.02, .24, .46), 'white', bevel=.006); cc = 'black' if look['cross'] == 2 else 'red'; box(spine, sp + Vector((.14, 0, .28)), (.01, .05, .3), cc, bevel=0); box(spine, sp + Vector((.14, 0, .32)), (.01, .2, .05), cc, bevel=0)
         prism(spine, [(-.12, .48), (-.13, .2), (-.24, -.55), (-.18, -.6), (-.14, -.58)], .44, 'white', sp, bevel=.01)
     if look.get('wings'):
         for sy in (-1, 1):
@@ -300,6 +306,29 @@ def helmet(head, c, h):
         prism(head, [(-.12, 0), (-.08, .09), (.06, .1), (.12, 0)], .02, 'steel', V(0, 0, .1)); torus(head, V(0, 0, .03), .19, .012, 'steel')
     elif h == 'jingasa':
         cone(head, V(0, 0, .03), V(0, 0, .15), .24, 'lacquer', seg=20); disc(head, V(0, 0, .12), .04, .02, 'team', axis='z')
+    elif h == 'mitre': cone(head, V(-.01, 0, .02), V(-.05, 0, .4), .13, 'team', seg=14); prism(head, [(-.12, 0), (.12, 0), (.04, .3), (-.04, .3)], .02, 'gold', V(.11, 0, .06), rot=(0, 0, R(90)))
+    elif h == 'lobster':
+        sphere(head, V(0, 0, .05), .135, 'dsteel', scale=(1, 1, .9)); box(head, V(.13, 0, .1), (.1, .2, .015), 'dsteel', rot=(0, R(-15), 0))
+        for k in range(3): cyl(head, V(-.1 - k * .03, 0, -.02 - k * .05), V(-.13 - k * .03, 0, -.07 - k * .05), .13 - k * .005, 'dsteel', r2=.14 - k * .005)
+        for yy in (-.03, 0, .03): box(head, V(.15, yy, -.02), (.012, .012, .16), 'steel', bevel=0)
+    elif h == 'eagle':
+        sphere(head, V(0, 0, .06), .155, 'efeather', scale=(1.1, 1, .95)); cone(head, V(.1, 0, .14), V(.3, 0, .02), .075, 'gold', seg=8); cone(head, V(.08, 0, -.02), V(.24, 0, -.04), .05, 'gold', seg=8)
+        for k in range(5): cyl(head, V(-.08, -.08 + k * .04, .15), V(-.22, -.12 + k * .06, .4), .02, 'feather' if k % 2 else 'team', r2=.005)
+    elif h == 'plume':
+        sphere(head, V(-.01, 0, .03), .123, 'hair', scale=(1.02, .97, .95)); torus(head, V(0, 0, .06), .125, .025, 'team')
+        for k in range(7): a = R(-60 + k * 20); cyl(head, V(-.04, math.sin(a) * .06, .1), V(-.12, math.sin(a) * .25, .36 + math.cos(a) * .12), .022, 'green' if k % 2 else 'team', r2=.006)
+    elif h == 'bork':
+        sphere(head, V(0, 0, .05), .13, 'white', scale=(1, 1, .8)); cyl(head, V(0, 0, .1), V(-.14, 0, .42), .1, 'white', r2=.08); box(head, V(-.17, 0, .25), (.04, .16, .36), 'white', rot=(0, R(25), 0), bevel=.02)
+        box(head, V(.12, 0, .12), (.02, .05, .14), 'gold', bevel=.005)
+    elif h == 'tiara':
+        cyl(head, V(0, 0, .0), V(-.02, 0, .2), .135, 'team', r2=.11); sphere(head, V(-.03, 0, .2), .11, 'team', scale=(1, 1, .5))
+        cyl(head, V(.02, 0, -.06), V(.0, 0, -.2), .13, 'team2', r2=.12)
+    elif h == 'centurion':
+        sphere(head, V(0, 0, .04), .13, 'steel', scale=(1, 1, .9)); box(head, V(.03, -.11, -.06), (.08, .015, .1), 'steel'); box(head, V(.03, .11, -.06), (.08, .015, .1), 'steel')
+        box(head, V(-.13, 0, -.04), (.02, .2, .06), 'steel'); prism(head, [(-.1, 0), (-.08, .09), (0, .12), (.08, .09), (.1, 0)], .04, 'red', V(0, 0, .12), rot=(0, 0, R(90)))
+    elif h == 'sohei': sphere(head, V(-.015, 0, .02), .15, 'white', scale=(1.05, 1, 1.05)); cyl(head, V(-.05, 0, -.12), V(-.03, 0, -.22), .15, 'white', r2=.18); torus(head, V(0, 0, .02), .15, .02, 'team')
+    elif h == 'ninja': sphere(head, V(-.01, 0, .02), .14, 'black', scale=(1.04, 1, 1.05)); torus(head, V(.0, 0, .07), .14, .018, 'team'); box(head, V(.12, 0, .02), (.03, .14, .035), 'skin', bevel=.01)
+    elif h == 'boyar': cone(head, V(0, 0, .02), V(0, 0, .3), .135, 'steel', seg=14); torus(head, V(0, 0, .03), .135, .04, 'fur'); cyl(head, V(-.03, 0, -.02), V(-.06, 0, -.2), .14, 'mail', r2=.16)
     elif h == 'beret':
         disc(head, V(-.01, 0, .09), .2, .045, 'team', axis='z', seg=22); sphere(head, V(-.01, 0, .1), .17, 'team2', scale=(1, 1, .3))
         for k in range(3): cyl(head, V(-.06, .12, .12), V(-.25 + k * .04, .2 + k * .03, .36 - k * .04), .018, 'feather' if k != 1 else 'team', r2=.004)
@@ -322,10 +351,33 @@ def weapon(J, w):
             c2 = wpos(hL); cyl(hL, c2 + Vector((-.12, 0, 0)), c2 + Vector((L, 0, 0)), .02, 'wood')
             prism(hL, [(0, 0), (.06, .02), (.1, .14), (-.06, .12), (-.03, .03)], .02, 'steel', c2 + Vector((L - .06, 0, 0)), rot=(R(90), 0, 0))
     elif w == 'club': cyl(hR, V(-.1, 0, 0), V(.6, 0, 0), .03, 'wood', r2=.06)
+    elif w == 'mace':
+        cyl(hR, V(-.12, 0, 0), V(.55, 0, 0), .022, 'dwood'); sphere(hR, V(.6, 0, 0), .07, 'iron')
+        for k in range(6): a = k * math.pi / 3; box(hR, V(.6, math.cos(a) * .06, math.sin(a) * .06), (.12, .02, .05), 'iron', rot=(a, 0, 0), bevel=.004)
+    elif w == 'shotel':
+        cyl(hR, V(-.12, 0, 0), V(.06, 0, 0), .022, 'leather2')
+        for k in range(5): a = R(-10 + k * 28); box(hR, V(.08 + .32 * math.sin(a + R(10)), 0, .32 - .32 * math.cos(a + R(10)) - .02), (.2, .012, .045), 'steel', rot=(0, -a - R(10), 0), bevel=.003)
+    elif w == 'urumi':
+        cyl(hR, V(-.1, 0, 0), V(.08, 0, 0), .024, 'gold'); disc(hR, V(.09, 0, 0), .05, .02, 'gold', axis='x')
+        for k in range(6): box(hR, V(.18 + k * .17, 0, -.02 - k * k * .012), (.18, .006, .03), 'steel', rot=(0, R(4 + k * 5), 0), bevel=.002)
+    elif w == 'keg':
+        sp = J['spine']; c2 = wpos(sp) + Vector((.3, 0, .2)); keep(cyl(sp, c2 + Vector((0, 0, -.18)), c2 + Vector((0, 0, .18)), .15, 'wood', seg=14))
+        for z in (-.12, .12): keep(torus(sp, c2 + Vector((0, 0, z)), .152, .012, 'iron'))
+        keep(cyl(sp, c2 + Vector((0, 0, .18)), c2 + Vector((.05, 0, .32)), .01, 'rope', seg=4)); J['fuse'] = sphere(sp, c2 + Vector((.05, 0, .33)), .03, 'fire')
+    elif w == 'grenade':
+        keep(sphere(hR, V(0, 0, -.06), .075, 'black')); keep(cyl(hR, V(0, 0, -.13), V(0, 0, -.19), .012, 'rope', seg=4))
+        box(J['spine'], wpos(J['spine']) + Vector((.0, .17, .0)), (.16, .07, .18), 'leather', bevel=.02)
     elif w == 'macuahuitl':
         cyl(hR, V(-.12, 0, 0), V(.08, 0, 0), .022, 'wood'); box(hR, V(.42, 0, 0), (.7, .025, .1), 'lwood', bevel=.01)
         for k in range(6):
             for sz in (-1, 1): cone(hR, V(.16 + k * .1, 0, sz * .05), V(.16 + k * .1, 0, sz * .09), .022, 'obsid', seg=4)
+    elif w in ('halberd', 'naginata'):
+        a, b = {'halberd': (-.9, 1.9), 'naginata': (-.75, 1.55)}[w]; keep(cyl(hR, V(0, 0, -a), V(0, 0, -b), .02, 'wood' if w == 'halberd' else 'lacquer', seg=8))
+        if w == 'halberd':
+            keep(cone(hR, V(0, 0, -b), V(0, 0, -b - .3), .03, 'steel', seg=6)); keep(prism(hR, [(0, -.02), (.2, -.06), (.24, .14), (.18, .2), (0, .16)], .015, 'steel', V(0, 0, -b + .02), rot=(0, R(-90), 0)))
+            keep(cone(hR, V(0, 0, -b + .08), V(-.16, 0, -b + .02), .025, 'steel', seg=4))
+        else:
+            for k in range(3): keep(box(hR, V(.01 + k * k * .012, 0, -b - .1 - k * .16), (.035, .012, .18), 'steel', rot=(0, R(4 + k * 6), 0), bevel=.003))
     elif w in ('spear', 'fork', 'pike', 'sarissa', 'javelin'):
         a, b = {'spear': (-.6, 1.45), 'fork': (-.6, 1.25), 'pike': (-1.2, 3.0), 'sarissa': (-1.4, 4.1), 'javelin': (-.35, .9)}[w]
         keep(cyl(hR, V(0, 0, -a), V(0, 0, -b), .019 if w != 'javelin' else .014, 'wood', seg=8))
@@ -367,6 +419,10 @@ def shield(J, kind):
         sphere(sp, c + Vector((.07, .03, -.02)), .055, 'gold', scale=(.6, 1, 1))
     elif kind == 'aspis': o = disc(sp, c, .36, .05, 'bronze', axis='x'); o.rotation_mode = 'XYZ'; o.rotation_euler = rot; o2 = disc(sp, c + Vector((.012, .006, 0)), .3, .05, 'team', axis='x'); o2.rotation_mode = 'XYZ'; o2.rotation_euler = rot
     elif kind == 'pelte': o = disc(sp, c + Vector((0, 0, .1)), .17, .03, 'bronze', axis='x'); o.rotation_mode = 'XYZ'; o.rotation_euler = rot
+    elif kind == 'pavise':
+        c3 = wpos(sp) + Vector((-.2, 0, .1)); box(sp, c3, (.05, .52, .85), 'team', bevel=.02); box(sp, c3 + Vector((-.03, 0, .05)), (.02, .14, .4), 'white', bevel=.005)
+    elif kind == 'rattan': o = disc(sp, c, .29, .05, 'rattan', axis='x'); o.rotation_mode = 'XYZ'; o.rotation_euler = rot; sphere(sp, c + Vector((.04, .02, 0)), .07, 'team', scale=(.6, 1, 1))
+    elif kind == 'wicker': box(sp, c + Vector((.02, 0, -.05)), (.03, .38, .62), 'rattan', rot=rot, bevel=.02); box(sp, c + Vector((.04, .01, -.05)), (.01, .08, .62), 'team', rot=rot, bevel=0)
     elif kind == 'chimalli':
         o = disc(sp, c, .24, .03, 'team', axis='x'); o.rotation_mode = 'XYZ'; o.rotation_euler = rot
         for k in range(7):
@@ -399,23 +455,26 @@ def pose_human(J, mode, ph):
             arm(J, 'R', p if p > 20 else 20 + 0 * ret, b if b > 15 else 15); rot(J['spine'], z=lerp(0, 18, up) - 35 * dn + 17 * ret)
             if two: arm(J, 'L', p - 5, b + 5, spread=-26)
             if w == 'axes': arm(J, 'L', lerp(25, 140, seg(t, .3, .6)) - 120 * seg(t, .6, .85), 60)
-    elif w in ('spear', 'fork', 'pike', 'sarissa', 'firelance'):
-        tilt = {'spear': 8, 'fork': 8, 'pike': 0, 'sarissa': 16, 'firelance': 6}[w]
-        arm(J, 'R', 12, 88 - tilt, spread=-6); arm(J, 'L', 40, 50, spread=-25) if w in ('pike', 'sarissa') else (arm(J, 'L', 30, 65, spread=-10) if look.get('shield') else arm(J, 'L', 10, 20))
+    elif w in SPEAR:
+        tilt = {'spear': 8, 'fork': 8, 'pike': 0, 'sarissa': 16, 'firelance': 6, 'halberd': 4, 'naginata': 6}[w]
+        arm(J, 'R', 12, 88 - tilt, spread=-6); arm(J, 'L', 40, 50, spread=-25) if w in ('pike', 'sarissa', 'halberd', 'naginata') else (arm(J, 'L', 30, 65, spread=-10) if look.get('shield') else arm(J, 'L', 10, 20))
         if t >= 0:
             back, go, ret = ease(seg(t, 0, .4)), ease(seg(t, .4, .6)), ease(seg(t, .75, 1))
             p = 12 - 22 * back + 52 * go - 30 * ret; b = 88 - tilt + 12 * back - 55 * go + 43 * ret
             arm(J, 'R', p, b, spread=-6); rot(J['spine'], y=-(6 * go - 6 * ret) * -1)
-            if w in ('pike', 'sarissa'): arm(J, 'L', 40 - 15 * back + 30 * go - 15 * ret, 50 + 10 * back - 35 * go + 25 * ret, spread=-25)
+            if w in ('pike', 'sarissa', 'halberd', 'naginata'): arm(J, 'L', 40 - 15 * back + 30 * go - 15 * ret, 50 + 10 * back - 35 * go + 25 * ret, spread=-25)
     elif w == 'lance':
         arm(J, 'R', 5, 92, spread=-4); arm(J, 'L', 25, 60)
         if t >= 0: g = math.sin(seg(t, .3, .7) * math.pi); arm(J, 'R', 5 + 25 * g, 92 - 25 * g, spread=-4)
-    elif w in ('javelin', 'francisca', 'sling'):
+    elif w == 'keg':
+        arm(J, 'R', 48, 75, spread=-14); arm(J, 'L', 48, 75, spread=-30)
+        if t >= 0: g = math.sin(seg(t, .2, .8) * math.pi); rot(J['spine'], y=12 * g); arm(J, 'R', 48 + 30 * g, 75 - 40 * g, spread=-14); arm(J, 'L', 48 + 30 * g, 75 - 40 * g, spread=-30)
+    elif w in ('javelin', 'francisca', 'sling', 'grenade'):
         arm(J, 'R', 20, 75); arm(J, 'L', 30, 65, spread=-10) if look.get('shield') else arm(J, 'L', 10, 15)
         if t >= 0:
             back, go = ease(seg(t, 0, .45)), ease(seg(t, .45, .62))
             arm(J, 'R', lerp(20, 170, back) - 130 * go, lerp(75, 50, back) - 40 * go); rot(J['spine'], z=25 * back - 45 * go)
-            for o in J['wpn']: o.hide_render = t > .56 and w != 'sling'
+            for o in J['wpn']: o.hide_render = t > .56 and w not in ('sling',)
             if w == 'francisca' and t > .56: pass
     elif w in ('bow', 'longbow'):
         arm(J, 'L', 35, 30, spread=-6); arm(J, 'R', 15, 40)
@@ -440,11 +499,11 @@ def pose_human(J, mode, ph):
         s = math.sin(ph * 2 * math.pi); c = math.cos(ph * 2 * math.pi)
         leg(J, 'R', 28 * s, max(0, -c) * 45 + 5); leg(J, 'L', -28 * s, max(0, c) * 45 + 5)
         J['hips'].location = (0, 0, 0.95 - 0.03 + abs(c) * 0.03); rot(J['spine'], y=4, z=J['spine'].rotation_euler.z / R(1) * 0 + 4 * s)
-        if w not in SLASH and w not in ('bow', 'crossbow', 'repeater', 'musket', 'pike', 'sarissa', 'spear', 'fork', 'lance') and not look.get('shield'): arm(J, 'L', -22 * s, 15)
+        if w not in SLASH and w not in SPEAR and w not in ('bow', 'longbow', 'crossbow', 'repeater', 'musket', 'lance', 'keg') and not look.get('shield'): arm(J, 'L', -22 * s, 15)
         if w in (None, 'staff'): arm(J, 'R', 22 * s, 15 if w is None else 72)
     else:
         leg(J, 'R', 4, 6, spread=2); leg(J, 'L', -6, 4, spread=2)
-        if t >= 0 and w in SLASH | {'spear', 'fork', 'javelin', 'francisca'}: leg(J, 'L', 25 * seg(t, .3, .6), 10); leg(J, 'R', -10, 10)
+        if t >= 0 and w in SLASH | SPEAR | {'javelin', 'francisca', 'grenade'}: leg(J, 'L', 25 * seg(t, .3, .6), 10); leg(J, 'R', -10, 10)
     # ---- death: buckle, then fall backwards
     if mode == 'death':
         e = ease(ph); rot(J['body'], y=-86 * e); J['body'].location = (-0.15 * e, 0, 0.13 * e)
@@ -519,7 +578,7 @@ def quad_leg(J, name, parent, hip, up, lo, r, m, hoof='black'):
     limb(h, a, b, r, m, r * .8); limb(k, b, b + Vector((0, 0, -lo)), r * .75, m, r * .6)
     if hoof: cyl(k, b + Vector((0, 0, -lo + .02)), b + Vector((0, 0, -lo - .08)), r * .7, hoof, r2=r * .8, seg=10)
 
-def horse(look, root, camel=False):
+def horse(look, root, camel=False, rider=True):
     J = {}; col = {'#8a5a3a': 'horse', '#5a4334': 'horse2', '#a9834f': 'horse', '#e6e0d2': 'horse3', '#7d6a55': 'horse4', '#4a3a2e': 'horse2', '#c9a36a': 'camel'}.get(look.get('mc'), 'horse')
     if camel: col = 'camel'
     bz = 1.55 if camel else 1.25; up, lo = (.62, .7) if camel else (.5, .58)
@@ -543,6 +602,8 @@ def horse(look, root, camel=False):
         tl = J['tail'] = node('tail', body, (-.76, 0, .05)); bpy.context.view_layer.update(); t0 = wpos(tl); cyl(tl, t0, t0 + Vector((-.1, 0, -.5)), .03, col)
     # tack
     sad = Vector((-.05, 0, bz + .3 + (.35 if camel else 0)))
+    if not rider:
+        box(body, Vector((.1, 0, bz + .26)), (.12, .62, .05), 'leather2', bevel=.01); return J
     if look.get('bard') == 2:
         sphere(body, Vector((0, 0, bz + .01)), 1, 'dsteel', scale=(.8, .305, .335), seg=20, rings=12)
         cyl(body, Vector((.55, 0, bz - .08)), Vector((-.6, 0, bz - .08)), .3, 'dsteel', seg=16).scale = (1, .99, 1.12)
@@ -560,7 +621,7 @@ def horse(look, root, camel=False):
     return J
 
 def pose_horse(J, mode, ph):
-    pose_human(J['rider'], 'atk' if mode == 'atk' else 'idle', ph)
+    if 'rider' in J: pose_human(J['rider'], 'atk' if mode == 'atk' else 'idle', ph)
     rot(J['hbody']); J['hbody'].location = (0, 0, 0); rot(J['torso']); rot(J['neck']); rot(J['hd']); rot(J['tail'], y=-20)
     if mode == 'walk':
         w = ph * 2 * math.pi
@@ -597,7 +658,7 @@ def elephant(look, root):
     box(body, hw + Vector((0, 0, .2)), (1.14, .99, .08), 'team2', bevel=.02)
     for i, x in enumerate((.25, -.3)):
         seat = node('seat%d' % i, body, hw + Vector((x, 0, -.75)) - Vector((0, 0, bz)))
-        r = human({'b': 'human', 'helm': 'kettle', 'armor': 'cloth', 'wpn': 'spear' if i == 0 else 'bow'}, seat, mounted=True); J['rider%d' % i] = r
+        r = human({'b': 'human', 'helm': 'kettle', 'armor': 'cloth', 'wpn': 'bow' if (i == 1 or look.get('arch')) else 'spear'}, seat, mounted=True); J['rider%d' % i] = r
     seat = node('mahout', hd, Vector((-.25, 0, .35)) + Vector((0, 0, -.8))); J['mahout'] = human({'b': 'human', 'helm': 'turban', 'armor': 'cloth', 'wpn': 'staff'}, seat, mounted=True)
     return J
 
@@ -652,6 +713,35 @@ def wheel(J, parent, c, r, name):
 def flag(parent, c, h=1.3):
     cyl(parent, c, c + Vector((0, 0, h)), .02, 'dwood'); prism(parent, [(0, 0), (0, -.32), (-.45, -.16)], .015, 'team', c + Vector((0, 0, h)))
 
+def chariot(look, root):
+    J = {}; hb = J['hbody'] = node('hbody', root, (0, 0, 0)); bpy.context.view_layer.update(); scythe = look.get('wpn') != 'bow'
+    box(hb, Vector((-.75, 0, .78)), (1.0, 1.1, .08), 'wood'); prism(hb, [(-.25, 0), (.3, 0), (.3, .55), (.1, .62), (-.25, .3)], 1.1, 'team', Vector((-.55, 0, .82)), rot=(0, 0, 0))
+    for y in (-.52, .52): box(hb, Vector((-.85, y, 1.0)), (.75, .04, .4), 'dwood', bevel=.01)
+    for y in (-.66, .66):
+        wheel(J, hb, Vector((-.8, y, .62)), .6, 'w%d' % (y > 0))
+        if scythe: cone(hb, Vector((-.8, y * 1.1, .62)), Vector((-.8, y * 2.0, .55)), .045, 'steel', seg=4)
+    cyl(hb, Vector((-.3, 0, .8)), Vector((1.25, 0, 1.15)), .05, 'dwood'); cyl(hb, Vector((1.2, -.45, 1.3)), Vector((1.2, .45, 1.3)), .04, 'dwood')
+    for k, y in enumerate((-.38, .38)):
+        hr = node('horse%d' % k, hb, (0, 0, 0)); bpy.context.view_layer.update()
+        J['horse%d' % k] = horse({'mc': '#8a5a3a' if k == 0 else '#4a3426'}, hr, rider=False)
+        hr.location = (1.25, y, 0); bpy.context.view_layer.update()
+    s0 = node('driver', hb, (-.45, -.22, .76)); J['driver'] = human({'b': 'human', 'helm': 'cap', 'armor': 'cloth', 'wpn': None}, s0)
+    s1 = node('fighter', hb, (-1.0, .22, .76)); J['fighter'] = human(look, s1)
+    flag(hb, Vector((-1.2, -.5, .9)), 1.1)
+    return J
+
+def pose_chariot(J, mode, ph):
+    rot(J['hbody']); J['hbody'].location = (0, 0, 0)
+    for k in (0, 1): pose_horse(J['horse%d' % k], 'walk' if mode == 'walk' else 'idle', (ph + .13 * k) % 1)
+    pose_human(J['driver'], 'idle', 0); arm(J['driver'], 'R', 55, 50, spread=-10); arm(J['driver'], 'L', 55, 50, spread=-25)
+    pose_human(J['fighter'], 'atk' if mode == 'atk' else 'idle', ph)
+    for wn in J.get('wheels', []): rot(wn, y=(ph * 360 if mode == 'walk' else 0))
+    if mode == 'walk': J['hbody'].location = (0, 0, .02 * abs(math.sin(ph * 4 * math.pi)))
+    if mode == 'death':
+        e = ease(ph); rot(J['hbody'], x=-30 * e); J['hbody'].location = (0, 0, -.1 * e)
+        for k in (0, 1): rot(J['horse%d' % k]['hbody'], x=-80 * e); J['horse%d' % k]['hbody'].location = (0, -.1 * e, .2 * e)
+        rot(J['driver']['body'], y=-80 * e); rot(J['fighter']['body'], y=-80 * e)
+
 def siege(id, look, root):
     J = {'id': id}; hb = J['hbody'] = node('hbody', root, (0, 0, 0)); bpy.context.view_layer.update()
     if id == 'catapult':
@@ -673,6 +763,18 @@ def siege(id, look, root):
         hb2 = J['arm'] = node('arm', hb, (0, 0, 0)); box(hb2, Vector((-.5, 0, .45)), (1.4, .45, .22), 'wood', rot=(0, R(12), 0)); [wheel(J, hb2, Vector((.1, y, .5)), .5, 'w%d' % (y > 0)) for y in (-.32, .32)]
         cyl(hb2, Vector((-.5, 0, .72)), Vector((1.35, 0, .95)), .18, 'bronze', r2=.13, seg=16); torus(hb2, Vector((1.3, 0, .94)), .14, .03, 'bronze', rot=(0, R(84), 0)); sphere(hb2, Vector((-.55, 0, .72)), .16, 'bronze')
         box(hb2, Vector((-.3, 0, .62)), (.3, .5, .05), 'team', bevel=.01)
+    elif id == 'organgun':
+        hb2 = J['arm'] = node('arm', hb, (0, 0, 0)); [wheel(J, hb2, Vector((0, y, .5)), .5, 'w%d' % (y > 0)) for y in (-.5, .5)]
+        cyl(hb2, Vector((-.2, 0, .5)), Vector((-1.5, 0, .1)), .06, 'dwood'); box(hb2, Vector((.05, 0, .62)), (.5, .9, .14), 'wood')
+        for k in range(7): y = -.36 + k * .12; cyl(hb2, Vector((-.25, y, .78)), Vector((1.0, y, .82)), .045, 'iron', seg=10); torus(hb2, Vector((.95, y, .82)), .045, .012, 'iron', rot=(0, R(88), 0))
+        box(hb2, Vector((.05, 0, .76)), (.12, .95, .14), 'team', bevel=.01); box(hb2, Vector((.6, 0, .76)), (.1, .95, .12), 'wood', bevel=.01)
+    elif id == 'bombard':
+        hb2 = J['arm'] = node('arm', hb, (0, 0, 0)); box(hb2, Vector((-.1, 0, .2)), (3.0, 1.3, .25), 'dwood', bevel=.02)
+        for x in (-1.2, .9): box(hb2, Vector((x, 0, .45)), (.35, 1.1, .35), 'wood', bevel=.02)
+        cyl(hb2, Vector((-1.5, 0, .7)), Vector((-.5, 0, .75)), .42, 'iron', r2=.42, seg=20); cyl(hb2, Vector((-.5, 0, .75)), Vector((1.6, 0, .85)), .58, 'iron', r2=.58, seg=24)
+        for k in range(6): torus(hb2, Vector((-1.4 + k * .58, 0, .72 + k * .025)), .44 if k < 2 else .6, .04, 'dsteel', rot=(0, R(88), 0))
+        disc(hb2, Vector((1.61, 0, .85)), .42, .02, 'black', axis='x', seg=20); box(hb2, Vector((-.9, 0, 1.15)), (.6, .4, .04), 'team', bevel=.01)
+        flag(hb2, Vector((-1.5, .55, .3)), 1.5)
     elif id == 'ram':
         [wheel(J, hb, Vector((x, y, .38)), .38, 'w%d%d' % (x > 0, y > 0)) for x in (-.9, .9) for y in (-.6, .6)]
         box(hb, Vector((0, 0, .45)), (2.6, 1.2, .12), 'dwood')
@@ -714,8 +816,8 @@ def pose_siege(J, mode, ph):
         k = ease(seg(t, .5, .68)) - ease(seg(t, .8, 1)) if t >= 0 else 0; rot(arm, y=lerp(-70, 15, k)); J['load'].hide_render = t > .6
     elif id == 'ballista':
         rot(arm, y=-4); J['load'].hide_render = .55 < t < .95
-    elif id == 'cannon':
-        k = seg(t, .55, .62) - ease(seg(t, .65, 1)) if t >= 0 else 0; arm.location = (-.25 * k, 0, 0); rot(arm, y=-3 * k)
+    elif id in ('cannon', 'organgun', 'bombard'):
+        k = seg(t, .55, .62) - ease(seg(t, .65, 1)) if t >= 0 else 0; arm.location = (-(.25 if id != 'bombard' else .4) * k, 0, 0); rot(arm, y=-3 * k)
     elif id == 'ram':
         k = (-ease(seg(t, 0, .5)) * .45 + ease(seg(t, .5, .62)) * .8 - ease(seg(t, .7, 1)) * .35) if t >= 0 else 0; arm.location = (k, 0, .95)
     elif id == 'hwacha':
@@ -734,7 +836,9 @@ BUILDERS.update({
     'wolf': lambda id, L: ('wolf', lambda root: wolf(L, root), pose_wolf),
     'trebuchet': lambda id, L: ('trebuchet', lambda root: siege(id, L, root), pose_siege),
 })
-for _k in ('catapult', 'ballista', 'cannon', 'ram', 'hwacha'): BUILDERS[_k] = (lambda id, L: ('siege', lambda root: siege(id, L, root), pose_siege))
+BUILDERS['chariot'] = lambda id, L: ('chariot', lambda root: chariot(L, root), pose_chariot)
+BUILDERS['bombard'] = lambda id, L: ('elephant', lambda root: siege(id, L, root), pose_siege)
+for _k in ('catapult', 'ballista', 'cannon', 'ram', 'hwacha', 'organgun'): BUILDERS[_k] = (lambda id, L: ('siege', lambda root: siege(id, L, root), pose_siege))
 
 # ------------------------------------------------------------------ buildings and scenery (sizes in tiles, converted to metres)
 TL = 1 / M

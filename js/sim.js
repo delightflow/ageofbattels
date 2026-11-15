@@ -328,6 +328,7 @@ class Sim {
     this.ev('hit', t.x, t.y, t.bld ? 'bld' : charged ? 'charge' : e.t === 'ram' ? 'bld' : 'melee', e.t, power);
     this._damage(e, t, dmg); if (!t.bld) this._knock(t, ux, uy, power, charged ? 0.45 : 0.1);
     if (d.splash) { const self = this; this.near(t.x, t.y, d.splash + 1, c => { if (c !== t && c.team !== e.team && !c.dead && !c.bld && self.cdist(c, t) <= d.splash) self._damage(e, c, dmg * 0.5); const cx = c.x - t.x, cy = c.y - t.y, cl = Math.hypot(cx, cy) || 1; self._knock(c, cx / cl, cy / cl, power * 0.7, 0.3); }); }
+    if (d.bomb) { this.ev('boom', e.x, e.y, 'ball'); e.dead = true; e.hp = 0; this.anyDead = true; this.stats[e.p].lost++; return; }   // the petard goes up with its target
     if (d.cleave) { let n = 0; const self = this; this.near(t.x, t.y, 1.6, c => { if (n < d.cleave && c !== t && c.team !== e.team && !c.dead && !c.bld && self.gap(e, c) <= d.rng + 0.55) { n++; self._damage(e, c, dmg * 0.6); self._knock(c, ux, uy, power * 0.8, 0.12); } }); }
   }
   // run from a threat: straight away if the ground allows, otherwise veer up to 70° either side
@@ -395,7 +396,8 @@ class Sim {
   _damage(src, t, base, at) {
     const sd = src.d, td = t.d; at = at || sd.at;
     if (td.evade && at === 'm' && !sd.proj && this.rnd() < td.evade) { this.ev('evade', t.x, t.y); return; }   // a nimble fighter slips the blow
-    const arm = (at === 'm' ? td.am : at === 'p' ? td.ap : 0) + (at !== 's' ? t.adj : 0);
+    let arm = sd.ignA ? 0 : (at === 'm' ? td.am : at === 'p' ? td.ap : 0) + (at !== 's' ? t.adj : 0) - (t.shred || 0);   // leitis ignore armour; maces dent it
+    if (arm < 0) arm = 0; if (sd.shred && at === 'm' && !sd.proj && !t.bld) t.shred = Math.min(3, (t.shred || 0) + sd.shred);
     let m = 1; if (sd.bonus) { const cl = td.cls; for (let i = 0; i < cl.length; i++) { const b = sd.bonus[cl[i]]; if (b > m) m = b; } }
     let k = 1 + 0.1 * src.rank; if (sd.frenzy) k += sd.frenzy * Math.min(3, src.kills); if (src.buff > this.time) k *= 1.2;
     let dmg = Math.max(1, base * m * k - arm);

@@ -631,6 +631,531 @@
   "proj": null,
   "wind": 0.22
  },
+ "halberdier": {
+  "look": {
+   "b": "human",
+   "helm": "kettle",
+   "armor": "mail",
+   "wpn": "halberd"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "handcannon": {
+  "look": {
+   "b": "human",
+   "helm": "kettle",
+   "armor": "leather",
+   "wpn": "musket"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "bullet",
+  "wind": 0.65
+ },
+ "grenadier": {
+  "look": {
+   "b": "human",
+   "helm": "mitre",
+   "armor": "coat",
+   "wpn": "grenade"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "grenade",
+  "wind": 0.6
+ },
+ "dragoon": {
+  "look": {
+   "b": "rider",
+   "mount": "horse",
+   "mc": "#4a3a2e",
+   "helm": "hat",
+   "armor": "coat",
+   "wpn": "musket"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.36,
+  "proj": "bullet",
+  "wind": 0.5
+ },
+ "cuirassier": {
+  "look": {
+   "b": "rider",
+   "mount": "horse",
+   "mc": "#26221f",
+   "helm": "lobster",
+   "armor": "plate",
+   "wpn": "sword"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.38,
+  "proj": null,
+  "wind": 0.35
+ },
+ "camelarcher": {
+  "look": {
+   "b": "rider",
+   "mount": "camel",
+   "mc": "#c9a36a",
+   "helm": "turban",
+   "armor": "leather",
+   "wpn": "bow"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.38,
+  "proj": "arrow",
+  "wind": 0.5
+ },
+ "chariot": {
+  "look": {
+   "b": "chariot",
+   "helm": "nasal",
+   "armor": "leather",
+   "wpn": "spear"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.46,
+  "proj": null,
+  "wind": 0.35
+ },
+ "chariotarcher": {
+  "look": {
+   "b": "chariot",
+   "helm": "cap",
+   "armor": "cloth",
+   "wpn": "bow"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.46,
+  "proj": "arrow",
+  "wind": 0.45
+ },
+ "organgun": {
+  "look": {
+   "b": "organgun"
+  },
+  "cat": "siege",
+  "bld": false,
+  "size": 1,
+  "r": 0.48,
+  "proj": "bullet",
+  "wind": 0.5
+ },
+ "bombard": {
+  "look": {
+   "b": "bombard"
+  },
+  "cat": "siege",
+  "bld": false,
+  "size": 1,
+  "r": 0.6,
+  "proj": "ball",
+  "wind": 0.8
+ },
+ "petard": {
+  "look": {
+   "b": "human",
+   "helm": "kettle",
+   "armor": "cloth",
+   "wpn": "keg"
+  },
+  "cat": "siege",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.5
+ },
+ "eagle": {
+  "look": {
+   "b": "human",
+   "helm": "eagle",
+   "armor": "feather",
+   "wpn": "club",
+   "shield": "chimalli"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "plumed": {
+  "look": {
+   "b": "human",
+   "helm": "plume",
+   "armor": "feather",
+   "wpn": "bow"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "arrow",
+  "wind": 0.45
+ },
+ "kamayuk": {
+  "look": {
+   "b": "human",
+   "helm": "cap",
+   "armor": "cloth",
+   "wpn": "pike"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "huskarl": {
+  "look": {
+   "b": "human",
+   "helm": "nasal",
+   "armor": "mail",
+   "wpn": "axe",
+   "shield": "round"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "woad": {
+  "look": {
+   "b": "human",
+   "helm": "none",
+   "armor": "woad",
+   "wpn": "greatsword"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.28
+ },
+ "teutonic": {
+  "look": {
+   "b": "human",
+   "helm": "great",
+   "armor": "plate",
+   "wpn": "greatsword",
+   "cross": 2
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.45
+ },
+ "shotel": {
+  "look": {
+   "b": "human",
+   "helm": "none",
+   "armor": "cloth",
+   "wpn": "shotel",
+   "shield": "round"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.22
+ },
+ "gbeto": {
+  "look": {
+   "b": "human",
+   "helm": "none",
+   "armor": "leather",
+   "wpn": "javelin"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "javelin",
+  "wind": 0.45
+ },
+ "genoese": {
+  "look": {
+   "b": "human",
+   "helm": "kettle",
+   "armor": "leather",
+   "wpn": "crossbow",
+   "shield": "pavise"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "bolt",
+  "wind": 0.5
+ },
+ "janissary": {
+  "look": {
+   "b": "human",
+   "helm": "bork",
+   "armor": "coat",
+   "wpn": "musket"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "bullet",
+  "wind": 0.55
+ },
+ "streltsy": {
+  "look": {
+   "b": "human",
+   "helm": "fur",
+   "armor": "coat",
+   "wpn": "musket"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "bullet",
+  "wind": 0.6
+ },
+ "rattan": {
+  "look": {
+   "b": "human",
+   "helm": "jingasa",
+   "armor": "lamellar",
+   "wpn": "bow",
+   "shield": "rattan"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "arrow",
+  "wind": 0.5
+ },
+ "urumi": {
+  "look": {
+   "b": "human",
+   "helm": "turban",
+   "armor": "cloth",
+   "wpn": "urumi"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "ghulam": {
+  "look": {
+   "b": "human",
+   "helm": "turban",
+   "armor": "mail",
+   "wpn": "spear",
+   "shield": "round"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "immortal": {
+  "look": {
+   "b": "human",
+   "helm": "tiara",
+   "armor": "scale",
+   "wpn": "spear",
+   "shield": "wicker"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "centurion": {
+  "look": {
+   "b": "human",
+   "helm": "centurion",
+   "armor": "lorica",
+   "wpn": "sword",
+   "shield": "scutum",
+   "cape": 1
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "naginata": {
+  "look": {
+   "b": "human",
+   "helm": "sohei",
+   "armor": "robe",
+   "wpn": "naginata"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "shinobi": {
+  "look": {
+   "b": "human",
+   "helm": "ninja",
+   "armor": "ninja",
+   "wpn": "katana"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.22
+ },
+ "obuch": {
+  "look": {
+   "b": "human",
+   "helm": "kettle",
+   "armor": "mail",
+   "wpn": "mace"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "mameluke": {
+  "look": {
+   "b": "rider",
+   "mount": "camel",
+   "mc": "#c9a36a",
+   "helm": "turban",
+   "armor": "mail",
+   "wpn": "francisca"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.38,
+  "proj": "axe",
+  "wind": 0.45
+ },
+ "zamburak": {
+  "look": {
+   "b": "rider",
+   "mount": "camel",
+   "mc": "#c9a36a",
+   "helm": "tiara",
+   "armor": "cloth",
+   "wpn": "musket"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.38,
+  "proj": "bullet",
+  "wind": 0.5
+ },
+ "boyar": {
+  "look": {
+   "b": "rider",
+   "mount": "horse",
+   "mc": "#4a3426",
+   "bard": 1,
+   "helm": "boyar",
+   "armor": "mail",
+   "wpn": "mace",
+   "shield": "round"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.4,
+  "proj": null,
+  "wind": 0.35
+ },
+ "leitis": {
+  "look": {
+   "b": "rider",
+   "mount": "horse",
+   "mc": "#8a5a3a",
+   "helm": "kettle",
+   "armor": "mail",
+   "wpn": "sword",
+   "shield": "round"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.38,
+  "proj": null,
+  "wind": 0.35
+ },
+ "steppelancer": {
+  "look": {
+   "b": "rider",
+   "mount": "horse",
+   "mc": "#a9834f",
+   "helm": "mongol",
+   "armor": "deel",
+   "wpn": "lance"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.36,
+  "proj": null,
+  "wind": 0.35
+ },
+ "elephantarcher": {
+  "look": {
+   "b": "elephant",
+   "arch": 1
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.6,
+  "proj": "arrow",
+  "wind": 0.5
+ },
  "palisade": {
   "look": {
    "b": "palisade"

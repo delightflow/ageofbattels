@@ -323,13 +323,14 @@ class Render {
         if (X < vx0 - 40 || X > vx1 + 40 || Y < vy0 - 60 || Y > vy1 + 40) continue;
         const [X0, Y0, GY0] = pos(p, Math.max(0, u - 0.03)), dx = X - X0, dy = Y - Y0, l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
         const gdx = X - X0, gdy = GY - GY0, gl = Math.hypot(gdx, gdy) || 1, sh = Math.max(0.12, 0.38 - wz * 0.05);
-        if (p.k === 'stone' || p.k === 'ball' || p.k === 'boulder' || p.k === 'sling') {
-          const r = p.k === 'boulder' ? 6 : p.k === 'stone' ? 3.8 : p.k === 'sling' ? 1.4 : 2.7;
+        if (p.k === 'stone' || p.k === 'ball' || p.k === 'boulder' || p.k === 'sling' || p.k === 'grenade') {
+          const gr = p.k === 'grenade', r = p.k === 'boulder' ? 6 : p.k === 'stone' ? 3.8 : p.k === 'sling' ? 1.4 : gr ? 2.1 : 2.7;
+          if (gr && dt > 0) this.part(wx, wy, wz + 0.15, { life: 0.3, r: 1.2, grow: 3, col: '255,190,90', a: 0.9 });
           ctx.fillStyle = 'rgba(0,0,0,' + sh + ')'; ctx.beginPath(); ctx.ellipse(X, GY, r * (1.1 + wz * 0.05), r * 0.5, 0, 0, 6.3); ctx.fill();
           if (p.k !== 'sling' && dt > 0 && Math.random() < 0.7) this.part(wx, wy, wz, { life: p.k === 'ball' ? 0.9 : 0.5, r: p.k === 'ball' ? 2.2 : 1.6, grow: 6, col: p.k === 'ball' ? '205,205,205' : '170,155,130', a: p.k === 'ball' ? 0.4 : 0.3 });
           ctx.save(); ctx.translate(X, Y); ctx.rotate(p.t * 9);
-          ctx.beginPath(); if (p.k !== 'ball') { ctx.moveTo(-r, -r * 0.3); ctx.lineTo(-r * 0.4, -r); ctx.lineTo(r * 0.7, -r * 0.8); ctx.lineTo(r, r * 0.2); ctx.lineTo(r * 0.3, r); ctx.lineTo(-r * 0.8, r * 0.7); ctx.closePath(); } else ctx.arc(0, 0, r, 0, 6.3);
-          ctx.fillStyle = p.k !== 'ball' ? '#8c877d' : '#2d2c2e'; ctx.fill(); ctx.strokeStyle = '#2b2018'; ctx.lineWidth = 0.8; ctx.stroke();
+          ctx.beginPath(); if (p.k !== 'ball' && !gr) { ctx.moveTo(-r, -r * 0.3); ctx.lineTo(-r * 0.4, -r); ctx.lineTo(r * 0.7, -r * 0.8); ctx.lineTo(r, r * 0.2); ctx.lineTo(r * 0.3, r); ctx.lineTo(-r * 0.8, r * 0.7); ctx.closePath(); } else ctx.arc(0, 0, r, 0, 6.3);
+          ctx.fillStyle = p.k !== 'ball' && !gr ? '#8c877d' : '#2d2c2e'; ctx.fill(); ctx.strokeStyle = '#2b2018'; ctx.lineWidth = 0.8; ctx.stroke();
           ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.beginPath(); ctx.arc(-r * 0.3, -r * 0.35, r * 0.4, 0, 6.3); ctx.fill(); ctx.restore();
         } else if (p.k === 'axe') {
           ctx.fillStyle = 'rgba(0,0,0,' + sh + ')'; ctx.beginPath(); ctx.ellipse(X, GY, 3, 1.2, 0, 0, 6.3); ctx.fill();

@@ -175,9 +175,9 @@ music.set = function (mode, force) {
   const menu = has('mus_menu'), lv = mode === 'edit' ? (menu ? { mus_menu: .55, amb_camp: .35 } : { amb_camp: 1 }) : mode === 'battle' ? { [music.track]: music.track === 'mus_drums' ? .32 : .42 } : {};
   for (const name of ['amb_camp', 'mus_menu', 'mus_drums', 'mus_battle', 'mus_skirmish', 'mus_siege', 'amb_battle']) { if (name === 'amb_battle') { loopNode(name); continue; } const n = loopNode(name); if (n) n.gain.setTargetAtTime(music.on && on ? (lv[name] || 0) : 0, ac.currentTime, force ? .05 : .8); }
 };
-const SWORD = { sword: 1, greatsword: 1, zweihander: 1, katana: 1, lance: 1 };
+const SWORD = { sword: 1, greatsword: 1, zweihander: 1, katana: 1, lance: 1, shotel: 1, urumi: 1, halberd: 1, naginata: 1 };
 // signature shouts on attack: [clip, chance, level]
-const SIG = { samurai: ['kiai', .3, .45], berserker: ['roar', .2, .45], jaguar: ['whoop', .2, .45], landsknecht: ['grunt', .2, .35], legionary: ['bash', .15, .3], hoplite: ['bash', .2, .3] };
+const SIG = { samurai: ['kiai', .3, .45], naginata: ['kiai', .2, .4], berserker: ['roar', .2, .45], woad: ['roar', .2, .4], jaguar: ['whoop', .2, .45], eagle: ['whoop', .2, .4], landsknecht: ['grunt', .2, .35], teutonic: ['grunt', .15, .35], legionary: ['bash', .15, .3], centurion: ['bash', .15, .3], hoplite: ['bash', .2, .3], huskarl: ['bash', .2, .3] };
 let lastVoice = 0, lastOpen = '';
 // lower the music and the battle bed under a spoken line so the words come through
 function duck(sec) {
@@ -188,7 +188,9 @@ function duck(sec) {
 // which language a unit's commander shouts in at the start of a battle
 const LANG = { legionary: 'la', monk: 'la', pikeman: 'de', landsknecht: 'de', cannon: 'de', manatarms: 'fr', axeman: 'fr', trebuchet: 'fr', templar: 'fr',
   skirmisher: 'el', hoplite: 'el', phalangite: 'el', cataphract: 'el', musketeer: 'tr', horsearcher: 'tr', lightcav: 'pl', hussar: 'pl', camel: 'ar', elephant: 'hi',
-  samurai: 'ja', ashigaru: 'ja', repeater: 'zh', firelancer: 'zh', keshig: 'mn', gaemamusa: 'ko', hwacha: 'ko', hwarang: 'ko', conquistador: 'es', slinger: 'es', jaguar: 'es' };
+  samurai: 'ja', ashigaru: 'ja', repeater: 'zh', firelancer: 'zh', keshig: 'mn', gaemamusa: 'ko', hwacha: 'ko', hwarang: 'ko', conquistador: 'es', slinger: 'es', jaguar: 'es',
+  halberdier: 'de', teutonic: 'de', cuirassier: 'de', grenadier: 'en', dragoon: 'fr', petard: 'fr', janissary: 'tr', bombard: 'tr', mameluke: 'ar', chariotarcher: 'ar', centurion: 'la',
+  naginata: 'ja', shinobi: 'ja', obuch: 'pl', steppelancer: 'mn', elephantarcher: 'hi', eagle: 'es', plumed: 'es', kamayuk: 'es' };
 const pick = a => a[(Math.random() * a.length) | 0];
 
 AB.Audio = {
@@ -212,23 +214,23 @@ AB.Audio = {
           const U = AB.UNITS[e.b], wpn = U && U.look && U.look.wpn, heavy = Math.min(1, (e.c || 0) / 2.5);
           let name = 'clash', rate = 1;
           const sig = SIG[e.b]; if (sig && Math.random() < sig[1]) clip(sig[0], (sig[2] || .4) * vol, pan, wet);
-          if (e.b === 'elephant') { name = 'boulder'; rate = .6; } else if (e.b === 'wolf') { name = 'growl'; }
+          if (e.b === 'elephant' || e.b === 'chariot') { name = 'boulder'; rate = e.b === 'chariot' ? .9 : .6; } else if (e.b === 'wolf') { name = 'growl'; }
           else if (e.b === 'legionary' && Math.random() < .45) name = 'bash';
           else if (wpn === 'spear' || wpn === 'pike' || wpn === 'sarissa' || wpn === 'fork') name = Math.random() < .7 ? 'stab' : 'block';
-          else if (wpn === 'axes' || wpn === 'axe') name = 'chop'; else if (wpn === 'macuahuitl' || wpn === 'staff' || wpn === 'club' || e.b === 'levy') name = 'blunt';
+          else if (wpn === 'axes' || wpn === 'axe' || wpn === 'halberd') name = 'chop'; else if (wpn === 'macuahuitl' || wpn === 'staff' || wpn === 'club' || wpn === 'mace' || e.b === 'levy') name = 'blunt';
           else if (SWORD[wpn]) name = Math.random() < .5 ? 'clash' : Math.random() < .6 ? 'hit' : 'block';
           if (!clip(name, (.32 + heavy * .25) * vol, pan, wet, rate)) play('block', .3 * vol, pan, wet);
           if (Math.random() < .14) clip('grunt', .3 * vol, pan, wet);
           if (e.a === 'charge') { clip(wpn === 'lance' ? 'lance' : 'hit', .6 * vol, pan, wet, .9); clip('charge', .5 * vol, pan, wet); }
           break; }
         case 'shoot': {
-          const k = e.a, m = { arrow: ['bow', .32], bolt: ['xbow', .35], bigbolt: ['ballista', .55], javelin: ['throw', .3], axe: ['throw', .3, .9], sling: ['throw', .28, 1.25], flame: ['rocket', .45, 1.5], bullet: ['musket', .45], ball: ['cannon', .8], stone: ['catapult', .6], boulder: ['treb', .8], fire: ['rocket', .6] }[k];
+          const k = e.a, m = { arrow: ['bow', .32], bolt: ['xbow', .35], bigbolt: ['ballista', .55], javelin: ['throw', .3], axe: ['throw', .3, .9], sling: ['throw', .28, 1.25], grenade: ['throw', .3, .8], flame: ['rocket', .45, 1.5], bullet: ['musket', .45], ball: ['cannon', .8], stone: ['catapult', .6], boulder: ['treb', .8], fire: ['rocket', .6] }[k];
           if (!m || !clip(m[0], m[1] * vol, pan, wet + (k === 'ball' ? .2 : 0), m[2])) { if (k === 'arrow') play('release', .3 * vol, pan, wet); else if (k === 'ball') play('cannon', .7 * vol, pan, wet); else if (k === 'bullet') play('gun', .45 * vol, pan, wet); }
           break; }
         case 'thud': if (!clip(e.b === 1 ? 'chop' : e.b === 2 ? 'woodbreak' : 'arrowhit', (e.b === 2 ? .15 : .28) * vol, pan, wet, e.b === 1 ? 1.3 : 1)) play('flesh', .3 * vol, pan, wet); break;
         case 'miss': if (e.a !== 'stone' && e.a !== 'ball' && e.a !== 'boulder') clip('arrowmiss', .2 * vol, pan, wet); break;
         case 'evade': clip('throw', .2 * vol, pan, wet, 1.4); break;
-        case 'boom': if (e.a === 'flame') break; if (!clip('boulder', (e.a === 'boulder' ? .9 : .65) * vol, pan, wet + .1, e.a === 'boulder' ? .8 : 1)) play('impact', .7 * vol, pan, wet); break;
+        case 'boom': if (e.a === 'flame') break; if (e.a === 'grenade') { if (!clip('cannon', .45 * vol, pan, wet + .1, 1.5)) play('impact', .5 * vol, pan, wet); break; } if (!clip('boulder', (e.a === 'boulder' ? .9 : .65) * vol, pan, wet + .1, e.a === 'boulder' ? .8 : 1)) play('impact', .7 * vol, pan, wet); break;
         case 'die': {
           const t = e.b, cav = e.a === 'cav' || t === 'commander';
           if (t === 'elephant') clip('elephant', .7 * vol, pan, wet) || play('ele', .7 * vol, pan, wet);

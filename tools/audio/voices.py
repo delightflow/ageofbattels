@@ -11,7 +11,7 @@ KEY = os.environ.get('ELEVENLABS_API_KEY') or sys.exit('set ELEVENLABS_API_KEY')
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'raw')
 V = {'harry': 'SOYHLrjzK2X1ezoPC6cr', 'adam': 'pNInz6obpgDQGcFmaJgB', 'george': 'JBFqnCBsd6RMkjVDRZzb', 'callum': 'N2lVS1w4EtoT3dr4eOWO', 'brian': 'nPczCjzI2devNBz1zQrb',
      'daniel': 'onwK4e9ZLuTAKqWW03F9', 'bill': 'pqHfZKP75CvOlQylNhV4', 'charlie': 'IKne3meq5aSn9XLyUdCD', 'roger': 'CwhRBWXzGAHq8TQ4Fs17', 'eric': 'cjVigY5qzO86Huf0OWal',
-     'chris': 'iP95p4xoKVk53GoZ742B', 'will': 'bIHbv24MWmeRgasZH58o', 'liam': 'TX3LPaxmHKxFdv7VOQHJ'}
+     'chris': 'iP95p4xoKVk53GoZ742B', 'will': 'bIHbv24MWmeRgasZH58o', 'liam': 'TX3LPaxmHKxFdv7VOQHJ', 'jessica': 'cgSgspJ2msm6clMCkdW9'}
 # unit: (voice, [select lines], [order lines])
 LINES = {
     'levy':        ('callum', ['Aye?', 'What now?'], ['Right away.', 'If we must...']),
@@ -56,6 +56,43 @@ LINES = {
     'hwarang':     ('brian', ['예, 장군!', '준비되었습니다!'], ['임전무퇴!', '나아가자!']),
     'templar':     ('george', ['Oui, frère?', 'Non nobis, Domine.'], ['Deus vult!', 'Pour le Temple!']),
     'firelancer':  ('liam', ['在!', '火药装好了!'], ['点火!', '冲啊!']),
+    # second roster
+    'halberdier':  ('roger', ['Ja, Hauptmann?', 'Hellebarden bereit!'], ['Haltet die Reiter!', 'Vorwärts!']),
+    'handcannon':  ('liam', ['Ano?', 'Připraveni!'], ['Pal!', 'Vpřed!']),
+    'grenadier':   ('george', ['Grenadiers ready!', 'Sir?'], ['Light the fuses!', 'Forward, lads!']),
+    'dragoon':     ('eric', ['Oui, mon capitaine?', 'En selle!'], ['Feu à volonté!', 'Au galop!']),
+    'cuirassier':  ('roger', ['Jawohl!', 'Bereit, Herr!'], ['Attacke!', 'Säbel raus!']),
+    'camelarcher': ('adam', ['بله؟', 'آماده‌ایم!'], ['تیر بزنید!', 'به پیش!']),
+    'chariot':     ('brian', ['بله!', 'گردونه آماده است!'], ['بتازید!', 'به پیش!']),
+    'chariotarcher': ('brian', ['نعم؟', 'جاهزون!'], ['ارموا!', 'انطلقوا!']),
+    'organgun':    ('daniel', ['Ja?', 'Geladen!'], ['Vuur!', 'Vooruit!']),
+    'bombard':     ('adam', ['Hazır!', 'Evet?'], ['Ateş!', 'Duvarı yıkın!']),
+    'petard':      ('callum', ['Oui?', 'La poudre est prête!'], ['Allumez la mèche!', 'Attention!']),
+    'eagle':       ('harry', ['Cuauhtli!', 'Quēmah!'], ['Tiyahueh!', 'Yāōyōtl!']),
+    'plumed':      ('will', ["Ma'alob!", 'Bix?'], ["Ko'ox!", 'Xen!']),
+    'kamayuk':     ('chris', ['Arí!', 'Imata?'], ['Haku!', 'Ñawpaqman!']),
+    'huskarl':     ('harry', ['Ja, herre?', 'Skjoldene opp!'], ['For kongen!', 'Fremad!']),
+    'woad':        ('callum', ['Seadh?', 'Deiseil!'], ['Air adhart!', 'Cruachan!']),
+    'teutonic':    ('roger', ['Ja, Bruder?', 'Gott mit uns!'], ['Für den Orden!', 'Vorwärts!']),
+    'shotel':      ('brian', ['አዎ?', 'ዝግጁ ነን!'], ['ወደፊት!', 'በል!']),
+    'gbeto':       ('jessica', ['Oui!', 'Prêtes!'], ['En avant!', 'Attaquez!']),
+    'genoese':     ('eric', ['Sì, signore?', 'Balestre pronte!'], ['Tirate!', 'Avanti, Genova!']),
+    'janissary':   ('adam', ['Buyurun!', 'Hazırız!'], ['Ateş!', 'Allah Allah!']),
+    'streltsy':    ('liam', ['Да?', 'Готовы!'], ['Пли!', 'Вперёд!']),
+    'rattan':      ('charlie', ['Dạ?', 'Sẵn sàng!'], ['Bắn!', 'Tiến lên!']),
+    'urumi':       ('brian', ['ஆம்?', 'தயார்!'], ['முன்னேறு!', 'தாக்கு!']),
+    'ghulam':      ('adam', ['بله، سرور من؟', 'آماده!'], ['حمله!', 'پیش!']),
+    'immortal':    ('george', ['بله، شاهنشاه؟', 'آماده‌ایم!'], ['برای شاه!', 'به پیش!']),
+    'centurion':   ('george', ['Adsum!', 'Quid imperas?'], ['Sequimini me!', 'Ordines servate!']),
+    'naginata':    ('charlie', ['南無阿弥陀仏。', '何用か?'], ['いざ!', '参る!']),
+    'shinobi':     ('liam', ['御意。', 'はっ。'], ['承知。', '消えます。']),
+    'obuch':       ('liam', ['Tak, panie?', 'Gotów!'], ['Bij!', 'Naprzód!']),
+    'mameluke':    ('adam', ['نعم يا أمير؟', 'جاهزون!'], ['الله أكبر!', 'هجوم!']),
+    'zamburak':    ('brian', ['بله؟', 'توپ آماده است!'], ['آتش!', 'به پیش!']),
+    'boyar':       ('roger', ['Слушаю!', 'Да, княже?'], ['За Русь!', 'Вперёд!']),
+    'leitis':      ('liam', ['Taip?', 'Pasiruošę!'], ['Pirmyn!', 'Į kovą!']),
+    'steppelancer': ('charlie', ['Иә?', 'Дайынбыз!'], ['Алға!', 'Шабуыл!']),
+    'elephantarcher': ('brian', ['जी?', 'तैयार!'], ['तीर चलाओ!', 'आगे बढ़ो!']),
 }
 # a commander's call to arms when a battle starts, by language
 SPEECH = {

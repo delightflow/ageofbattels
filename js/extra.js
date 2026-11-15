@@ -9,7 +9,7 @@ Object.assign(AB.L.ko, {
   rReach: '창 길이: {x}의 무기가 더 길어(사거리 {r1} 대 {r2}) 큰 싸움에서 뒷줄도 함께 찌릅니다', rRange: '사거리: {x}가 더 멀리 쏩니다({r1} 대 {r2})',
   ofSel: '선택 {n}명 중', hearIt: '대사 듣기', codex: '병종 도감', lab: '실험실', chal: '도전', follow: '관전 카메라', howPlay: '어떻게 즐길까요?', orPreset: '또는 예제 전투로 바로 구경하기',
   m_watch: '전투 구경', m_watchD: '예제 전투를 고르거나 직접 지도를 만들고, 누가 이길지 맞혀 보세요.', m_lab: '실험실', m_labD: '같은 비용이면 누가 이길까? 수십 번 싸워 승률을 냅니다.',
-  m_codex: '병종 도감', m_codexD: '44종 병종의 능력치, 특수 능력, 역사를 둘러봅니다.', m_chal: '도전', m_chalD: '정해진 적군을 제한된 예산으로 꺾는 퍼즐 8개.',
+  m_codex: '병종 도감', m_codexD: '80종 병종의 능력치, 특수 능력, 역사를 둘러봅니다.', m_chal: '도전', m_chalD: '정해진 적군을 제한된 예산으로 꺾는 퍼즐 8개.',
   tryLab: '실험실에서 시험', place: '이 병종 배치하기', seeCodex: '도감 ▸', stats: '능력치', vsWeak: '약한 상대', vsStrong: '강한 상대',
   sideA: '파랑', sideB: '빨강', eqCost: '같은 비용', eqCount: '같은 수', runs: '횟수', runN: '{n}판 돌리기', running: '계산 중…', watchIt: '전장에서 직접 보기', chartBtn: '모든 병종과 붙여 보기',
   chartT: '{a} 대 모든 병종 · 같은 비용 {n}', winsPct: '승률', avgLeft: '평균 생존', avgTime: '평균 시간', draws: '무승부', units: '명', sec: '초',
@@ -31,7 +31,7 @@ Object.assign(AB.L.en, {
   rReach: 'Reach: {x} has the longer weapon (range {r1} vs {r2}), so its rear rank fights too in a big melee', rRange: 'Range: {x} shoots farther ({r1} vs {r2})',
   ofSel: 'of {n} selected', hearIt: 'Hear them', codex: 'Codex', lab: 'Lab', chal: 'Challenges', follow: 'Follow cam', howPlay: 'How do you want to play?', orPreset: 'Or jump straight into a ready-made battle',
   m_watch: 'Watch a battle', m_watchD: 'Pick a battle or build a map, then guess who wins.', m_lab: 'Lab', m_labD: 'Who wins at equal cost? Fight dozens of times and get the odds.',
-  m_codex: 'Codex', m_codexD: 'Stats, abilities and history for all 44 troop types.', m_chal: 'Challenges', m_chalD: 'Eight puzzles: beat a fixed army on a budget.',
+  m_codex: 'Codex', m_codexD: 'Stats, abilities and history for all 80 troop types.', m_chal: 'Challenges', m_chalD: 'Eight puzzles: beat a fixed army on a budget.',
   tryLab: 'Test in the lab', place: 'Place this unit', seeCodex: 'Codex ▸', stats: 'Stats', vsWeak: 'Weak against', vsStrong: 'Strong against',
   sideA: 'Blue', sideB: 'Red', eqCost: 'Equal cost', eqCount: 'Equal count', runs: 'Runs', runN: 'Run {n} battles', running: 'Running…', watchIt: 'Watch it on the field', chartBtn: 'Against every unit',
   chartT: '{a} vs every unit · equal cost {n}', winsPct: 'Win rate', avgLeft: 'Avg. survivors', avgTime: 'Avg. time', draws: 'Draws', units: '', sec: 's',
@@ -132,7 +132,7 @@ function animate(cv, t) {
     if (id !== anim || !cv.isConnected) return;
     const q = ((now - start) / 1000) % 4.2; let fr = 'idle';
     if (!d.bld) { if (q > 0.8 && q < 2.4) fr = 'w' + ((((q - 0.8) * 1.7) % 1) * 8 | 0); else if (q >= 2.6 && q < 2.6 + d.wind + 0.4) fr = 'a' + Math.min(5, ((q - 2.6) / (d.wind + 0.4) * 6) | 0); }
-    const s = AB.Sprites.get(t, p, false, fr), k = d.bld ? (d.size > 1 ? 1.55 : 2.6) : (({ trebuchet: 1.5, elephant: 2.4, rider: 2.9, human: 3.6, wolf: 3.6 })[d.look.b] || 3) * 1.75;
+    const s = AB.Sprites.get(t, p, false, fr), k = d.bld ? (d.size > 1 ? 1.55 : 2.6) : (({ trebuchet: 1.5, elephant: 2.4, chariot: 2.1, bombard: 2.2, rider: 2.9, human: 3.6, wolf: 3.6 })[d.look.b] || 3) * 1.75;
     c.clearRect(0, 0, cv.width, cv.height); c.imageSmoothingQuality = 'high';
     c.fillStyle = 'rgba(0,0,0,0.12)'; c.beginPath(); c.ellipse(cv.width / 2, cv.height * 0.78, 120, 34, 0, 0, 6.3); c.fill();
     c.drawImage(s.cv, cv.width / 2 - s.ax * k, cv.height * (d.bld ? 0.86 : 0.78) - s.ay * k, s.w * k, s.h * k);
