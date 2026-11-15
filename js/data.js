@@ -173,7 +173,8 @@ const ko = {
 <ul><li><b>지형·사물·유닛·건물</b> 탭에서 고른 뒤 지도를 클릭하거나 끌어서 배치합니다.</li>
 <li>유닛은 <b>배치 수</b>만큼 대형으로 놓입니다. 플레이어 색과 팀을 정하면 같은 팀끼리는 싸우지 않습니다.</li>
 <li><b>오른쪽 끌기</b> 또는 <b>WASD/방향키</b>로 화면 이동, <b>휠</b>로 확대·축소.</li>
-<li><b>Ctrl+Z / Ctrl+Y</b> 되돌리기·다시 실행, <b>1–6</b> 도구 전환, <b>Delete</b> 선택 삭제.</li></ul>
+<li><b>Ctrl+Z / Ctrl+Y</b> 되돌리기·다시 실행, <b>1–7</b> 도구 전환, <b>Delete</b> 선택 삭제.</li>
+<li>유닛을 <b>오른쪽 클릭</b>하면 그 유닛 하나만 지워집니다. 커서를 올리고 <b>Delete</b>를 눌러도 됩니다.</li></ul>
 <h3>전투</h3>
 <ul><li><b>Space</b> 일시정지, <b>+ / −</b> 속도 조절.</li>
 <li>왼쪽 끌기로 부대를 선택하고 <b>오른쪽 클릭</b>으로 이동·공격 명령을 내릴 수 있습니다. 그냥 구경만 해도 됩니다.</li>
@@ -239,7 +240,8 @@ const en = {
 <ul><li>Pick from the <b>Terrain, Objects, Units, Buildings</b> tabs, then click or drag on the map.</li>
 <li>Units are placed in formation, <b>group size</b> at a time. Players on the same team never fight each other.</li>
 <li><b>Right-drag</b> or <b>WASD / arrows</b> to pan, <b>wheel</b> to zoom.</li>
-<li><b>Ctrl+Z / Ctrl+Y</b> undo and redo, <b>1–6</b> switch tools, <b>Delete</b> removes the selection.</li></ul>
+<li><b>Ctrl+Z / Ctrl+Y</b> undo and redo, <b>1–7</b> switch tools, <b>Delete</b> removes the selection.</li>
+<li><b>Right-click</b> a unit to remove just that one, or hover it and press <b>Delete</b>.</li></ul>
 <h3>Battle</h3>
 <ul><li><b>Space</b> pauses, <b>+ / −</b> change speed.</li>
 <li>Left-drag to select troops and <b>right-click</b> to move or attack. Or just watch.</li>

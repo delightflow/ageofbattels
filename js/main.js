@@ -3,10 +3,10 @@
 'use strict';
 const AB = window.AB, S = AB.Scenario, U = AB.UNITS, T = AB.T, DT = AB.DT;
 Object.assign(AB.L.ko, { cl_cav: '기병', cl_camel: '낙타병', cl_ele: '코끼리', cl_archer: '궁병', cl_siege: '공성 무기', cl_bld: '건물', at_m: '근접', at_p: '관통', at_s: '공성',
-  selHint: '지도에서 끌어서 유닛을 선택하세요. 선택한 유닛은 태세를 바꾸거나 삭제할 수 있습니다.', handHint: '끌어서 화면을 이동합니다. 두 손가락으로 확대·축소.', eraseHint: '유닛, 건물, 나무와 바위를 지웁니다.',
+  selHint: '지도에서 끌어서 유닛을 선택하세요. 선택한 유닛은 태세를 바꾸거나 삭제할 수 있습니다. 유닛을 오른쪽 클릭하면 하나만 지워집니다.', handHint: '끌어서 화면을 이동합니다. 두 손가락으로 확대·축소.', eraseHint: '유닛, 건물, 나무와 바위를 지웁니다. 어느 도구에서든 유닛을 오른쪽 클릭하면 하나만 지워집니다.',
   teamOf: '팀', winTeam: '팀 승리', nobody: '아무도 남지 않았습니다', bars: '체력 표시', confirmNew: '지금 지도를 버리고 새로 만듭니다.', empty: '아직 배치된 군대가 없습니다', fit: '전체 보기', objHint: '길과 물 위에는 놓을 수 없습니다.' });
 Object.assign(AB.L.en, { cl_cav: 'cavalry', cl_camel: 'camels', cl_ele: 'elephants', cl_archer: 'archers', cl_siege: 'siege', cl_bld: 'buildings', at_m: 'melee', at_p: 'pierce', at_s: 'siege',
-  selHint: 'Drag on the map to select units. You can change their stance or delete them.', handHint: 'Drag to pan. Pinch to zoom.', eraseHint: 'Removes units, buildings, trees and rocks.',
+  selHint: 'Drag on the map to select units. You can change their stance or delete them. Right-click a unit to remove just that one.', handHint: 'Drag to pan. Pinch to zoom.', eraseHint: 'Removes units, buildings, trees and rocks. With any tool, right-click a unit to remove just that one.',
   teamOf: 'Team', winTeam: 'wins', nobody: 'Nobody is left standing', bars: 'Health bars', confirmNew: 'This replaces the current map.', empty: 'No armies placed yet', fit: 'Fit view', objHint: 'Cannot be placed on roads or water.' });
 
 const $ = id => document.getElementById(id);
@@ -285,6 +285,17 @@ function command(sx, sy) {
   const list = [...sel], n = list.length, cols = Math.ceil(Math.sqrt(n)), sp = 0.75; list.forEach((e, i) => { e.ox = ((i % cols) - (cols - 1) / 2) * sp; e.oy = (((i / cols) | 0) - (Math.ceil(n / cols) - 1) / 2) * sp; });
   sim.order(sel, { k: 'move', x: wx, y: wy }); marker = { x: wx, y: wy, t: 0 };
 }
+// the placed unit (or building) drawn under a screen point: units are hit on their body, not just their feet
+function unitAtScreen(x, y) {
+  let near = null, nd = 1e9; const z = R.cam.z;
+  for (const u of sc.units) { const d = U[u.t];
+    if (d.bld) { const [sx, sy] = R.w2s(u.x + d.size / 2, u.y + d.size / 2), dd = Math.hypot(sx - x, (sy - 20 * z * d.size) - y) / (d.size * 1.4); if (dd < 26 * z && dd < nd) { nd = dd; near = u; } continue; }
+    const big = d.cat === 'cav' || d.cat === 'siege' ? 1.35 : 1, [sx, sy] = R.w2s(u.x, u.y), hw = 13 * z * big, top = sy - 46 * z * big, bot = sy + 6 * z;
+    if (x < sx - hw || x > sx + hw || y < top || y > bot) continue;
+    const dd = Math.hypot(sx - x, (sy - 20 * z * big) - y); if (dd < nd) { nd = dd; near = u; } }
+  return near;
+}
+function delAt(x, y) { const u = unitAtScreen(x, y); if (!u) return false; pushUndo(); S.removeIf(sc, v => v === u); afterEdit(); return true; }
 function selectBox(x0, y0, x1, y1) {
   const click = Math.abs(x1 - x0) < 5 && Math.abs(y1 - y0) < 5; sel.clear();
   const xa = Math.min(x0, x1), xb = Math.max(x0, x1), ya = Math.min(y0, y1), yb = Math.max(y0, y1);
@@ -293,10 +304,8 @@ function selectBox(x0, y0, x1, y1) {
     else { const by = {}; for (const e of sim.ents) { if (e.bld || e.dead) continue; const [sx, sy] = R.w2s(e.x, e.y); if (sx >= xa && sx <= xb && sy - 8 >= ya - 14 && sy - 8 <= yb) (by[e.p] = by[e.p] || []).push(e); }
       let best = null; for (const p in by) if (!best || by[p].length > best.length) best = by[p]; if (best) best.forEach(e => sel.add(e)); }
   } else {
-    let near = null, nd = 22;
-    for (const u of sc.units) { const d = U[u.t], [sx, sy] = R.w2s(d.bld ? u.x + d.size / 2 : u.x, d.bld ? u.y + d.size / 2 : u.y);
-      if (click) { const dd = Math.hypot(sx - x0, sy - 10 * R.cam.z - y0); if (dd < nd) { nd = dd; near = u; } } else if (sx >= xa && sx <= xb && sy >= ya && sy <= yb) sel.add(u); }
-    if (near) sel.add(near);
+    if (click) { const near = unitAtScreen(x0, y0); if (near) sel.add(near); }
+    else for (const u of sc.units) { const d = U[u.t], [sx, sy] = R.w2s(d.bld ? u.x + d.size / 2 : u.x, d.bld ? u.y + d.size / 2 : u.y); if (sx >= xa && sx <= xb && sy >= ya && sy <= yb) sel.add(u); }
   }
   if (sel.size) AB.Audio.voice(topType(), 's');
   updateSel();
@@ -324,7 +333,7 @@ function endStroke() { if (drag.changed) { afterEdit(); } else { undo.pop(); syn
 function pointerEnd(e) {
   const [x, y] = pt(e); ptrs.delete(e.pointerId); if (!drag) return;
   if (drag.type === 'pinch') { if (ptrs.size < 2) drag = null; return; }
-  if (drag.type === 'pan') { cv.classList.remove('pan'); if (drag.btn === 2 && drag.moved < 6 && e.type === 'pointerup') { if (sim) command(x, y); else if (sel.size) { sel.clear(); updateSel(); } } }
+  if (drag.type === 'pan') { cv.classList.remove('pan'); if (drag.btn === 2 && drag.moved < 6 && e.type === 'pointerup') { if (sim) command(x, y); else if (!delAt(x, y) && sel.size) { sel.clear(); updateSel(); } } }
   else if (drag.type === 'stroke') endStroke();
   else if (drag.type === 'box') { selectBox(drag.x0, drag.y0, x, y); box = null; }
   drag = null; updateGhost();
@@ -351,7 +360,7 @@ window.addEventListener('keydown', e => {
   if (k === ' ') { e.preventDefault(); if (sim && !e.repeat) { st.paused = !st.paused; syncBattleBar(); } }
   else if (k === 'Escape') { sel.clear(); updateSel(); }
   else if (k === 'Home' || k === 'f') R.fit();
-  else if (st.mode === 'edit') { if (k >= '1' && k <= '7') setTool(TOOLS[+k - 1]); else if (k === 'Delete' || k === 'Backspace') delSel(); else if (k === 'Enter') startBattle(); }
+  else if (st.mode === 'edit') { if (k >= '1' && k <= '7') setTool(TOOLS[+k - 1]); else if (k === 'Delete' || k === 'Backspace') { if (sel.size) delSel(); else if (hover) delAt(hover[0], hover[1]); } else if (k === 'Enter') startBattle(); }
   else { const sp = [0.5, 1, 2, 4], i = sp.indexOf(st.speed); if (k === '+' || k === '=') { st.speed = sp[Math.min(3, i + 1)]; syncBattleBar(); } else if (k === '-' || k === '_') { st.speed = sp[Math.max(0, i - 1)]; syncBattleBar(); } else if (k === 'r') startBattle(); }
 });
 window.addEventListener('keyup', e => { keys[e.key.length === 1 ? e.key.toLowerCase() : e.key] = false; });
