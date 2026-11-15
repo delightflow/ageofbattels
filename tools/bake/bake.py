@@ -22,7 +22,7 @@ PX = 45.2548 * SS           # pixels per Blender unit across the screen (one til
 M = 0.46                    # Blender units per metre: a man is about 0.83 tiles tall (chunky, readable at RTS zoom)
 
 # view directions: model yaw (degrees) for the five rendered facings; the other three are mirrored in game
-YAWS = [45, 90, 135, 180, 225]          # screen: down, down-left, left, up-left, up
+YAWS = [45, 90, 135, 180, 225]          # the camera mirrors the game's axes: these rows face up, up-left, left, down-left, down on screen
 FRAMES = ['idle'] + ['w%d' % i for i in range(8)] + ['a%d' % i for i in range(6)] + ['d%d' % i for i in range(5)]
 ATK_T = [0.08, 0.24, 0.4, 0.54, 0.7, 0.88]
 

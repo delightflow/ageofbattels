@@ -33,11 +33,11 @@ for id, m in man.items():                       # cache-busting version from the
         if os.path.exists(p): h.update(open(p, 'rb').read())
     m['v'] = h.hexdigest()[:8]
 
-# icons: the standing frame facing down-left (buildings: their only view), trimmed and fitted into 64 px squares
+# icons: the standing frame facing down-left (sheet row 3; buildings: their only view), trimmed and fitted into 64 px squares
 S = 64; ids = [k for k in LOOKS if k in man]; cols = 8; rows = (len(ids) + cols - 1) // cols
 ic = Image.new('RGBA', (cols * S, rows * S)); im = Image.new('RGBA', (cols * S, rows * S))
 for n, id in enumerate(ids):
-    m = man[id]; W, H = m['cw'], m['ch']; row = 0 if m['dirs'] == 1 else 1
+    m = man[id]; W, H = m['cw'], m['ch']; row = 0 if m['dirs'] == 1 else 3
     c = Image.open(os.path.join(D, id + '.webp')).convert('RGBA').crop((0, row * H, W, row * H + H))
     k = Image.open(os.path.join(D, id + '_m.webp')).convert('RGBA').crop((0, row * H, W, row * H + H))
     a = c.split()[3].point(lambda v: 255 if v > 150 else 0); bb = a.getbbox() or (0, 0, W, H)   # ignore the soft shadow

@@ -258,7 +258,7 @@ class Sim {
     if (t && !t.dead) {
       // once locked in a fight, keep a little slack in range so a nudge does not send the unit shuffling back and forth
       if (this.gap(e, t) <= d.rng + (!d.proj && this.time - e.engT < 0.6 ? 0.28 : 0) && !(d.minR && this.cdist(e, t) < d.minR)) {
-        e.engT = this.time; const dx = t.x - e.x, dy = t.y - e.y, l = Math.hypot(dx, dy) || 1; if (dx / l * e.fx + dy / l * e.fy < 0.88) { e.fx = dx / l; e.fy = dy / l; } e.eng = !d.proj;   // turn only for a real change of angle
+        const fresh = this.time - e.engT > 0.7; e.engT = this.time; const dx = t.x - e.x, dy = t.y - e.y, l = Math.hypot(dx, dy) || 1; if (fresh || dx / l * e.fx + dy / l * e.fy < 0.96) { e.fx = dx / l; e.fy = dy / l; } e.eng = !d.proj;   // square up to the enemy on contact, then turn only for a real change of angle
         if (e.cd <= 0) { e.sw = d.wind; e.atkT = this.time; }
       } else {
         if (d.opener && !e.opened && !t.bld) {           // pilum: one throw while closing in
@@ -268,7 +268,8 @@ class Sim {
         if (e.stance !== 2) {
           // close in on a slot around the target, not its centre, so attackers fan out instead of piling up
           const g = this.gap(e, t);
-          if (!t.bld && !d.proj && g < 2.5) { const a = Math.atan2(e.y - t.y, e.x - t.x) + e.slot * 0.55, dist = e.r + t.r + d.rng * 0.6; this._move(e, t.x + Math.cos(a) * dist, t.y + Math.sin(a) * dist); }
+          // fan out around the target while closing in, but drive straight at it for the last stretch so the blow lands head-on
+          if (!t.bld && !d.proj && g < 2.5 && g > d.rng + (e.r > 0.33 ? 0.9 : 0.45)) { const a = Math.atan2(e.y - t.y, e.x - t.x) + e.slot * 0.55, dist = e.r + t.r + d.rng * 0.6; this._move(e, t.x + Math.cos(a) * dist, t.y + Math.sin(a) * dist); }
           else this._move(e, t.x, t.y);
         }
       }

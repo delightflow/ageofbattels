@@ -508,11 +508,13 @@ function iconSheet() {
     ICONS.c.onload = done; ICONS.m.onload = done; ICONS.c.src = ATL.base + 'icons.webp?v=' + I.v; ICONS.m.src = ATL.base + 'icons_m.webp?v=' + I.v; }
   return ICONS.ok ? ICONS : null;
 }
-// facing (fx, fy) in world space → one of five rendered facings, mirrored for the other three
+// facing (fx, fy) in world space → one of five rendered facings, mirrored for the other three.
+// The baker's camera sees the world reflected across the screen's horizontal axis, so sheet row r
+// shows world heading 225° - 45°·r: row 0 faces up the screen, row 2 left, row 4 down.
 function facingOf(fx, fy) {
   let k = Math.round(Math.atan2(fy, fx) / (Math.PI / 4)); k = ((k % 8) + 8) % 8;
-  const deg = k * 45; if (deg >= 45 && deg <= 225) return [(deg - 45) / 45, false];
-  const m = ((90 - deg) % 360 + 360) % 360; return [(m - 45) / 45, true];
+  const deg = k * 45; if (deg >= 45 && deg <= 225) return [(225 - deg) / 45, false];
+  const m = ((90 - deg) % 360 + 360) % 360; return [(225 - m) / 45, true];
 }
 const Sp = AB.Sprites = {
   shade, facingOf,
@@ -525,7 +527,7 @@ const Sp = AB.Sprites = {
   },
   /* frame: 'idle' | 'w0'..'w7' | 'a0'..'a5' | 'd0'..'d4' */
   get(t, p, back, frame, procedural) {
-    if (!procedural) { const b = atlasCell(t, p, AB.UNITS[t].bld ? 0 : back ? 4 : 1, frame); if (b) return b; }
+    if (!procedural) { const b = atlasCell(t, p, AB.UNITS[t].bld ? 0 : back ? 0 : 3, frame); if (b) return b; }
     const key = t + '|' + p + '|' + (back ? 1 : 0) + '|' + frame; let s = cache.get(key); if (s) return s;
     const d = AB.UNITS[t], pc = PC[p];
     // hand-drawn fallback for looks that only the 3D models have
