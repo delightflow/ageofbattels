@@ -479,6 +479,158 @@
   "proj": "boulder",
   "wind": 1.1
  },
+ "longbowman": {
+  "look": {
+   "b": "human",
+   "helm": "cap",
+   "armor": "leather",
+   "wpn": "longbow"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "arrow",
+  "wind": 0.55
+ },
+ "slinger": {
+  "look": {
+   "b": "human",
+   "helm": "none",
+   "armor": "cloth",
+   "wpn": "sling"
+  },
+  "cat": "rng",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": "sling",
+  "wind": 0.5
+ },
+ "cataphract": {
+  "look": {
+   "b": "rider",
+   "mount": "horse",
+   "mc": "#4a3a2e",
+   "bard": 2,
+   "helm": "phrygian",
+   "armor": "lamellar",
+   "wpn": "lance"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.4,
+  "proj": null,
+  "wind": 0.35
+ },
+ "hussar": {
+  "look": {
+   "b": "rider",
+   "mount": "horse",
+   "mc": "#5a4334",
+   "bard": 1,
+   "helm": "kettle",
+   "armor": "plate",
+   "wpn": "lance",
+   "wings": 1
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.38,
+  "proj": null,
+  "wind": 0.35
+ },
+ "conquistador": {
+  "look": {
+   "b": "rider",
+   "mount": "horse",
+   "mc": "#7a4f32",
+   "helm": "morion",
+   "armor": "plate",
+   "wpn": "musket"
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.36,
+  "proj": "bullet",
+  "wind": 0.5
+ },
+ "ashigaru": {
+  "look": {
+   "b": "human",
+   "helm": "jingasa",
+   "armor": "lamellar",
+   "wpn": "pike"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "hwarang": {
+  "look": {
+   "b": "human",
+   "helm": "gogu",
+   "armor": "lamellar",
+   "wpn": "sword"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.26
+ },
+ "templar": {
+  "look": {
+   "b": "rider",
+   "mount": "horse",
+   "mc": "#e6e0d2",
+   "bard": 1,
+   "helm": "great",
+   "armor": "plate",
+   "wpn": "sword",
+   "shield": "kite",
+   "cross": 1
+  },
+  "cat": "cav",
+  "bld": false,
+  "size": 1,
+  "r": 0.38,
+  "proj": null,
+  "wind": 0.35
+ },
+ "firelancer": {
+  "look": {
+   "b": "human",
+   "helm": "cap",
+   "armor": "lamellar",
+   "wpn": "firelance"
+  },
+  "cat": "inf",
+  "bld": false,
+  "size": 1,
+  "r": 0.24,
+  "proj": null,
+  "wind": 0.35
+ },
+ "wardog": {
+  "look": {
+   "b": "wolf",
+   "dog": 1
+  },
+  "cat": "sup",
+  "bld": false,
+  "size": 1,
+  "r": 0.27,
+  "proj": null,
+  "wind": 0.22
+ },
  "palisade": {
   "look": {
    "b": "palisade"

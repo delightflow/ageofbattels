@@ -246,6 +246,15 @@ def human(look, root, mounted=False):
     if look.get('shield'): shield(J, look['shield'])
     if look.get('cape'):
         prism(spine, [(-.12, .48), (-.13, .2), (-.24, -.55), (-.18, -.6), (-.14, -.58)], .44, 'team', sp + Vector((0, 0, 0)), bevel=.01)
+    if look.get('cross'):
+        box(spine, sp + Vector((.125, 0, .22)), (.02, .24, .46), 'white', bevel=.006); box(spine, sp + Vector((.14, 0, .28)), (.01, .05, .3), 'red', bevel=0); box(spine, sp + Vector((.14, 0, .32)), (.01, .2, .05), 'red', bevel=0)
+        prism(spine, [(-.12, .48), (-.13, .2), (-.24, -.55), (-.18, -.6), (-.14, -.58)], .44, 'white', sp, bevel=.01)
+    if look.get('wings'):
+        for sy in (-1, 1):
+            pts = [Vector((-.16, sy * .1, .1)), Vector((-.24, sy * .14, .55)), Vector((-.2, sy * .16, .95)), Vector((-.06, sy * .14, 1.2))]
+            for a, b in zip(pts, pts[1:]): cyl(spine, sp + a, sp + b, .02, 'dwood', seg=6)
+            for k in range(9):
+                q = pts[0].lerp(pts[3], k / 8); box(spine, sp + q + Vector((-.06, 0, 0)), (.14, .02, .045), 'feather', rot=(0, R(-30 + k * 6), 0), bevel=.01)
     if look.get('banner'):
         cyl(spine, sp + Vector((-.16, .12, -.2)), sp + Vector((-.16, .12, 1.5)), .018, 'wood')
         prism(spine, [(0, 0), (.0, -.42), (-.5, -.36), (-.36, -.2), (-.5, -.05)], .015, 'team', sp + Vector((-.17, .12, 1.48)), rot=(0, 0, 0))
@@ -286,6 +295,11 @@ def helmet(head, c, h):
         sphere(head, V(.01, 0, .06), .155, 'jag', scale=(1.1, 1, .9))
         box(head, V(.15, 0, .07), (.12, .13, .07), 'jag', bevel=.03); box(head, V(.18, 0, .02), (.08, .1, .02), 'ivory', bevel=.008)
         for sy in (-1, 1): sphere(head, V(-.02, sy * .09, .17), .04, 'jag', scale=(1, .5, 1))
+    elif h == 'morion':
+        sphere(head, V(0, 0, .05), .13, 'steel', scale=(1, 1, .85)); disc(head, V(0, 0, .02), .2, .012, 'steel', axis='z', seg=24)
+        prism(head, [(-.12, 0), (-.08, .09), (.06, .1), (.12, 0)], .02, 'steel', V(0, 0, .1)); torus(head, V(0, 0, .03), .19, .012, 'steel')
+    elif h == 'jingasa':
+        cone(head, V(0, 0, .03), V(0, 0, .15), .24, 'lacquer', seg=20); disc(head, V(0, 0, .12), .04, .02, 'team', axis='z')
     elif h == 'beret':
         disc(head, V(-.01, 0, .09), .2, .045, 'team', axis='z', seg=22); sphere(head, V(-.01, 0, .1), .17, 'team2', scale=(1, 1, .3))
         for k in range(3): cyl(head, V(-.06, .12, .12), V(-.25 + k * .04, .2 + k * .03, .36 - k * .04), .018, 'feather' if k != 1 else 'team', r2=.004)
@@ -322,16 +336,22 @@ def weapon(J, w):
     elif w == 'lance':
         cyl(hR, V(0, 0, .7), V(0, 0, -2.7), .03, 'cloth2', r2=.018, seg=10); cone(hR, V(0, 0, -.12), V(0, 0, .12), .08, 'steel', seg=12)
         cone(hR, V(0, 0, -2.7), V(0, 0, -2.86), .03, 'steel', seg=6); prism(hR, [(0, 0), (0, .2), (-.36, .1)], .01, 'team', V(0, 0, -2.5), rot=(R(90), 0, R(90)))
-    elif w == 'bow':
-        c2 = wpos(hL); pts = [(-.62, .1), (-.45, .03), (-.2, -.03), (0, -.05), (.2, -.03), (.45, .03), (.62, .1)]
+    elif w in ('bow', 'longbow'):
+        k = 1.45 if w == 'longbow' else 1; c2 = wpos(hL); pts = [(x * k, z * k) for x, z in [(-.62, .1), (-.45, .03), (-.2, -.03), (0, -.05), (.2, -.03), (.45, .03), (.62, .1)]]
         for (x1, z1), (x2, z2) in zip(pts, pts[1:]): cyl(hL, c2 + Vector((x1, 0, z1)), c2 + Vector((x2, 0, z2)), .018, 'dwood', r2=.015, seg=8)
-        J['string'] = cyl(hL, c2 + Vector((-.62, 0, .1)), c2 + Vector((.62, 0, .1)), .004, 'cloth2', seg=4)
+        J['string'] = cyl(hL, c2 + Vector((-.62 * k, 0, .1 * k)), c2 + Vector((.62 * k, 0, .1 * k)), .004, 'cloth2', seg=4)
         J['arrow'] = cyl(hL, c2 + Vector((0, 0, .5)), c2 + Vector((0, 0, -.15)), .008, 'lwood', seg=6)
     elif w in ('crossbow', 'repeater'):
         cyl(hR, V(0, 0, .25), V(0, 0, -.55), .03, 'wood', seg=8); cyl(hR, V(0, -.32, -.5), V(0, .32, -.5), .018, 'dwood' if w == 'repeater' else 'iron', seg=8)
         if w == 'repeater': box(hR, V(.06, 0, -.2), (.08, .05, .4), 'lwood', bevel=.01)
     elif w == 'musket':
         cyl(hR, V(0, 0, .3), V(0, 0, -.15), .035, 'wood', seg=8); cyl(hR, V(0, 0, -.15), V(0, 0, -1.05), .016, 'iron', seg=8)
+    elif w == 'sling':
+        cyl(hR, V(0, 0, 0), V(.1, 0, -.35), .006, 'rope', seg=4); cyl(hR, V(0, 0, 0), V(-.05, 0, -.35), .006, 'rope', seg=4); keep(sphere(hR, V(.02, 0, -.38), .045, 'leather', scale=(1, .8, .6)))
+        box(J['spine'], wpos(J['spine']) + Vector((-.05, .16, .02)), (.14, .05, .16), 'leather', bevel=.02)
+    elif w == 'firelance':
+        keep(cyl(hR, V(0, 0, .6), V(0, 0, -1.4), .019, 'wood', seg=8)); keep(cone(hR, V(0, 0, -1.4), V(0, 0, -1.6), .035, 'steel', seg=6))
+        keep(cyl(hR, V(.03, 0, -1.05), V(.03, 0, -1.35), .04, 'dwood', seg=10)); keep(torus(hR, V(.03, 0, -1.12), .042, .01, 'rope'))
     elif w == 'staff':
         cyl(hR, V(-.9, 0, 0), V(.75, 0, 0), .018, 'wood', seg=8); sphere(hR, V(.8, 0, 0), .05, 'gold')
 
@@ -379,8 +399,8 @@ def pose_human(J, mode, ph):
             arm(J, 'R', p if p > 20 else 20 + 0 * ret, b if b > 15 else 15); rot(J['spine'], z=lerp(0, 18, up) - 35 * dn + 17 * ret)
             if two: arm(J, 'L', p - 5, b + 5, spread=-26)
             if w == 'axes': arm(J, 'L', lerp(25, 140, seg(t, .3, .6)) - 120 * seg(t, .6, .85), 60)
-    elif w in ('spear', 'fork', 'pike', 'sarissa'):
-        tilt = {'spear': 8, 'fork': 8, 'pike': 0, 'sarissa': 16}[w]
+    elif w in ('spear', 'fork', 'pike', 'sarissa', 'firelance'):
+        tilt = {'spear': 8, 'fork': 8, 'pike': 0, 'sarissa': 16, 'firelance': 6}[w]
         arm(J, 'R', 12, 88 - tilt, spread=-6); arm(J, 'L', 40, 50, spread=-25) if w in ('pike', 'sarissa') else (arm(J, 'L', 30, 65, spread=-10) if look.get('shield') else arm(J, 'L', 10, 20))
         if t >= 0:
             back, go, ret = ease(seg(t, 0, .4)), ease(seg(t, .4, .6)), ease(seg(t, .75, 1))
@@ -390,14 +410,14 @@ def pose_human(J, mode, ph):
     elif w == 'lance':
         arm(J, 'R', 5, 92, spread=-4); arm(J, 'L', 25, 60)
         if t >= 0: g = math.sin(seg(t, .3, .7) * math.pi); arm(J, 'R', 5 + 25 * g, 92 - 25 * g, spread=-4)
-    elif w in ('javelin', 'francisca'):
+    elif w in ('javelin', 'francisca', 'sling'):
         arm(J, 'R', 20, 75); arm(J, 'L', 30, 65, spread=-10) if look.get('shield') else arm(J, 'L', 10, 15)
         if t >= 0:
             back, go = ease(seg(t, 0, .45)), ease(seg(t, .45, .62))
             arm(J, 'R', lerp(20, 170, back) - 130 * go, lerp(75, 50, back) - 40 * go); rot(J['spine'], z=25 * back - 45 * go)
-            for o in J['wpn']: o.hide_render = t > .56
+            for o in J['wpn']: o.hide_render = t > .56 and w != 'sling'
             if w == 'francisca' and t > .56: pass
-    elif w == 'bow':
+    elif w in ('bow', 'longbow'):
         arm(J, 'L', 35, 30, spread=-6); arm(J, 'R', 15, 40)
         if t >= 0:
             up, pull, rel = ease(seg(t, 0, .2)), ease(seg(t, .15, .55)), seg(t, .6, .62)
@@ -600,16 +620,18 @@ def pose_elephant(J, mode, ph):
         e = ease(ph); rot(J['hbody'], x=-80 * e); J['hbody'].location = (0, -.2 * e, .45 * e)
 
 def wolf(look, root):
-    J = {}; bz = .62; hb = J['hbody'] = node('hbody', root, (0, 0, 0)); body = J['torso'] = node('torso', hb, (0, 0, bz))
-    sphere(body, Vector((0, 0, bz)), 1, 'wolf', scale=(.48, .16, .19), seg=16, rings=10)
+    dog = look.get('dog'); J = {}; bz = .62; hb = J['hbody'] = node('hbody', root, (0, 0, 0)); body = J['torso'] = node('torso', hb, (0, 0, bz))
+    fur = 'horse' if dog else 'wolf'
+    sphere(body, Vector((0, 0, bz)), 1, fur, scale=(.48, .17, .2), seg=16, rings=10)
+    if dog: sphere(body, Vector((0, 0, bz + .02)), 1, 'leather', scale=(.36, .18, .19), seg=14, rings=8); box(body, Vector((0, 0, bz + .17)), (.5, .3, .04), 'team', bevel=.02)
     for s, sy in (('R', -1), ('L', 1)):
-        quad_leg(J, 'f' + s, body, Vector((.3, sy * .08, bz - .08)), .27, .28, .045, 'wolf', hoof=None)
-        quad_leg(J, 'b' + s, body, Vector((-.3, sy * .08, bz - .06)), .27, .28, .05, 'wolf', hoof=None)
+        quad_leg(J, 'f' + s, body, Vector((.3, sy * .08, bz - .08)), .27, .28, .045, fur, hoof=None)
+        quad_leg(J, 'b' + s, body, Vector((-.3, sy * .08, bz - .06)), .27, .28, .05, fur, hoof=None)
     hd = J['hd'] = node('hd', body, (.48, 0, .1)); bpy.context.view_layer.update(); c = wpos(hd)
-    sphere(hd, c, .13, 'wolf', scale=(1.1, .9, .9)); box(hd, c + Vector((.15, 0, -.04)), (.2, .09, .08), 'wolf', bevel=.03); sphere(hd, c + Vector((.25, 0, -.03)), .025, 'black')
-    for sy in (-1, 1): cone(hd, c + Vector((-.02, sy * .06, .08)), c + Vector((-.04, sy * .07, .2)), .04, 'wolf', seg=6)
+    sphere(hd, c, .14 if dog else .13, fur, scale=(1.1, .95, .95)); box(hd, c + Vector((.15, 0, -.05)), (.2, .1 if dog else .09, .09), fur, bevel=.03); sphere(hd, c + Vector((.25, 0, -.03)), .025, 'black')
+    for sy in (-1, 1): (sphere(hd, c + Vector((-.03, sy * .1, .03)), .05, fur, scale=(.5, .6, 1.2)) if dog else cone(hd, c + Vector((-.02, sy * .06, .08)), c + Vector((-.04, sy * .07, .2)), .04, fur, seg=6))
     torus(hd, c + Vector((-.12, 0, -.03)), .1, .025, 'team', rot=(0, R(70), 0))
-    tl = J['tail'] = node('tail', body, (-.48, 0, .05)); bpy.context.view_layer.update(); t0 = wpos(tl); cyl(tl, t0, t0 + Vector((-.32, 0, -.12)), .05, 'wolf', r2=.03)
+    tl = J['tail'] = node('tail', body, (-.48, 0, .05)); bpy.context.view_layer.update(); t0 = wpos(tl); cyl(tl, t0, t0 + Vector((-.32, 0, -.12)), .05, fur, r2=.03)
     return J
 
 def pose_wolf(J, mode, ph):

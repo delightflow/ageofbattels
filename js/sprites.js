@@ -527,7 +527,10 @@ const Sp = AB.Sprites = {
   get(t, p, back, frame, procedural) {
     if (!procedural) { const b = atlasCell(t, p, AB.UNITS[t].bld ? 0 : back ? 4 : 1, frame); if (b) return b; }
     const key = t + '|' + p + '|' + (back ? 1 : 0) + '|' + frame; let s = cache.get(key); if (s) return s;
-    const d = AB.UNITS[t], L = d.look, pc = PC[p];
+    const d = AB.UNITS[t], pc = PC[p];
+    // hand-drawn fallback for looks that only the 3D models have
+    const AL = { longbow: 'bow', sling: 'javelin', firelance: 'spear', morion: 'kettle', jingasa: 'kettle' }, L0 = d.look;
+    const L = L0.wpn in AL || L0.helm in AL ? Object.assign({}, L0, { wpn: AL[L0.wpn] || L0.wpn, helm: AL[L0.helm] || L0.helm }) : L0;
     if (d.bld) s = mk(d.size > 1 ? 'b3' : 'b1', c => BLD[L.b](c, pc));
     else {
       const kind = L.b, box = BOX[kind] ? kind : 'siege', k = frame.charCodeAt(0), i = +frame.slice(1) || 0;

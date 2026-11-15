@@ -6,7 +6,7 @@ const AB = window.AB, A = AB.App, H = A.H, S = AB.Scenario, U = AB.UNITS, T = AB
 Object.assign(AB.L.ko, {
   hearIt: '대사 듣기', codex: '병종 도감', lab: '실험실', chal: '도전', follow: '관전 카메라', howPlay: '어떻게 즐길까요?', orPreset: '또는 예제 전투로 바로 구경하기',
   m_watch: '전투 구경', m_watchD: '예제 전투를 고르거나 직접 지도를 만들고, 누가 이길지 맞혀 보세요.', m_lab: '실험실', m_labD: '같은 비용이면 누가 이길까? 수십 번 싸워 승률을 냅니다.',
-  m_codex: '병종 도감', m_codexD: '34종 병종의 능력치, 특수 능력, 역사를 둘러봅니다.', m_chal: '도전', m_chalD: '정해진 적군을 제한된 예산으로 꺾는 퍼즐 8개.',
+  m_codex: '병종 도감', m_codexD: '44종 병종의 능력치, 특수 능력, 역사를 둘러봅니다.', m_chal: '도전', m_chalD: '정해진 적군을 제한된 예산으로 꺾는 퍼즐 8개.',
   tryLab: '실험실에서 시험', place: '이 병종 배치하기', seeCodex: '도감 ▸', stats: '능력치', vsWeak: '약한 상대', vsStrong: '강한 상대',
   sideA: '파랑', sideB: '빨강', eqCost: '같은 비용', eqCount: '같은 수', runs: '횟수', runN: '{n}판 돌리기', running: '계산 중…', watchIt: '전장에서 직접 보기', chartBtn: '모든 병종과 붙여 보기',
   chartT: '{a} 대 모든 병종 · 같은 비용 {n}', winsPct: '승률', avgLeft: '평균 생존', avgTime: '평균 시간', draws: '무승부', units: '명', sec: '초',
@@ -25,7 +25,7 @@ Object.assign(AB.L.ko, {
 Object.assign(AB.L.en, {
   hearIt: 'Hear them', codex: 'Codex', lab: 'Lab', chal: 'Challenges', follow: 'Follow cam', howPlay: 'How do you want to play?', orPreset: 'Or jump straight into a ready-made battle',
   m_watch: 'Watch a battle', m_watchD: 'Pick a battle or build a map, then guess who wins.', m_lab: 'Lab', m_labD: 'Who wins at equal cost? Fight dozens of times and get the odds.',
-  m_codex: 'Codex', m_codexD: 'Stats, abilities and history for all 34 troop types.', m_chal: 'Challenges', m_chalD: 'Eight puzzles: beat a fixed army on a budget.',
+  m_codex: 'Codex', m_codexD: 'Stats, abilities and history for all 44 troop types.', m_chal: 'Challenges', m_chalD: 'Eight puzzles: beat a fixed army on a budget.',
   tryLab: 'Test in the lab', place: 'Place this unit', seeCodex: 'Codex ▸', stats: 'Stats', vsWeak: 'Weak against', vsStrong: 'Strong against',
   sideA: 'Blue', sideB: 'Red', eqCost: 'Equal cost', eqCount: 'Equal count', runs: 'Runs', runN: 'Run {n} battles', running: 'Running…', watchIt: 'Watch it on the field', chartBtn: 'Against every unit',
   chartT: '{a} vs every unit · equal cost {n}', winsPct: 'Win rate', avgLeft: 'Avg. survivors', avgTime: 'Avg. time', draws: 'Draws', units: '', sec: 's',

@@ -136,7 +136,9 @@ class Render {
         case 'shoot':
           if (e.a === 'bullet' || e.a === 'ball') { const n = e.a === 'ball' ? 9 : 4; this.part(e.x, e.y, 0.7, { life: 0.08, r: e.a === 'ball' ? 7 : 3, grow: 30, col: '255,214,120', a: 1 }); for (let i = 0; i < n; i++) this.part(e.x, e.y, 0.6, { vx: (R() - 0.5) * 1.2, vy: (R() - 0.5) * 1.2, vz: 0.5 + R() * 0.8, life: 0.9 + R() * 0.6, r: e.a === 'ball' ? 5 : 3, grow: 9, col: '225,225,225', a: 0.5 }); }
           break;
-        case 'boom': { const big = e.a === 'ball' ? 1.2 : 1;
+        case 'evade': for (let i = 0; i < 3; i++) this.part(e.x, e.y, 0.05, { vx: (R() - 0.5) * 2, vy: (R() - 0.5) * 2, vz: 0.3, life: 0.5, r: 2, grow: 7, col: '190,175,140', a: 0.4 }); break;
+        case 'boom': if (e.a === 'flame') { for (let i = 0; i < 14; i++) this.part(e.x + (R() - 0.5), e.y + (R() - 0.5), 0.2 + R() * 0.4, { vx: (R() - 0.5) * 2, vy: (R() - 0.5) * 2, vz: 0.8 + R(), life: 0.5 + R() * 0.4, r: 2.5, grow: 9, col: R() < 0.6 ? '255,150,40' : '255,220,120', a: 0.85 }); break; }
+        { const big = e.a === 'ball' ? 1.2 : 1;
           for (let i = 0; i < 10; i++) this.part(e.x, e.y, 0.1, { vx: (R() - 0.5) * 5 * big, vy: (R() - 0.5) * 5 * big, vz: 0.6 + R() * 1.4, life: 0.7 + R() * 0.5, r: 4, grow: 16, col: '176,150,112', a: 0.55 });
           for (let i = 0; i < 6; i++) this.part(e.x, e.y, 0.2, { vx: (R() - 0.5) * 5, vy: (R() - 0.5) * 5, vz: 2 + R() * 4, g: 12, life: 0.7, r: 1.8, col: '90,70,50', a: 1 });
           if (e.a === 'ball') this.part(e.x, e.y, 0.4, { life: 0.16, r: 8, grow: 60, col: '255,200,90', a: 0.9 });
@@ -321,10 +323,10 @@ class Render {
         if (X < vx0 - 40 || X > vx1 + 40 || Y < vy0 - 60 || Y > vy1 + 40) continue;
         const [X0, Y0, GY0] = pos(p, Math.max(0, u - 0.03)), dx = X - X0, dy = Y - Y0, l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
         const gdx = X - X0, gdy = GY - GY0, gl = Math.hypot(gdx, gdy) || 1, sh = Math.max(0.12, 0.38 - wz * 0.05);
-        if (p.k === 'stone' || p.k === 'ball' || p.k === 'boulder') {
-          const r = p.k === 'boulder' ? 6 : p.k === 'stone' ? 3.8 : 2.7;
+        if (p.k === 'stone' || p.k === 'ball' || p.k === 'boulder' || p.k === 'sling') {
+          const r = p.k === 'boulder' ? 6 : p.k === 'stone' ? 3.8 : p.k === 'sling' ? 1.4 : 2.7;
           ctx.fillStyle = 'rgba(0,0,0,' + sh + ')'; ctx.beginPath(); ctx.ellipse(X, GY, r * (1.1 + wz * 0.05), r * 0.5, 0, 0, 6.3); ctx.fill();
-          if (dt > 0 && Math.random() < 0.7) this.part(wx, wy, wz, { life: p.k === 'ball' ? 0.9 : 0.5, r: p.k === 'ball' ? 2.2 : 1.6, grow: 6, col: p.k === 'ball' ? '205,205,205' : '170,155,130', a: p.k === 'ball' ? 0.4 : 0.3 });
+          if (p.k !== 'sling' && dt > 0 && Math.random() < 0.7) this.part(wx, wy, wz, { life: p.k === 'ball' ? 0.9 : 0.5, r: p.k === 'ball' ? 2.2 : 1.6, grow: 6, col: p.k === 'ball' ? '205,205,205' : '170,155,130', a: p.k === 'ball' ? 0.4 : 0.3 });
           ctx.save(); ctx.translate(X, Y); ctx.rotate(p.t * 9);
           ctx.beginPath(); if (p.k !== 'ball') { ctx.moveTo(-r, -r * 0.3); ctx.lineTo(-r * 0.4, -r); ctx.lineTo(r * 0.7, -r * 0.8); ctx.lineTo(r, r * 0.2); ctx.lineTo(r * 0.3, r); ctx.lineTo(-r * 0.8, r * 0.7); ctx.closePath(); } else ctx.arc(0, 0, r, 0, 6.3);
           ctx.fillStyle = p.k !== 'ball' ? '#8c877d' : '#2d2c2e'; ctx.fill(); ctx.strokeStyle = '#2b2018'; ctx.lineWidth = 0.8; ctx.stroke();
@@ -333,7 +335,7 @@ class Render {
           ctx.fillStyle = 'rgba(0,0,0,' + sh + ')'; ctx.beginPath(); ctx.ellipse(X, GY, 3, 1.2, 0, 0, 6.3); ctx.fill();
           ctx.save(); ctx.translate(X, Y); ctx.rotate(p.t * 22); ctx.strokeStyle = '#2b2018'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(4, 0); ctx.stroke(); ctx.strokeStyle = '#9a6a3a'; ctx.lineWidth = 1; ctx.stroke();
           ctx.fillStyle = '#b9c0c9'; ctx.beginPath(); ctx.moveTo(3, -0.5); ctx.quadraticCurveTo(6.5, -3.5, 6.5, 2.5); ctx.quadraticCurveTo(5, 1, 3, 1.2); ctx.closePath(); ctx.fill(); ctx.restore();
-        } else if (p.k === 'fire') {
+        } else if (p.k === 'fire' || p.k === 'flame') {
           if (dt > 0 && Math.random() < 0.5) this.part(wx, wy, wz, { life: 0.5, r: 1.3, grow: 5, col: '190,190,190', a: 0.35 });
           ctx.strokeStyle = 'rgba(255,150,50,0.35)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(X - ux * 14, Y - uy * 14); ctx.lineTo(X, Y); ctx.stroke();
           ctx.strokeStyle = '#2b2018'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X - ux * 10, Y - uy * 10); ctx.lineTo(X, Y); ctx.stroke();

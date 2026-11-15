@@ -326,17 +326,18 @@ class Sim {
     if (spread) { const a = R() * 6.283, r = Math.sqrt(R()) * 1.6; tx += Math.cos(a) * r; ty += Math.sin(a) * r * 0.8; }
     if (d.pierce && !ov) { const dx = tx - e.x, dy = ty - e.y, l = Math.hypot(dx, dy) || 1; tx = e.x + dx / l * (l + 2.5); ty = e.y + dy / l * (l + 2.5); dur *= (l + 2.5) / l; }
     const tg = spread ? null : t; if (tg) tg.pend += atk;
-    this.projs.push({ k: kind, sx: e.x, sy: e.y, tx, ty, x: e.x, y: e.y, z: 0, t: -(delay || 0), dur, src: e, team: e.team, tgt: tg, dmg: atk, at: ov ? 'p' : d.at, ov: !!ov,
+    this.projs.push({ k: kind, sx: e.x, sy: e.y, tx, ty, x: e.x, y: e.y, z: 0, t: -(delay || 0), dur, src: e, team: e.team, tgt: tg, dmg: atk, at: ov ? (ov.proj === 'flame' ? 's' : 'p') : d.at, ov: !!ov, osplash: ov && ov.splash,
       z0: e.bld ? (d.size > 1 ? 2.6 : 2) : 0.55, h: dist * P.arc * (spread ? 1.2 + R() * 0.5 : 1) });
     if (!spread || !delay) this.ev('shoot', e.x, e.y, kind, e.bld ? 'bld' : e.t);
   }
   _land(p) {
     const src = p.src, self = this, sd = src.d; if (p.tgt) p.tgt.pend -= p.dmg;
-    if (sd.splash && !p.ov) {
-      this.near(p.tx, p.ty, sd.splash + 2, c => {
+    const spl = p.ov ? p.osplash : sd.splash;
+    if (spl) {
+      this.near(p.tx, p.ty, spl + 2, c => {
         if (c.team === p.team || c.dead) return;
         const dd = c.bld ? Math.hypot(Math.max(c.x0 - p.tx, 0, p.tx - c.x1), Math.max(c.y0 - p.ty, 0, p.ty - c.y1)) : Math.max(0, Math.hypot(c.x - p.tx, c.y - p.ty) - c.r * 0.5);
-        if (dd <= sd.splash) { self._damage(src, c, p.dmg * (1 - 0.55 * dd / sd.splash), p.at); const kx = c.x - p.tx, ky = c.y - p.ty, kl = Math.hypot(kx, ky) || 1; self._knock(c, kx / kl, ky / kl, (p.k === 'stone' ? 2.5 : 3.5) * (1 - dd / sd.splash), 0.35); }
+        if (dd <= spl) { self._damage(src, c, p.dmg * (1 - 0.55 * dd / spl), p.at); const kx = c.x - p.tx, ky = c.y - p.ty, kl = Math.hypot(kx, ky) || 1; if (p.k !== 'flame') self._knock(c, kx / kl, ky / kl, (p.k === 'stone' ? 2.5 : 3.5) * (1 - dd / spl), 0.35); }
       });
       this.ev('boom', p.tx, p.ty, p.k); return;
     }
@@ -359,6 +360,7 @@ class Sim {
   }
   _damage(src, t, base, at) {
     const sd = src.d, td = t.d; at = at || sd.at;
+    if (td.evade && at === 'm' && !sd.proj && this.rnd() < td.evade) { this.ev('evade', t.x, t.y); return; }   // a nimble fighter slips the blow
     const arm = (at === 'm' ? td.am : at === 'p' ? td.ap : 0) + (at !== 's' ? t.adj : 0);
     let m = 1; if (sd.bonus) { const cl = td.cls; for (let i = 0; i < cl.length; i++) { const b = sd.bonus[cl[i]]; if (b > m) m = b; } }
     let k = 1 + 0.1 * src.rank; if (sd.frenzy) k += sd.frenzy * Math.min(3, src.kills); if (src.buff > this.time) k *= 1.2;

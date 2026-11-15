@@ -35,7 +35,7 @@ SFX = {
     'collapse': ('stone castle tower collapsing, rubble and bricks crumbling down, no music', 3.0, 1, False),
     'woodbreak': ('wooden siege engine smashed apart, cracking splintering timber, no music', 1.4, 1, False),
     'horn':     ('medieval war horn, one long low powerful call across a battlefield, no music', 3.5, 1, False),
-    'cry':      ('army of hundreds of medieval soldiers shouting a battle cry and charging, no music', 3.0, 1, False),
+    'cry':      ('army of hundreds of medieval soldiers shouting a battle cry and charging, no music', 3.0, 3, False),
     'charge':   ('cavalry charge, many horses galloping hard and riders yelling, no music', 2.5, 1, False),
     'victory':  ('short medieval victory fanfare on brass trumpets with cheering soldiers', 4.5, 1, False),
     'defeat':   ('low mournful horn call, sad defeat, medieval', 4.0, 1, False),
@@ -53,6 +53,13 @@ SFX = {
     'growl':    ('wolf snarling and snapping its jaws in attack, short, no music', 0.9, 2, False),
     'camel':    ('camel groaning loudly in distress, no music', 1.4, 1, False),
     'horsefall': ('horse falling heavily to the ground with armour clatter, no music', 1.4, 1, False),
+    # battle openings and more
+    'drumroll': ('medieval war drums building up into a thunderous roll before battle, no voices', 3.5, 1, False),
+    'conch':    ('deep conch shell trumpet blown as a battle signal, long, no music', 3.0, 1, False),
+    'trumpet':  ('medieval trumpets sounding the call to attack, short bright fanfare, no music', 3.0, 1, False),
+    'shields':  ('army of soldiers banging swords on shields in rhythm and shouting before battle, no music', 3.5, 1, False),
+    'hurrah':   ('cavalry regiment cheering a loud hurrah before the charge, horses snorting, no music', 3.0, 1, False),
+    'bark':     ('big war dog barking aggressively, two barks, no music', 0.9, 2, False),
     # loops
     'amb_battle': ('distant medieval battle ambience, many soldiers fighting far away, swords clashing and men shouting, continuous, no music', 22, 1, True),
     'mus_drums':  ('epic medieval war drums, slow heavy powerful rhythm with low horns, tense battle soundtrack', 22, 1, True),

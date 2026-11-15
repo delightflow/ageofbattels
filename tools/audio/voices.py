@@ -47,10 +47,36 @@ LINES = {
     'gaemamusa':   ('brian', ['예!', '명을 내리소서!'], ['돌격하라!', '진격!']),
     'hwacha':      ('chris', ['장전 완료!', '예!'], ['발사 준비!', '옮겨라!']),
     'trebuchet':   ('eric', ['Chargé!', 'Oui?'], ['Tirez!', 'Poussez!']),
+    'longbowman':  ('daniel', ['Aye?', 'Bows strung.'], ['Nock, draw, loose!', 'For Saint George!']),
+    'slinger':     ('will', ['Sí?', 'Preparats!'], ['Endavant!', 'Ara!']),
+    'cataphract':  ('adam', ['Ναι, στρατηγέ;', 'Έτοιμοι!'], ['Νίκα!', 'Εμπρός!']),
+    'hussar':      ('liam', ['Tak, panie?', 'Gotowi!'], ['Szarża!', 'Za ojczyznę!']),
+    'conquistador': ('eric', ['¿Sí?', '¡Listos!'], ['¡Santiago!', '¡Adelante!']),
+    'ashigaru':    ('charlie', ['へい!', '何でしょう?'], ['かかれ!', '進め!']),
+    'hwarang':     ('brian', ['예, 장군!', '준비되었습니다!'], ['임전무퇴!', '나아가자!']),
+    'templar':     ('george', ['Oui, frère?', 'Non nobis, Domine.'], ['Deus vult!', 'Pour le Temple!']),
+    'firelancer':  ('liam', ['在!', '火药装好了!'], ['点火!', '冲啊!']),
+}
+# a commander's call to arms when a battle starts, by language
+SPEECH = {
+    'ko': ('brian', ['전군, 돌격하라!', '물러서지 마라! 진격하라!']),
+    'en': ('george', ['Men, today we fight! Charge!', 'Hold fast, then strike! For glory!']),
+    'la': ('george', ['Ad arma! Pro Roma!', 'Milites, procedite!']),
+    'ja': ('charlie', ['者ども、かかれ!', '全軍、突撃!']),
+    'de': ('roger', ['Für Kaiser und Reich, vorwärts!', 'Haltet stand! Zum Angriff!']),
+    'fr': ('eric', ['Pour la gloire, en avant!', 'Chargez, mes braves!']),
+    'el': ('adam', ['Εμπρός, Έλληνες!', 'Αλαλαί! Επίθεση!']),
+    'zh': ('liam', ['全军出击!', '将士们，杀啊!']),
+    'es': ('eric', ['¡Por Castilla, adelante!', '¡Santiago, y a ellos!']),
+    'pl': ('liam', ['Za ojczyznę, naprzód!', 'Szarża, panowie!']),
+    'ar': ('adam', ['إلى الأمام يا رجال!', 'اثبتوا! هجوم!']),
+    'tr': ('adam', ['İleri, aslanlar!', 'Saldırın!']),
+    'mn': ('charlie', ['Урагшаа, баатрууд аа!']),
+    'hi': ('brian', ['आगे बढ़ो, वीरों!']),
 }
 
 def tts(unit, kind, i, voice, text):
-    path = os.path.join(OUT, 'v_%s_%s%d.mp3' % (unit, kind, i))
+    path = os.path.join(OUT, ('sp_%s%d.mp3' % (kind, i)) if unit == 'sp' else ('v_%s_%s%d.mp3' % (unit, kind, i)))
     if os.path.exists(path): return unit, kind, i, 'cached'
     body = {'text': text, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.32, 'similarity_boost': 0.8, 'style': 0.65, 'use_speaker_boost': True}}
     for attempt in range(4):
@@ -69,5 +95,6 @@ def tts(unit, kind, i, voice, text):
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True); only = sys.argv[1:]
     jobs = [(u, k, i, v, t) for u, (v, s, c) in LINES.items() if not only or u in only for k, L in (('s', s), ('c', c)) for i, t in enumerate(L)]
+    jobs += [('sp', lang, i, v, t) for lang, (v, L) in SPEECH.items() if not only or 'speech' in only for i, t in enumerate(L)]
     with cf.ThreadPoolExecutor(3) as ex:
         for u, k, i, res in ex.map(lambda j: tts(*j), jobs): print('%-12s %s%d %s' % (u, k, i, res), flush=True)

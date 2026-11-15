@@ -3,6 +3,23 @@
 'use strict';
 const AB = G.AB;
 const ko = {
+  u_longbowman: '장궁병', u_slinger: '투석병', u_cataphract: '카타프락토이', u_hussar: '날개 기병', u_conquistador: '콘키스타도르', u_ashigaru: '아시가루', u_hwarang: '화랑', u_templar: '성전 기사', u_firelancer: '화창병', u_wardog: '전투견',
+  d_longbowman: '누구보다 멀리 쏘는 큰 활.', d_slinger: '갑옷을 무시하는 돌팔매. 궁병을 잡는다.', d_cataphract: '말까지 철갑을 두른 중기병. 보병을 짓밟는다.', d_hussar: '등에 날개를 단 기병. 가장 강한 돌격.',
+  d_conquistador: '말 위에서 쏘는 화승총.', d_ashigaru: '값싸고 긴 창. 떼로 기병을 막는다.', d_hwarang: '날랜 검사. 근접 공격을 자주 피한다.', d_templar: '상처가 저절로 아무는 성전 기사.',
+  d_firelancer: '다가가며 불을 뿜고, 창으로 마무리한다.', d_wardog: '갑옷을 입힌 사냥개. 궁병에게 달려든다.',
+  o_longbowman: '잉글랜드·웨일스 · 13–15세기', o_slinger: '발레아레스 제도 · 기원전 3–1세기', o_cataphract: '비잔틴 제국 · 6–12세기', o_hussar: '폴란드·리투아니아 · 16–17세기',
+  o_conquistador: '스페인 · 16세기', o_ashigaru: '일본 · 15–17세기', o_hwarang: '신라 · 6–7세기', o_templar: '성전 기사단 · 12–14세기', o_firelancer: '송나라 · 10–13세기', o_wardog: '유럽 · 고대–16세기',
+  h_longbowman: '키만 한 주목 활을 수십 년 훈련해야 쏠 수 있었습니다. 크레시(1346)와 아쟁쿠르(1415)에서 잉글랜드 장궁병의 화살비가 프랑스 기사들을 무너뜨렸습니다.',
+  h_slinger: '지중해 발레아레스 제도의 투석병은 어려서부터 돌팔매를 익혔다고 전합니다. 카르타고와 로마 군대가 앞다투어 고용했고, 납 탄환은 갑옷 위로도 뼈를 부러뜨렸습니다.',
+  h_cataphract: '말과 사람 모두 비늘 갑옷을 입은 동로마의 중기병입니다. 쐐기 대형으로 돌격해 적 보병의 대열을 정면으로 깨뜨렸습니다.',
+  h_hussar: '등에 독수리 깃털을 단 나무 틀을 메고 달린 폴란드의 중기병입니다. 1683년 빈 전투에서 유럽 역사상 가장 큰 기병 돌격 가운데 하나를 이끌었습니다.',
+  h_conquistador: '16세기 아메리카로 건너간 스페인 정복자들입니다. 말과 강철, 화약은 그곳 사람들에게 처음 보는 것이었고, 소수로도 큰 제국을 무너뜨리는 데 쓰였습니다.',
+  h_ashigaru: '전국 시대 일본에서 농민을 모아 만든 보병입니다. 긴 창과 조총을 대량으로 쥐여 주어 사무라이 기병과 맞섰고, 전쟁의 규모를 바꾸었습니다.',
+  h_hwarang: '신라의 귀족 청년 수련 집단입니다. 무예와 학문, 산천 유람으로 몸과 마음을 닦았고, 삼국 통일 전쟁에서 김유신 같은 장수를 길러 냈습니다.',
+  h_templar: '1119년 예루살렘 순례자를 지키려고 세워진 수도 기사단입니다. 흰 망토에 붉은 십자가를 달았고, 물러서지 않는 규율로 유명했습니다.',
+  h_firelancer: '대나무나 쇠 통에 화약을 채워 창끝에 묶은 무기입니다. 송나라 때 처음 쓰였고, 가까이에서 불길을 뿜은 뒤 창으로 찔렀습니다. 총의 조상으로 여겨집니다.',
+  h_wardog: '고대부터 군대는 큰 개에게 가죽이나 쇠사슬 갑옷을 입혀 싸움에 내보냈습니다. 16세기 스페인 군대도 전투견을 데리고 다녔습니다.',
+  ab_evade: '회피 · 근접 공격을 30% 확률로 피한다',
   c_uniq: '고유',
   // names / one-liners for the unique units
   u_legionary: '로마 군단병', u_hoplite: '호플리테스', u_phalangite: '사리사 밀집병', u_samurai: '사무라이', u_landsknecht: '란츠크네히트', u_jaguar: '재규어 전사',
@@ -71,6 +88,23 @@ const ko = {
   cl_inf: '보병', cl_spear: '창병', cl_unique: '고유 병종', weak: '약함', era: '시대', origin: '출신', history: '역사',
 };
 const en = {
+  u_longbowman: 'Longbowman', u_slinger: 'Slinger', u_cataphract: 'Cataphract', u_hussar: 'Winged hussar', u_conquistador: 'Conquistador', u_ashigaru: 'Ashigaru', u_hwarang: 'Hwarang', u_templar: 'Templar', u_firelancer: 'Fire lancer', u_wardog: 'War dog',
+  d_longbowman: 'Out-ranges every other bow.', d_slinger: 'Sling stones ignore armour. Hunts archers.', d_cataphract: 'Armoured horse and rider who trample infantry.', d_hussar: 'Winged lancers with the hardest charge.',
+  d_conquistador: 'A matchlock fired from the saddle.', d_ashigaru: 'Cheap long spears that stop horses in numbers.', d_hwarang: 'Nimble swordsman who often dodges blows.', d_templar: 'A knight-monk whose wounds close on their own.',
+  d_firelancer: 'Spews fire on the approach, then stabs.', d_wardog: 'An armoured hound that goes for archers.',
+  o_longbowman: 'England and Wales · 13th–15th c.', o_slinger: 'Balearic Islands · 3rd–1st c. BC', o_cataphract: 'Byzantine Empire · 6th–12th c.', o_hussar: 'Poland–Lithuania · 16th–17th c.',
+  o_conquistador: 'Spain · 16th c.', o_ashigaru: 'Japan · 15th–17th c.', o_hwarang: 'Silla, Korea · 6th–7th c.', o_templar: 'Knights Templar · 12th–14th c.', o_firelancer: 'Song China · 10th–13th c.', o_wardog: 'Europe · antiquity–16th c.',
+  h_longbowman: 'The yew longbow, as tall as its archer, took years of practice to draw. At Crécy (1346) and Agincourt (1415) English longbow volleys broke the French knights.',
+  h_slinger: 'Balearic slingers were said to learn the sling as children. Carthage and Rome both hired them, and their lead shot could break bones through armour.',
+  h_cataphract: 'East Roman heavy cavalry with scale armour on horse and rider. They charged in a wedge to smash infantry lines head on.',
+  h_hussar: 'Polish heavy cavalry who rode with wooden frames of eagle feathers on their backs. At Vienna in 1683 they led one of the largest cavalry charges in history.',
+  h_conquistador: 'The Spanish conquerors of the sixteenth-century Americas. Horses, steel and gunpowder were all unknown there, and small bands brought down great empires.',
+  h_ashigaru: 'Foot soldiers raised from commoners in Sengoku Japan. Armed in great numbers with long spears and matchlocks, they stood up to mounted samurai and changed the scale of war.',
+  h_hwarang: 'An order of noble youths in Silla who trained in arms, letters and travel through the mountains. It produced commanders such as Kim Yu-sin, who helped unify the Three Kingdoms.',
+  h_templar: 'A military order founded in 1119 to protect pilgrims to Jerusalem. They wore white mantles with a red cross and were famed for never retreating without orders.',
+  h_firelancer: 'A tube of gunpowder tied to a spear. First used under the Song, it threw out a burst of flame at close range before the spear went in, and is counted an ancestor of the gun.',
+  h_wardog: 'Armies since antiquity sent big dogs into battle in leather or mail. Sixteenth-century Spanish forces still brought war dogs with them.',
+  ab_evade: 'Evasion · dodges 30% of melee blows',
   c_uniq: 'Unique',
   u_legionary: 'Legionary', u_hoplite: 'Hoplite', u_phalangite: 'Phalangite', u_samurai: 'Samurai', u_landsknecht: 'Landsknecht', u_jaguar: 'Jaguar warrior',
   u_axeman: 'Throwing axeman', u_repeater: 'Repeating crossbow', u_keshig: 'Keshig', u_gaemamusa: 'Gaemamusa', u_hwacha: 'Hwacha', u_trebuchet: 'Trebuchet',
@@ -137,7 +171,7 @@ AB.abilities = function (d) {
   if (d.opener) a.push('opener'); if (d.phalanx) a.push('phalanx'); if (d.rng >= 1.4 && !d.proj) a.push('reach'); if (d.cleave) a.push('cleave'); if (d.frenzy) a.push('frenzy');
   if (d.proj && d.at === 'm') a.push('meleeProj'); if (d.volley > 1 && !d.bld) a.push('volley'); if (d.kite) a.push('kite'); if (d.charge) a.push('charge'); if (d.salvo) a.push('salvo');
   if (d.splash) a.push('splash'); if (d.pierce) a.push('pierce'); if (d.minR) a.push('minR'); if (d.regen) a.push('regen'); if (d.aura) a.push('aura'); if (d.heal) a.push('heal');
-  if (d.pref === 'bld') a.push('bldOnly'); if (d.bonus && d.bonus.unique) a.push('unique');
+  if (d.evade) a.push('evade'); if (d.pref === 'bld') a.push('bldOnly'); if (d.bonus && d.bonus.unique) a.push('unique');
   return a;
 };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

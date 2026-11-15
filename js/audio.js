@@ -140,7 +140,7 @@ function synthLose() { if (!on || !init()) return; const t0 = ac.currentTime + 0
       const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t0 + at); g.gain.exponentialRampToValueAtTime(0.13, t0 + at + 0.15); g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + dur); o.connect(lp); lp.connect(g); g.connect(d); o.start(t0 + at); o.stop(t0 + at + dur + 0.05); }); }
 // --------------------------------------------------------------- recorded clips (assets/audio, generated with ElevenLabs)
 const CLIP = { buf: {}, loading: false, ok: false, base: 'assets/audio/', last: {}, voices: 0, played: {} };
-const CGAP = { clash: .03, hit: .03, block: .05, chop: .05, stab: .04, blunt: .05, bow: .025, arrowhit: .04, arrowmiss: .05, xbow: .05, musket: .05, cannon: .12,
+const CGAP = { bark: .3, drumroll: 1, conch: 1, trumpet: 1, shields: 1, hurrah: 1, clash: .03, hit: .03, block: .05, chop: .05, stab: .04, blunt: .05, bow: .025, arrowhit: .04, arrowmiss: .05, xbow: .05, musket: .05, cannon: .12,
   catapult: .2, boulder: .12, rocket: .4, die: .07, grunt: .09, horse: .5, elephant: 1, wolf: .4, collapse: .4, woodbreak: .2, charge: 2.5, pray: 1.6 };
 function loadClips() {
   const man = G.AB_AUDIO; if (CLIP.loading || !man || !ac) return; CLIP.loading = true;
@@ -178,7 +178,12 @@ music.set = function (mode, force) {
 const SWORD = { sword: 1, greatsword: 1, zweihander: 1, katana: 1, lance: 1 };
 // signature shouts on attack: [clip, chance, level]
 const SIG = { samurai: ['kiai', .3, .45], berserker: ['roar', .2, .45], jaguar: ['whoop', .2, .45], landsknecht: ['grunt', .2, .35], legionary: ['bash', .15, .3], hoplite: ['bash', .2, .3] };
-let lastVoice = 0;
+let lastVoice = 0, lastOpen = '';
+// which language a unit's commander shouts in at the start of a battle
+const LANG = { legionary: 'la', monk: 'la', pikeman: 'de', landsknecht: 'de', cannon: 'de', manatarms: 'fr', axeman: 'fr', trebuchet: 'fr', templar: 'fr',
+  skirmisher: 'el', hoplite: 'el', phalangite: 'el', cataphract: 'el', musketeer: 'tr', horsearcher: 'tr', lightcav: 'pl', hussar: 'pl', camel: 'ar', elephant: 'hi',
+  samurai: 'ja', ashigaru: 'ja', repeater: 'zh', firelancer: 'zh', keshig: 'mn', gaemamusa: 'ko', hwacha: 'ko', hwarang: 'ko', conquistador: 'es', slinger: 'es', jaguar: 'es' };
+const pick = a => a[(Math.random() * a.length) | 0];
 
 AB.Audio = {
   unlock() { if (init()) { if (ac.state === 'suspended') ac.resume(); loadClips(); } },
@@ -211,12 +216,13 @@ AB.Audio = {
           if (e.a === 'charge') { clip(wpn === 'lance' ? 'lance' : 'hit', .6 * vol, pan, wet, .9); clip('charge', .5 * vol, pan, wet); }
           break; }
         case 'shoot': {
-          const k = e.a, m = { arrow: ['bow', .32], bolt: ['xbow', .35], bigbolt: ['ballista', .55], javelin: ['throw', .3], axe: ['throw', .3, .9], bullet: ['musket', .45], ball: ['cannon', .8], stone: ['catapult', .6], boulder: ['treb', .8], fire: ['rocket', .6] }[k];
+          const k = e.a, m = { arrow: ['bow', .32], bolt: ['xbow', .35], bigbolt: ['ballista', .55], javelin: ['throw', .3], axe: ['throw', .3, .9], sling: ['throw', .28, 1.25], flame: ['rocket', .45, 1.5], bullet: ['musket', .45], ball: ['cannon', .8], stone: ['catapult', .6], boulder: ['treb', .8], fire: ['rocket', .6] }[k];
           if (!m || !clip(m[0], m[1] * vol, pan, wet + (k === 'ball' ? .2 : 0), m[2])) { if (k === 'arrow') play('release', .3 * vol, pan, wet); else if (k === 'ball') play('cannon', .7 * vol, pan, wet); else if (k === 'bullet') play('gun', .45 * vol, pan, wet); }
           break; }
         case 'thud': if (!clip(e.b === 1 ? 'chop' : e.b === 2 ? 'woodbreak' : 'arrowhit', (e.b === 2 ? .15 : .28) * vol, pan, wet, e.b === 1 ? 1.3 : 1)) play('flesh', .3 * vol, pan, wet); break;
         case 'miss': if (e.a !== 'stone' && e.a !== 'ball' && e.a !== 'boulder') clip('arrowmiss', .2 * vol, pan, wet); break;
-        case 'boom': if (!clip('boulder', (e.a === 'boulder' ? .9 : .65) * vol, pan, wet + .1, e.a === 'boulder' ? .8 : 1)) play('impact', .7 * vol, pan, wet); break;
+        case 'evade': clip('throw', .2 * vol, pan, wet, 1.4); break;
+        case 'boom': if (e.a === 'flame') break; if (!clip('boulder', (e.a === 'boulder' ? .9 : .65) * vol, pan, wet + .1, e.a === 'boulder' ? .8 : 1)) play('impact', .7 * vol, pan, wet); break;
         case 'die': {
           const t = e.b, cav = e.a === 'cav' || t === 'commander';
           if (t === 'elephant') clip('elephant', .7 * vol, pan, wet) || play('ele', .7 * vol, pan, wet);
@@ -245,11 +251,23 @@ AB.Audio = {
     if (st.cav > 0 && (st.t -= dt) <= 0) { st.t = 0.09 + Math.random() * 0.12 / Math.min(4, 1 + st.cav / 10); const v = Math.min(0.3, 0.07 + st.cav * 0.008); hoof(ac.currentTime, v, (Math.random() - 0.5) * 1.2); }
   },
   stop() { if (bed && ac) bed.g.gain.setTargetAtTime(0, ac.currentTime, 0.4); if (music.nodes.amb_battle && ac) music.nodes.amb_battle.gain.setTargetAtTime(0, ac.currentTime, .4); music.set('edit'); },
+  // a different opening every time: a signal, a commander's call in his army's language, and the ranks answering
   start(sim) {
     music.siege = !!(sim && sim.ents.some(e => e.bld && e.d.wall)); music.mode = null;
     if (!on || !init()) return; music.set('battle');
-    if (has('horn')) { clip('horn', .7, 0, .45); setTimeout(() => clip('cry', .6, 0, .35), 1700); return; }
-    synthStart();
+    if (!has('horn')) { synthStart(); return; }
+    const armies = {}; let cav = 0, n = 0;
+    if (sim) for (const e of sim.ents) { if (e.bld) continue; const a = armies[e.p] || (armies[e.p] = {}); a[e.t] = (a[e.t] || 0) + e.d.cost; n++; if (e.d.cat === 'cav') cav++; }
+    const ps = Object.keys(armies), army = ps.length ? armies[pick(ps)] : {}, lead = Object.keys(army).sort((x, y) => army[y] - army[x])[0];
+    let lang = LANG[lead] || 'en'; if (!has('sp_' + lang)) lang = 'en';
+    const opens = ['horn', 'conch', 'trumpet', 'drumroll'].filter(has).filter(x => x !== lastOpen), closes = ['cry', 'shields'].concat(cav / Math.max(1, n) > .3 ? ['hurrah'] : []).filter(has);
+    const open = pick(opens.length ? opens : ['horn']); lastOpen = open; const close = pick(closes.length ? closes : ['cry']);
+    const say = () => { if (!has('sp_' + lang)) return; const L = CLIP.buf['sp_' + lang], src = ac.createBufferSource(); src.buffer = pick(L); src.connect(out(.85, 0, .25)); src.start(); };
+    const plan = (Math.random() * 4) | 0, T = (f, ms) => setTimeout(f, ms);
+    if (plan === 0) { clip(open, .7, 0, .45); T(say, 2100); T(() => clip(close, .6, 0, .35), 3500); }
+    else if (plan === 1) { say(); T(() => clip(close, .6, 0, .35), 1600); }
+    else if (plan === 2) { clip(open, .7, 0, .45); T(() => clip(close, .6, 0, .35), 2300); }
+    else { clip(has('drumroll') ? 'drumroll' : open, .7, 0, .4); T(say, 2600); T(() => clip(close, .6, 0, .35), 4000); }
   },
   win() { music.set('none'); if (!clip('victory', .7, 0, .3)) synthWin(); setTimeout(() => music.set(music.want === 'none' ? 'edit' : music.want), 6000); },
   lose() { music.set('none'); if (!clip('defeat', .7, 0, .35)) synthLose(); setTimeout(() => music.set(music.want === 'none' ? 'edit' : music.want), 6000); },
@@ -258,7 +276,8 @@ AB.Audio = {
   voice(t, kind) {
     if (!t || !on || !init()) return; if (ac.state === 'suspended') ac.resume(); loadClips();
     const now = ac.currentTime; if (now - lastVoice < .45) return; lastVoice = now;
-    const name = 'v_' + t + '_' + kind; if (!has(name)) return;
+    const name = 'v_' + t + '_' + kind;
+    if (!has(name)) { const beast = { wardog: 'bark', wolf: 'growl', elephant: 'elephant' }[t]; if (beast) { lastVoice = 0; clip(beast, .6, 0, .1); } return; }
     const L = CLIP.buf[name], src = ac.createBufferSource(); src.buffer = L[(Math.random() * L.length) | 0]; src.connect(out(.75, 0, .08)); src.start(now);
   },
   debug() { return { decoded: Object.keys(CLIP.buf).length, played: CLIP.played, ctx: ac, master }; },

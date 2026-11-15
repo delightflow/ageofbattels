@@ -41,6 +41,8 @@ AB.PROJ = {
   axe:     { spd: 9,   arc: 0.18 },
   fire:    { spd: 10,  arc: 0.22 },
   boulder: { spd: 6,   arc: 0.42 },
+  sling:   { spd: 13,  arc: 0.12 },
+  flame:   { spd: 7,   arc: 0.05 },
 };
 
 /* Unit fields:
@@ -104,6 +106,27 @@ AB.UNITS = {
     look: { b: 'hwacha' } }),
   trebuchet:   U({ cat: 'siege', hp: 150, atk: 110, at: 's', ap: 4, rng: 16, minR: 5, rof: 11, wind: 1.1, proj: 'boulder', acc: 0.6, splash: 1.5, spd: 0.75, r: 0.62, cost: 450, uniq: 1, cls: ['siege', 'unique'], bonus: { bld: 3 },
     look: { b: 'trebuchet' } }),
+  // ---- more peoples
+  longbowman:  U({ cat: 'rng', hp: 40, atk: 8, at: 'p', rng: 8.5, rof: 1.5, wind: 0.55, proj: 'arrow', acc: 0.92, cost: 48, uniq: 1, cls: ['inf', 'archer', 'unique'],
+    look: { b: 'human', helm: 'cap', armor: 'leather', wpn: 'longbow' } }),
+  slinger:     U({ cat: 'rng', hp: 40, atk: 5, at: 's', rng: 5.5, rof: 1.6, wind: 0.5, proj: 'sling', acc: 0.82, cost: 42, uniq: 1, cls: ['inf', 'unique'], bonus: { archer: 2.6 },
+    look: { b: 'human', helm: 'none', armor: 'cloth', wpn: 'sling' } }),
+  cataphract:  U({ cat: 'cav', hp: 210, atk: 13, am: 5, ap: 7, rof: 1.7, spd: 2.5, r: 0.4, cost: 190, uniq: 1, cls: ['cav', 'unique'], charge: 1.8, bonus: { inf: 1.5 },
+    look: { b: 'rider', mount: 'horse', mc: '#4a3a2e', bard: 2, helm: 'phrygian', armor: 'lamellar', wpn: 'lance' } }),
+  hussar:      U({ cat: 'cav', hp: 170, atk: 14, am: 4, ap: 3, rof: 1.7, spd: 3.1, r: 0.38, cost: 170, uniq: 1, cls: ['cav', 'unique'], charge: 3.0,
+    look: { b: 'rider', mount: 'horse', mc: '#5a4334', bard: 1, helm: 'kettle', armor: 'plate', wpn: 'lance', wings: 1 } }),
+  conquistador: U({ cat: 'cav', hp: 135, atk: 26, at: 'p', am: 3, ap: 3, rng: 5.5, rof: 2.4, wind: 0.5, proj: 'bullet', acc: 0.8, spd: 3.0, r: 0.36, cost: 125, uniq: 1, cls: ['cav', 'archer', 'unique'],
+    look: { b: 'rider', mount: 'horse', mc: '#7a4f32', helm: 'morion', armor: 'plate', wpn: 'musket' } }),
+  ashigaru:    U({ hp: 44, atk: 4, am: 0, ap: 1, rng: 1.0, rof: 1.7, spd: 1.8, cost: 38, uniq: 1, cls: ['inf', 'spear', 'unique'], bonus: { cav: 3, camel: 2.2, ele: 3 },
+    look: { b: 'human', helm: 'jingasa', armor: 'lamellar', wpn: 'pike' } }),
+  hwarang:     U({ hp: 75, atk: 10, am: 2, ap: 2, rof: 1.15, wind: 0.26, spd: 2.25, cost: 95, uniq: 1, evade: 0.3, cls: ['inf', 'unique'],
+    look: { b: 'human', helm: 'gogu', armor: 'lamellar', wpn: 'sword' } }),
+  templar:     U({ cat: 'cav', hp: 200, atk: 14, am: 5, ap: 4, rof: 1.6, spd: 2.8, r: 0.38, cost: 205, uniq: 1, regen: 2.5, cls: ['cav', 'unique'], charge: 2.0, bonus: { camel: 1.6 },
+    look: { b: 'rider', mount: 'horse', mc: '#e6e0d2', bard: 1, helm: 'great', armor: 'plate', wpn: 'sword', shield: 'kite', cross: 1 } }),
+  firelancer:  U({ hp: 55, atk: 6, am: 1, ap: 1, rng: 0.75, rof: 1.6, spd: 1.85, cost: 70, uniq: 1, cls: ['inf', 'spear', 'unique'], bonus: { cav: 1.8 }, opener: { rng: 2.2, atk: 12, proj: 'flame', splash: 0.7 },
+    look: { b: 'human', helm: 'cap', armor: 'lamellar', wpn: 'firelance' } }),
+  wardog:      U({ cat: 'sup', hp: 40, atk: 6, am: 1, ap: 2, rof: 1.15, wind: 0.22, spd: 3.4, r: 0.27, cost: 48, cls: ['beast'], bonus: { archer: 2.2 },
+    look: { b: 'wolf', dog: 1 } }),
   // ---- buildings
   palisade: B({ hp: 350, am: 3, ap: 9, wall: 1, cost: 8, look: { b: 'palisade' } }),
   wall:     B({ hp: 1400, am: 8, ap: 14, wall: 1, cost: 25, look: { b: 'wall' } }),
@@ -115,7 +138,8 @@ AB.UNITS = {
 for (const k in AB.UNITS) { const d = AB.UNITS[k]; d.id = k; if (!d.bld) d.hp = Math.round(d.hp * 1.25 / 5) * 5; }
 AB.UNIT_ORDER = ['levy', 'swordsman', 'spearman', 'pikeman', 'manatarms', 'berserker', 'archer', 'crossbow', 'skirmisher', 'musketeer',
   'lightcav', 'knight', 'horsearcher', 'camel', 'elephant', 'catapult', 'ballista', 'cannon', 'ram', 'commander', 'monk', 'wolf',
-  'legionary', 'hoplite', 'phalangite', 'samurai', 'landsknecht', 'jaguar', 'axeman', 'repeater', 'keshig', 'gaemamusa', 'hwacha', 'trebuchet'];
+  'legionary', 'hoplite', 'phalangite', 'samurai', 'landsknecht', 'jaguar', 'axeman', 'repeater', 'keshig', 'gaemamusa', 'hwacha', 'trebuchet',
+  'longbowman', 'slinger', 'cataphract', 'hussar', 'conquistador', 'ashigaru', 'hwarang', 'templar', 'firelancer', 'wardog'];
 AB.UNIQUE = AB.UNIT_ORDER.filter(t => AB.UNITS[t].uniq);
 AB.BLD_ORDER = ['palisade', 'wall', 'gate', 'tower', 'keep', 'tent'];
 AB.CATS = ['all', 'uniq', 'inf', 'rng', 'cav', 'siege', 'sup'];
