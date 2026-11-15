@@ -151,6 +151,13 @@ class Sim {
     }
     if (d.bonus) { const cl = c.d.cls; for (let i = 0; i < cl.length; i++) if (d.bonus[cl[i]] > 1.2) { s -= 1.5; break; } }
     if (!d.proj) s += c.nAtk * 0.3; else if (c.pend >= c.hp) s += 5;
+    if (!c.bld) {
+      if (d.proj) { if (c.tgt === e) s -= 1.5; s -= (1 - c.hp / c.d.hp) * 1.5; }                        // shoot whoever is coming for me, and finish the wounded
+      else {
+        if (c.tgt && c.tgt.team === e.team && c.tgt.d.proj && !c.d.proj) s -= 1.6;                     // bodyguard: go for enemies attacking our archers
+        if (d.cat === 'cav' && (c.d.proj || c.d.cat === 'siege')) s -= 1.2;                            // horsemen hunt archers and engines
+      }
+    }
     if (c === cur) s -= 1.2;
     if (e.stance === 1 && Math.hypot(c.x - e.hx, c.y - e.hy) > 11) return Infinity;
     return s;
@@ -178,12 +185,24 @@ class Sim {
     if (d.aura) { const self = this; this.near(e.x, e.y, d.aura, c => { if (c.team === e.team && !c.bld && self.cdist(e, c) <= d.aura) c.buff = self.time + 1.2; }); }
     if (d.heal) return this._thinkHeal(e);
     if (d.phalanx) { let n = 0; const self = this; this.near(e.x, e.y, 1.2, c => { if (c !== e && c.team === e.team && !c.bld && !c.dead && self.cdist(e, c) < 1.05) n++; }); e.adj = Math.min(d.phalanx, n); }
-    if (d.kite && !e.order && this.time >= e.fleeCd) {   // feigned retreat: back away from anyone who can hit us in melee
-      let th = null, td = 2.3; const self = this;
-      this.near(e.x, e.y, 3, c => { if (c.team === e.team || c.dead || c.bld || c.d.proj || !c.d.spd) return; const g = self.gap(e, c); if (g < td) { td = g; th = c; } });
-      if (th) { const dx = e.x - th.x, dy = e.y - th.y, l = Math.hypot(dx, dy) || 1;
-        for (const a of [0, 0.6, -0.6, 1.2, -1.2]) { const ca = Math.cos(a), sa = Math.sin(a), ux = (dx * ca - dy * sa) / l, uy = (dx * sa + dy * ca) / l, fx = e.x + ux * 3.2, fy = e.y + uy * 3.2;
-          if (this.walkLine(e.x, e.y, fx, fy, e.team)) { e.flee = { x: fx, y: fy, t: this.time + 0.9 }; e.fleeCd = this.time + 1.5; e.path = null; return; } } }
+    // ranged micro: back off while reloading if a melee enemy closes in, then turn and shoot. Units that cannot outrun the
+    // threat fall back behind the nearest friendly melee instead of running in the open.
+    if (d.proj && d.spd && d.cat !== 'siege' && !e.order && e.stance !== 2 && this.time >= e.fleeCd) {
+      let th = null, td = d.kite ? 3.2 : Math.max(1.8, Math.min(3.2, d.rng * 0.5)); const self = this;   // long reach: start backing off earlier
+      this.near(e.x, e.y, 4.5, c => { if (c.team === e.team || c.dead || c.bld || c.d.proj || !c.d.spd || !c.d.atk) return; const g = self.gap(e, c); if (g < td) { td = g; th = c; } });
+      if (th) {
+        const fast = d.spd >= th.d.spd * 0.95 || d.kite;
+        if (fast && (e.cd > 0.25 || td < 0.5)) {
+          const dur = Math.max(0.45, Math.min(1.2, e.cd + 0.15)) * (d.kite ? 1.25 : 1), reach = d.spd * dur;
+          if (this._fleeFrom(e, th, reach, dur)) return;
+        } else if (!fast) {
+          let ally = null, ad = 25; this.near(e.x, e.y, 5, c => { if (c.team !== e.team || c.dead || c.bld || c.d.proj || !c.d.atk || !c.d.spd) return; const q = (c.x - e.x) ** 2 + (c.y - e.y) ** 2; if (q < ad) { ad = q; ally = c; } });
+          if (ally) {
+            const ax = ally.x - th.x, ay = ally.y - th.y, al = Math.hypot(ax, ay) || 1, px = ally.x + ax / al * 1.2, py = ally.y + ay / al * 1.2;
+            if (Math.hypot(px - e.x, py - e.y) > 0.5 && this.canStand(px, py, e.team) && this.walkLine(e.x, e.y, px, py, e.team)) { e.flee = { x: px, y: py, t: this.time + 0.9 }; e.fleeCd = this.time + 1.2; e.path = null; return; }
+          }
+        }
+      }
     }
     const o = e.order;
     if (o) {
@@ -310,6 +329,20 @@ class Sim {
     this._damage(e, t, dmg); if (!t.bld) this._knock(t, ux, uy, power, charged ? 0.45 : 0.1);
     if (d.splash) { const self = this; this.near(t.x, t.y, d.splash + 1, c => { if (c !== t && c.team !== e.team && !c.dead && !c.bld && self.cdist(c, t) <= d.splash) self._damage(e, c, dmg * 0.5); const cx = c.x - t.x, cy = c.y - t.y, cl = Math.hypot(cx, cy) || 1; self._knock(c, cx / cl, cy / cl, power * 0.7, 0.3); }); }
     if (d.cleave) { let n = 0; const self = this; this.near(t.x, t.y, 1.6, c => { if (n < d.cleave && c !== t && c.team !== e.team && !c.dead && !c.bld && self.gap(e, c) <= d.rng + 0.55) { n++; self._damage(e, c, dmg * 0.6); self._knock(c, ux, uy, power * 0.8, 0.12); } }); }
+  }
+  // run from a threat: straight away if the ground allows, otherwise veer up to 70° either side
+  _fleeFrom(e, th, reach, dur) {
+    // pick the best of several directions: mostly away from the threat, but steering clear of the map edge so
+    // kiting units circle instead of backing themselves into a corner
+    const dx = e.x - th.x, dy = e.y - th.y, l = Math.hypot(dx, dy) || 1; let best = null, bs = -1e9;
+    for (const a of [0, 0.45, -0.45, 0.9, -0.9, 1.3, -1.3]) {
+      const ca = Math.cos(a), sa = Math.sin(a), ux = (dx * ca - dy * sa) / l, uy = (dx * sa + dy * ca) / l, fx = e.x + ux * reach, fy = e.y + uy * reach;
+      if (!this.walkLine(e.x, e.y, fx, fy, e.team)) continue;
+      const edge = Math.min(fx, fy, this.w - fx, this.h - fy), sc = Math.cos(a) * 2 + Math.min(edge, 6) * 0.5;
+      if (sc > bs) { bs = sc; best = [fx, fy]; }
+    }
+    if (!best) return false;
+    e.flee = { x: best[0], y: best[1], t: this.time + dur }; e.fleeCd = this.time + dur + 0.25; e.path = null; return true;
   }
   // push a unit away along (ux, uy); heavier bodies move less and shrug off the stagger
   _knock(t, ux, uy, power, stag) {
