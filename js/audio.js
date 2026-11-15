@@ -169,10 +169,16 @@ function loopNode(name) {
 }
 music.set = function (mode, force) {
   music.want = mode; if (!ac || !CLIP.ok) return;
-  const lv = { edit: { amb_camp: 1 }, battle: { mus_drums: .32, amb_battle: .0 }, none: {} }[mode] || {};
-  for (const name of ['amb_camp', 'mus_drums', 'amb_battle']) { const n = loopNode(name); if (n) n.gain.setTargetAtTime(music.on && on ? (lv[name] || 0) : 0, ac.currentTime, force ? .05 : .8); }
+  // Gemini (Lyria) tracks when present, otherwise the generated drum loop and camp ambience
+  if (mode === 'battle' && music.mode !== 'battle') { const opts = ['mus_battle', 'mus_battle2'].filter(has); music.track = opts.length ? opts[(Math.random() * opts.length) | 0] : 'mus_drums'; }
+  music.mode = mode;
+  const menu = has('mus_menu'), lv = mode === 'edit' ? (menu ? { mus_menu: .55, amb_camp: .35 } : { amb_camp: 1 }) : mode === 'battle' ? { [music.track]: music.track === 'mus_drums' ? .32 : .42 } : {};
+  for (const name of ['amb_camp', 'mus_menu', 'mus_drums', 'mus_battle', 'mus_battle2', 'amb_battle']) { if (name === 'amb_battle') continue; const n = loopNode(name); if (n) n.gain.setTargetAtTime(music.on && on ? (lv[name] || 0) : 0, ac.currentTime, force ? .05 : .8); }
 };
 const SWORD = { sword: 1, greatsword: 1, zweihander: 1, katana: 1, lance: 1 };
+// signature shouts on attack: [clip, chance, level]
+const SIG = { samurai: ['kiai', .3, .45], berserker: ['roar', .2, .45], jaguar: ['whoop', .2, .45], landsknecht: ['grunt', .2, .35], legionary: ['bash', .15, .3], hoplite: ['bash', .2, .3] };
+let lastVoice = 0;
 
 AB.Audio = {
   unlock() { if (init()) { if (ac.state === 'suspended') ac.resume(); loadClips(); } },
@@ -191,19 +197,21 @@ AB.Audio = {
       const wet = 0.12 + Math.min(0.5, far * 0.3) + (1 - zf) * 0.25, pan = dx * 0.8;
       switch (e.k) {
         case 'hit': {
-          if (e.a === 'bld') { if (!clip(e.b === 'ram' ? 'boulder' : 'chop', (e.b === 'ram' ? .5 : .35) * vol, pan, wet, e.b === 'ram' ? .7 : .8)) play(e.b === 'ram' ? 'impact' : 'wood', .4 * vol, pan, wet); break; }
+          if (e.a === 'bld') { if (!clip(e.b === 'ram' ? 'ramhit' : 'chop', (e.b === 'ram' ? .6 : .35) * vol, pan, wet, e.b === 'ram' ? 1 : .8)) play(e.b === 'ram' ? 'impact' : 'wood', .4 * vol, pan, wet); break; }
           const U = AB.UNITS[e.b], wpn = U && U.look && U.look.wpn, heavy = Math.min(1, (e.c || 0) / 2.5);
           let name = 'clash', rate = 1;
-          if (e.b === 'elephant') { name = 'boulder'; rate = .6; } else if (e.b === 'wolf') { name = 'hit'; rate = 1.3; }
+          const sig = SIG[e.b]; if (sig && Math.random() < sig[1]) clip(sig[0], (sig[2] || .4) * vol, pan, wet);
+          if (e.b === 'elephant') { name = 'boulder'; rate = .6; } else if (e.b === 'wolf') { name = 'growl'; }
+          else if (e.b === 'legionary' && Math.random() < .45) name = 'bash';
           else if (wpn === 'spear' || wpn === 'pike' || wpn === 'sarissa' || wpn === 'fork') name = Math.random() < .7 ? 'stab' : 'block';
           else if (wpn === 'axes' || wpn === 'axe') name = 'chop'; else if (wpn === 'macuahuitl' || wpn === 'staff' || wpn === 'club' || e.b === 'levy') name = 'blunt';
           else if (SWORD[wpn]) name = Math.random() < .5 ? 'clash' : Math.random() < .6 ? 'hit' : 'block';
           if (!clip(name, (.32 + heavy * .25) * vol, pan, wet, rate)) play('block', .3 * vol, pan, wet);
           if (Math.random() < .14) clip('grunt', .3 * vol, pan, wet);
-          if (e.a === 'charge') { clip('hit', .55 * vol, pan, wet, .85); clip('charge', .5 * vol, pan, wet); }
+          if (e.a === 'charge') { clip(wpn === 'lance' ? 'lance' : 'hit', .6 * vol, pan, wet, .9); clip('charge', .5 * vol, pan, wet); }
           break; }
         case 'shoot': {
-          const k = e.a, m = { arrow: ['bow', .32], bolt: ['xbow', .35], bigbolt: ['xbow', .55, .7], javelin: ['stab', .25, 1.3], axe: ['stab', .25, 1.2], bullet: ['musket', .45], ball: ['cannon', .8], stone: ['catapult', .6], boulder: ['catapult', .8, .8], fire: ['rocket', .6] }[k];
+          const k = e.a, m = { arrow: ['bow', .32], bolt: ['xbow', .35], bigbolt: ['ballista', .55], javelin: ['throw', .3], axe: ['throw', .3, .9], bullet: ['musket', .45], ball: ['cannon', .8], stone: ['catapult', .6], boulder: ['treb', .8], fire: ['rocket', .6] }[k];
           if (!m || !clip(m[0], m[1] * vol, pan, wet + (k === 'ball' ? .2 : 0), m[2])) { if (k === 'arrow') play('release', .3 * vol, pan, wet); else if (k === 'ball') play('cannon', .7 * vol, pan, wet); else if (k === 'bullet') play('gun', .45 * vol, pan, wet); }
           break; }
         case 'thud': if (!clip(e.b === 1 ? 'chop' : e.b === 2 ? 'woodbreak' : 'arrowhit', (e.b === 2 ? .15 : .28) * vol, pan, wet, e.b === 1 ? 1.3 : 1)) play('flesh', .3 * vol, pan, wet); break;
@@ -213,8 +221,9 @@ AB.Audio = {
           const t = e.b, cav = e.a === 'cav' || t === 'commander';
           if (t === 'elephant') clip('elephant', .7 * vol, pan, wet) || play('ele', .7 * vol, pan, wet);
           else if (t === 'wolf') clip('wolf', .45 * vol, pan, wet) || play('wolf', .4 * vol, pan, wet);
+          else if (t === 'camel') { clip('camel', .5 * vol, pan, wet); clip('die', .3 * vol, pan, wet); }
           else if (e.a === 'siege') clip('woodbreak', .5 * vol, pan, wet) || play('wood', .5 * vol, pan, wet);
-          else { if (cav && Math.random() < .55) clip('horse', .45 * vol, pan, wet); clip('die', .42 * vol, pan, wet) || play('die', .45 * vol, pan, wet, 'man'); }
+          else { if (cav) { clip(Math.random() < .5 ? 'horse' : 'horsefall', .45 * vol, pan, wet); } clip('die', .42 * vol, pan, wet) || play('die', .45 * vol, pan, wet, 'man'); }
           break; }
         case 'collapse': clip('collapse', .9 * vol, pan, wet + .2) || play('crash', .9 * vol, pan, wet + .2); break;
         case 'heal': clip('pray', .18 * vol, pan, wet); break;           // a murmur, not a chime
@@ -244,6 +253,13 @@ AB.Audio = {
   win() { music.set('none'); if (!clip('victory', .7, 0, .3)) synthWin(); setTimeout(() => music.set(music.want === 'none' ? 'edit' : music.want), 6000); },
   lose() { music.set('none'); if (!clip('defeat', .7, 0, .35)) synthLose(); setTimeout(() => music.set(music.want === 'none' ? 'edit' : music.want), 6000); },
   click() { if (init()) play('tick', 0.2, 0, 0.1); },
+  // a unit answering in its own language when selected ('s') or ordered ('c')
+  voice(t, kind) {
+    if (!t || !on || !init()) return; if (ac.state === 'suspended') ac.resume(); loadClips();
+    const now = ac.currentTime; if (now - lastVoice < .45) return; lastVoice = now;
+    const name = 'v_' + t + '_' + kind; if (!has(name)) return;
+    const L = CLIP.buf[name], src = ac.createBufferSource(); src.buffer = L[(Math.random() * L.length) | 0]; src.connect(out(.75, 0, .08)); src.start(now);
+  },
   debug() { return { decoded: Object.keys(CLIP.buf).length, played: CLIP.played, ctx: ac, master }; },
 };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

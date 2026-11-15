@@ -64,8 +64,12 @@ PREVIEW=1 python tools/bake/bake.py -- /tmp/prev knight   # 3방향 8프레임�
 
 효과음과 배경 소리는 ElevenLabs 효과음 생성 API로 만든 클립입니다(`assets/audio/`, 52개, 약 1.6MB). 칼 부딪힘·베기·막기·도끼·찌르기, 활·석궁·화승총·대포·투석기·화차, 비명과 신음, 말·코끼리·늑대, 성벽 붕괴, 뿔나팔·함성·승리와 패배, 그리고 반복 재생하는 전투 북소리·전장 소음·야영지 분위기가 있습니다. 게임은 재생할 때마다 음높이와 크기를 조금씩 바꾸고, 파일을 불러올 수 없을 때(`file://`)는 브라우저 합성음으로 대신합니다.
 
+병종마다 고유한 소리도 있습니다. 사무라이 기합, 광전사 포효, 재규어 전사 함성, 로마 방패 밀치기, 기사 창 돌격, 공성추 성문 타격, 노포·평형추 투석기 발사, 늑대 으르렁, 낙타 울음 등입니다. 유닛을 선택하거나 명령하면 그 병종이 자기 언어로 대답합니다(라틴어, 그리스어, 일본어, 독일어, 프랑스어, 중국어, 한국어 등, 34종 × 4줄, ElevenLabs 음성 합성). 대사는 이 게임을 위해 새로 쓴 것입니다.
+
 ```
-ELEVENLABS_API_KEY=... python3 tools/audio/gen.py      # tools/audio/raw/ 에 생성 (키는 파일에 저장하지 않음)
+ELEVENLABS_API_KEY=... python3 tools/audio/gen.py      # 효과음 → tools/audio/raw/ (키는 파일에 저장하지 않음)
+ELEVENLABS_API_KEY=... python3 tools/audio/voices.py   # 병종 음성
+GEMINI_API_KEY=... python3 tools/audio/music_gemini.py # 배경음악 (Lyria, 30초 연주곡 4곡) — 있으면 게임이 우선 사용
 python3 tools/audio/pack.py                            # 다듬고 크기를 맞춰 assets/audio/ 로
 ```
 

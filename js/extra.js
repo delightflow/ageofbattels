@@ -4,7 +4,7 @@
 'use strict';
 const AB = window.AB, A = AB.App, H = A.H, S = AB.Scenario, U = AB.UNITS, T = AB.T, el = A.el, $ = A.$;
 Object.assign(AB.L.ko, {
-  codex: '병종 도감', lab: '실험실', chal: '도전', follow: '관전 카메라', howPlay: '어떻게 즐길까요?', orPreset: '또는 예제 전투로 바로 구경하기',
+  hearIt: '대사 듣기', codex: '병종 도감', lab: '실험실', chal: '도전', follow: '관전 카메라', howPlay: '어떻게 즐길까요?', orPreset: '또는 예제 전투로 바로 구경하기',
   m_watch: '전투 구경', m_watchD: '예제 전투를 고르거나 직접 지도를 만들고, 누가 이길지 맞혀 보세요.', m_lab: '실험실', m_labD: '같은 비용이면 누가 이길까? 수십 번 싸워 승률을 냅니다.',
   m_codex: '병종 도감', m_codexD: '34종 병종의 능력치, 특수 능력, 역사를 둘러봅니다.', m_chal: '도전', m_chalD: '정해진 적군을 제한된 예산으로 꺾는 퍼즐 8개.',
   tryLab: '실험실에서 시험', place: '이 병종 배치하기', seeCodex: '도감 ▸', stats: '능력치', vsWeak: '약한 상대', vsStrong: '강한 상대',
@@ -23,7 +23,7 @@ Object.assign(AB.L.ko, {
   firstBlood: '첫 피', razedF: '파괴', vet: '베테랑', killsN: '{n}처치', fell: '전사', hpL: '체력', killsL: '처치', rankL: '계급',
 });
 Object.assign(AB.L.en, {
-  codex: 'Codex', lab: 'Lab', chal: 'Challenges', follow: 'Follow cam', howPlay: 'How do you want to play?', orPreset: 'Or jump straight into a ready-made battle',
+  hearIt: 'Hear them', codex: 'Codex', lab: 'Lab', chal: 'Challenges', follow: 'Follow cam', howPlay: 'How do you want to play?', orPreset: 'Or jump straight into a ready-made battle',
   m_watch: 'Watch a battle', m_watchD: 'Pick a battle or build a map, then guess who wins.', m_lab: 'Lab', m_labD: 'Who wins at equal cost? Fight dozens of times and get the odds.',
   m_codex: 'Codex', m_codexD: 'Stats, abilities and history for all 34 troop types.', m_chal: 'Challenges', m_chalD: 'Eight puzzles: beat a fixed army on a budget.',
   tryLab: 'Test in the lab', place: 'Place this unit', seeCodex: 'Codex ▸', stats: 'Stats', vsWeak: 'Weak against', vsStrong: 'Strong against',
@@ -41,6 +41,7 @@ Object.assign(AB.L.en, {
   odds: '{n} simulated battles', oddsWait: 'Simulating…', upset: 'Upset! The winner had only {p}% in simulation', teamX: 'Team {t}',
   firstBlood: 'First blood', razedF: 'razed', vet: 'veteran', killsN: '{n} kills', fell: 'fell', hpL: 'HP', killsL: 'Kills', rankL: 'Rank',
 });
+const G_AUDIO = window.AB_AUDIO;
 const F = (k, o) => T(k).replace(/\{(\w+)\}/g, (m, n) => o[n] != null ? o[n] : m);
 const UNIT_LIST = AB.UNIT_ORDER.slice();
 const name = t => T('u_' + t), pname = p => T('p_' + AB.PLAYERS[p].id);
@@ -111,6 +112,7 @@ function codexDlg(t) {
     detail.appendChild(el('div', 'hist', T('h_' + t2)));
     const f = el('div', 'foot');
     if (!ud.bld && ud.atk) { const b1 = el('button', '', T('tryLab')); b1.onclick = () => labDlg(t2); f.appendChild(b1); }
+    if (G_AUDIO && G_AUDIO['v_' + t2 + '_s']) { const bv = el('button', '', '🔊 ' + T('hearIt')); bv.onclick = () => { AB.Audio.unlock(); AB.Audio.voice(t2, Math.random() < .5 ? 's' : 'c'); }; f.prepend(bv); }
     const b2 = el('button', 'primary', T('place')); b2.onclick = () => { if (A.st.mode !== 'edit') A.stopBattle(); A.closeModal(); if (ud.bld) { A.st.bt = t2; A.setTool('bld'); } else { A.st.ut = t2; A.st.cat = 'all'; A.setTool('unit'); } }; f.appendChild(b2);
     const c = el('button', '', T('close')); c.onclick = A.closeModal; f.appendChild(c); detail.appendChild(f);
     animate(stage, t2);

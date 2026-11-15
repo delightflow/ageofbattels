@@ -278,8 +278,9 @@ function entAt(wx, wy) {
   for (const e of sim.ents) { if (e.dead) continue; if (e.bld) { if (wx >= e.x0 && wx < e.x1 && wy >= e.y0 && wy < e.y1) return e; continue; } const d = Math.hypot(e.x - wx, e.y - wy + 0.35) - e.r; if (d < bd) { bd = d; best = e; } }
   return best;
 }
+function topType() { const c = {}; let best = null; sel.forEach(u => { c[u.t] = (c[u.t] || 0) + 1; if (!best || c[u.t] > c[best]) best = u.t; }); return best; }
 function command(sx, sy) {
-  if (!sim || !sel.size) return; const [wx, wy] = R.s2w(sx, sy), any = sel.values().next().value, t = entAt(wx, wy);
+  if (!sim || !sel.size) return; AB.Audio.voice(topType(), 'c'); const [wx, wy] = R.s2w(sx, sy), any = sel.values().next().value, t = entAt(wx, wy);
   if (t && t.team !== any.team) { sim.order(sel, { k: 'atk', t }); marker = { x: t.x, y: t.y, t: 0, atk: 1 }; return; }
   const list = [...sel], n = list.length, cols = Math.ceil(Math.sqrt(n)), sp = 0.75; list.forEach((e, i) => { e.ox = ((i % cols) - (cols - 1) / 2) * sp; e.oy = (((i / cols) | 0) - (Math.ceil(n / cols) - 1) / 2) * sp; });
   sim.order(sel, { k: 'move', x: wx, y: wy }); marker = { x: wx, y: wy, t: 0 };
@@ -297,6 +298,7 @@ function selectBox(x0, y0, x1, y1) {
       if (click) { const dd = Math.hypot(sx - x0, sy - 10 * R.cam.z - y0); if (dd < nd) { nd = dd; near = u; } } else if (sx >= xa && sx <= xb && sy >= ya && sy <= yb) sel.add(u); }
     if (near) sel.add(near);
   }
+  if (sel.size) AB.Audio.voice(topType(), 's');
   updateSel();
 }
 cv.addEventListener('pointerdown', e => {
