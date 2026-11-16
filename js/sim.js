@@ -187,7 +187,7 @@ class Sim {
     if (d.phalanx) { let n = 0; const self = this; this.near(e.x, e.y, 1.2, c => { if (c !== e && c.team === e.team && !c.bld && !c.dead && self.cdist(e, c) < 1.05) n++; }); e.adj = Math.min(d.phalanx, n); }
     // ranged micro: back off while reloading if a melee enemy closes in, then turn and shoot. Units that cannot outrun the
     // threat fall back behind the nearest friendly melee instead of running in the open.
-    if (d.proj && d.spd && d.cat !== 'siege' && !e.order && e.stance !== 2 && this.time >= e.fleeCd) {
+    if (d.proj && d.spd && d.cat !== 'siege' && (!e.order || e.order.k === 'atk') && e.stance !== 2 && this.time >= e.fleeCd) {
       let th = null, td = d.kite ? 3.2 : Math.max(1.8, Math.min(3.2, d.rng * 0.5)); const self = this;   // long reach: start backing off earlier
       this.near(e.x, e.y, 4.5, c => { if (c.team === e.team || c.dead || c.bld || c.d.proj || !c.d.spd || !c.d.atk) return; const g = self.gap(e, c); if (g < td) { td = g; th = c; } });
       if (th) {
