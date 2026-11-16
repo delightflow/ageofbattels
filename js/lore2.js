@@ -69,6 +69,7 @@ const ko = {
   h_steppelancer: '쿠만(킵차크) 유목민은 초원의 빠른 말 위에서 긴 창과 활을 함께 썼습니다. 비잔틴과 헝가리, 루스의 군대에 용병으로 자주 고용되었습니다.',
   h_elephantarcher: '인도의 왕들은 코끼리 위 가마에 궁수를 태워 높은 곳에서 쏘게 했습니다. 큰 몸집 덕분에 적의 화살을 많이 견뎠습니다.',
 
+  ab_openArrow: '선제 사격 · 맞붙기 전에 활을 한 번 쏜다', ab_openFlame: '화염 분사 · 맞붙기 전에 불을 한 번 뿜어 주변까지 태운다', ab_dmgOf: '피해', ab_rngOf: '사거리',
   ab_ignA: '갑옷 무시 · 적의 방어를 무시하고 피해를 준다', ab_shred: '갑옷 부수기 · 때릴 때마다 적의 방어 -1 (최대 -3)', ab_bomb: '자폭 · 부딪혀 터지며 주변까지 날린다',
 };
 const en = {
@@ -138,9 +139,19 @@ const en = {
   h_steppelancer: 'Cuman (Kipchak) nomads fought from swift steppe horses with long lances and bows, and were often hired by Byzantium, Hungary and the Rus\'.',
   h_elephantarcher: 'Indian kings put archers in howdahs on elephants to shoot from on high. The great beasts could soak up many arrows.',
 
+  ab_openArrow: 'Opening volley · shoots once before the clash', ab_openFlame: 'Fire blast · spurts flame once before the clash, burning those nearby', ab_dmgOf: 'damage', ab_rngOf: 'range',
   ab_ignA: 'Armour-piercing · ignores the target\'s armour', ab_shred: 'Armour-breaker · each blow strips 1 armour (up to 3)', ab_bomb: 'Explodes · blows up on contact, hurting everything nearby',
 };
 Object.assign(AB.L.ko, ko); Object.assign(AB.L.en, en);
 const base = AB.abilities;
-AB.abilities = function (d) { const a = base(d); if (d.ignA) a.push('ignA'); if (d.shred) a.push('shred'); if (d.bomb) a.push('bomb'); return a; };
+AB.abilities = function (d) {
+  const a = base(d).map(k => k !== 'opener' ? k : d.opener.proj === 'arrow' ? 'openArrow' : d.opener.proj === 'flame' ? 'openFlame' : k);
+  if (d.ignA) a.push('ignA'); if (d.shred) a.push('shred'); if (d.bomb) a.push('bomb'); return a;
+};
+// the full line for an ability, with the numbers that matter (the opening throw's damage and reach)
+AB.abText = function (k, d) {
+  const T = AB.T, s = T('ab_' + k);
+  if (d.opener && (k === 'opener' || k === 'openArrow' || k === 'openFlame')) return s + ' (' + T('ab_dmgOf') + ' ' + d.opener.atk + ', ' + T('ab_rngOf') + ' ' + d.opener.rng + ')';
+  return s;
+};
 })(typeof globalThis !== 'undefined' ? globalThis : this);

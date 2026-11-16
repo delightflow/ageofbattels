@@ -111,7 +111,7 @@ function codexDlg(t) {
     const t2 = codexSel, ud = U[t2]; detail.textContent = '';
     const head = el('div', 'cx-head'), stage = el('canvas', 'cx-stage'); stage.width = 460; stage.height = 360; head.appendChild(stage);
     const info = el('div'); info.append(el('h2', '', name(t2)), el('div', 'cx-origin', T('o_' + t2)), el('p', 'cx-desc', T('d_' + t2)), statBars(t2)); head.appendChild(info); detail.appendChild(head);
-    const ab = AB.abilities(ud); if (ab.length) { const ul = el('ul', 'abil'); ab.forEach(k => ul.appendChild(el('li', '', T('ab_' + k)))); detail.appendChild(ul); }
+    const ab = AB.abilities(ud); if (ab.length) { const ul = el('ul', 'abil'); ab.forEach(k => ul.appendChild(el('li', '', AB.abText(k, ud)))); detail.appendChild(ul); }
     const { strong, weak } = counters(t2);
     if (strong.length) { detail.appendChild(el('h5', '', T('vsStrong'))); detail.appendChild(vsRow(strong, 'good')); }
     if (weak.length) { detail.appendChild(el('h5', '', T('vsWeak'))); detail.appendChild(vsRow(weak, 'bad')); }
@@ -309,7 +309,7 @@ function inspDraw(force) {
     if (d.atk || d.heal) row.appendChild(statCell('⏱', T('rate'), d.rof + 's'));
     insp.appendChild(row);
     const ln = el('div', 'ln'), hpT = el('b'), kT = el('b'); ln.append(el('span', '', T('hpL') + ' '), hpT, el('span', '', ' · ' + T('killsL') + ' '), kT); insp.appendChild(ln); insp._hpT = hpT; insp._k = kT;
-    const ab = AB.abilities(d); if (ab.length) insp.appendChild(el('div', 'ab', ab.map(q => T('ab_' + q).split(' · ')[0]).join(' · ')));
+    const ab = AB.abilities(d); if (ab.length) insp.appendChild(el('div', 'ab', ab.map(q => T('ab_' + q).split(' · ')[0] + (d.opener && /^open/.test(q) ? ' ' + d.opener.atk : '')).join(' · ')));
     if (!d.bld) { const { strong, weak } = counters(t), cut = L => L.slice(0, 3).map(name).join(', ') + (L.length > 3 ? '…' : '');
       if (strong.length || weak.length) insp.appendChild(el('div', 'vsl', (strong.length ? '▲ ' + cut(strong) : '') + (strong.length && weak.length ? '   ' : '') + (weak.length ? '▼ ' + cut(weak) : ''))); }
     if (!live) insp.appendChild(el('p', '', T('h_' + t).split(/(?<=[.다])\s/)[0]));
